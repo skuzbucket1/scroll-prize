@@ -1,0 +1,45 @@
+#!/bin/bash
+# EC2 user-data (runs once as root at first boot). Placeholders @...@ are filled in by spot_up.sh.
+exec > /var/log/scroll-bootstrap.log 2>&1
+set -uo pipefail
+# HARD LIMIT first: power off after @MAX_MINUTES@ minutes; instance-initiated shutdown behaviour is "terminate".
+shutdown -h +@MAX_MINUTES@ "scroll-prize spot hard limit reached"
+mkdir -p /opt/scroll && chown ubuntu:ubuntu /opt/scroll
+echo "bootstrap start $(date -u +%FT%TZ)" > /opt/scroll/bootstrap.times
+apt-get update -y && apt-get install -y git zstd rsync curl || { touch /opt/scroll/BOOTSTRAP-FAILED; exit 1; }
+cat > /opt/scroll/setup.sh <<'SETUP'
+#!/bin/bash
+set -euo pipefail
+cd /opt/scroll
+curl -LsSf https://astral.sh/uv/install.sh | sh
+export PATH=$HOME/.local/bin:$PATH
+git clone -q --filter=blob:none https://github.com/ScrollPrize/villa.git villa
+cd villa && git checkout -q @VILLA_COMMIT@ && cd vesuvius
+# ink inference does not need the compiled VC bindings, so skip building that package
+uv sync --extra models --no-install-package volume-cartographer
+uv run --no-sync python -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available(), torch.cuda.get_device_name(0) if torch.cuda.is_available() else '-')" | tee /opt/scroll/torch.txt
+cd /opt/scroll
+URL=$(curl -s https://api.github.com/repos/ScrollPrize/villa/releases/tags/@VC3D_RELEASE@ | grep -oE '"browser_download_url": "[^"]+linux-x86_64\.AppImage"' | head -1 | cut -d'"' -f4)
+curl -sL -o vc3d.AppImage "$URL" && chmod +x vc3d.AppImage && ./vc3d.AppImage --appimage-extract > /dev/null && mv squashfs-root vc3d && rm vc3d.AppImage
+echo "$URL" > /opt/scroll/vc3d.txt
+QT_QPA_PLATFORM=offscreen ./vc3d/AppRun vc_render_tifxyz --help | head -1
+mkdir -p /opt/scroll/hf
+cd /opt/scroll/villa/vesuvius && uv run --no-sync python - <<'PY'
+from huggingface_hub import hf_hub_download
+d = "/opt/scroll/hf"
+for repo, files in (("scrollprize/ink_9um", ["hybrid_3d2d-seed42/step-075000.pth", "hybrid_3d2d-seed43/step-075000.pth"]),
+                    ("scrollprize/hecate", ["hecate_9.6um.pth", "hecate.py"]),
+                    ("Nieuwlaar/ink9um-dense-native", ["weights/dense_native_016000.safetensors", "training/configs/train_dense_native.json"])):
+    for f in files:
+        print(hf_hub_download(repo, f, local_dir=f"{d}/{repo.split('/')[1]}"))
+PY
+SETUP
+chmod +x /opt/scroll/setup.sh
+if sudo -u ubuntu -H /opt/scroll/setup.sh; then
+  nvidia-smi > /opt/scroll/nvidia-smi.txt 2>&1
+  echo "bootstrap done $(date -u +%FT%TZ)" >> /opt/scroll/bootstrap.times
+  touch /opt/scroll/BOOTSTRAP-DONE
+else
+  echo "bootstrap failed $(date -u +%FT%TZ)" >> /opt/scroll/bootstrap.times
+  touch /opt/scroll/BOOTSTRAP-FAILED
+fi

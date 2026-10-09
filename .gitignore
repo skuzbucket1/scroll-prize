@@ -11,3 +11,5 @@ docs/img/*.tif
 *.tif
 .DS_Store
 __pycache__/
+aws/spot.env
+aws/state/

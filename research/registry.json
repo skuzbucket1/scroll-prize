@@ -704,6 +704,7 @@
  ],
  "next": [
   "Geometry triage of all snapped exp-30k windings (flatten + 66-layer render + CT preview; running on GPU 0).",
+  "AWS spot burst (scripts ready in aws/, not yet run): g4dn.2xlarge spot (~$0.32/h, quota 8 at once) renders from S3 in-region and runs the ink ensemble; first a one-map proof of concept on the PHerc. 343 control (aws/poc.sh, < $1).",
   "Depth sweeps on the windings whose CT layer shows clean weave; villa models first (4 min/map), Hecate only where something appears (31 min/map).",
   "Finish the w070 and Lasagna-patch sweeps; build ensemble images at every depth.",
   "Old fitter (winner's version, surface-prediction distance field) attempt 3 running; snap + triage its windings if it beats exp-30k.",
