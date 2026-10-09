@@ -23,13 +23,13 @@
    "id": "P2",
    "title": "Get geometry that follows the real sheets",
    "status": "active",
-   "summary": "Global spiral fit vs. local patch growing. Current blocker: fits sit on the sheet only ~46\u201349% of the time; tracer needed inputs we were not giving it."
+   "summary": "Global spiral fit vs. local patch growing. Spiral fits plateau at ~46\u201349% on-sheet; the post-hoc snap + Lasagna flatten (PHerc. 343 recipe) gives windings with clean papyrus weave. The winner's fitter version (surface-prediction distance field) is running."
   },
   {
    "id": "P3",
    "title": "Render + ink at scale",
-   "status": "pending",
-   "summary": "Per-winding flatten \u2192 28-slice render \u2192 ink_9um (2 seeds \u00d7 2 directions), triage by row structure, then eyes."
+   "status": "active",
+   "summary": "Flatten \u2192 66-layer render \u2192 ink. Geometry triage of all 100 snapped windings and a fast ink pass (ink_9um, d \u22121..+2) are running; full four-model depth sweeps on promising windings."
   },
   {
    "id": "P4",
@@ -53,7 +53,9 @@
     "sample-9.6um-s42-075k_reverse.jpg",
     "render-sample-9.6um-z14.jpg"
    ],
-   "learned": "The ink side works when the geometry is right. Every later null result is a geometry problem until proven otherwise."
+   "learned": "The ink side works when the geometry is right. Every later null result is a geometry problem until proven otherwise.",
+   "track": "Ink & render",
+   "short": "Ink calibration"
   },
   {
    "id": "pherc0800-public",
@@ -69,7 +71,9 @@
     "PHerc0800-20251028220042_seed42-75000.jpg",
     "PHerc0800-20251028220955_seed42-75000.jpg"
    ],
-   "learned": "Re-running public segments is not a shortcut; the prize is in new geometry."
+   "learned": "Re-running public segments is not a shortcut; the prize is in new geometry.",
+   "track": "Ink & render",
+   "short": "PHerc0800 public segments"
   },
   {
    "id": "candidates",
@@ -86,7 +90,9 @@
     "PHerc0191-z-survey.jpg",
     "PHerc0191-z9500-umbilicus.jpg"
    ],
-   "learned": "Stay on PHerc0191. Crushed geometry is the norm, so solving it is the whole game."
+   "learned": "Stay on PHerc0191. Crushed geometry is the norm, so solving it is the whole game.",
+   "track": "Setup",
+   "short": "Scroll choice"
   },
   {
    "id": "pilot",
@@ -106,7 +112,9 @@
     "PHerc0191-pilot-w040-render-z14.jpg",
     "PHerc0191-pilot-w040-ink-seed42-75000.jpg"
    ],
-   "learned": "A point counts as on-sheet only within 6 voxels and 0.45 winding of its track's sheet, so more than half the track points are off the fitted surface. Ink is noise until that changes."
+   "learned": "A point counts as on-sheet only within 6 voxels and 0.45 winding of its track's sheet, so more than half the track points are off the fitted surface. Ink is noise until that changes.",
+   "track": "Spiral fit",
+   "short": "Pilot spiral fit"
   },
   {
    "id": "exp-track2x",
@@ -122,7 +130,9 @@
     "satisfied_tracks": 0.0788
    },
    "images": [],
-   "learned": "Weights are not the lever; the model cannot satisfy the tracks as posed."
+   "learned": "Weights are not the lever; the model cannot satisfy the tracks as posed.",
+   "track": "Spiral fit",
+   "short": "Track weight \u00d72"
   },
   {
    "id": "exp-30k",
@@ -140,7 +150,9 @@
    "images": [
     "PHerc0191-exp30k-w040-render.jpg"
    ],
-   "learned": "Convergence buys three points; it does not move the spiral into the outer third of the papyrus."
+   "learned": "Convergence buys three points; it does not move the spiral into the outer third of the papyrus.",
+   "track": "Spiral fit",
+   "short": "30k steps"
   },
   {
    "id": "exp-shell105",
@@ -158,7 +170,9 @@
    "images": [
     "PHerc0191-shell105-tracks-s09525-crop.png"
    ],
-   "learned": "Tooling finding #7: the fitter normalizes shell confidence by its global max; a shell sampled every 8 slices lands every interior value at 0.22, below the 0.25 threshold, so no sample is valid and the loss is 0 with no warning."
+   "learned": "Tooling finding #7: the fitter normalizes shell confidence by its global max; a shell sampled every 8 slices lands every interior value at 0.22, below the 0.25 threshold, so no sample is valid and the loss is 0 with no warning.",
+   "track": "Spiral fit",
+   "short": "Outer shell (sparse)"
   },
   {
    "id": "exp-shell105b",
@@ -174,7 +188,9 @@
     "satisfied_tracks": 0.0739
    },
    "images": [],
-   "learned": "Stretching the whole spiral outward hurts the inner tracks: the inner spacing is already about right. The outer, fat sectors need more windings at wider spacing, not a stretched spiral."
+   "learned": "Stretching the whole spiral outward hurts the inner tracks: the inner spacing is already about right. The outer, fat sectors need more windings at wider spacing, not a stretched spiral.",
+   "track": "Spiral fit",
+   "short": "Outer shell (dense)"
   },
   {
    "id": "exp-dr32",
@@ -190,7 +206,9 @@
     "satisfied_tracks": 0.053
    },
    "images": [],
-   "learned": "The spacing is not re-learned by the optimizer: the initial value fixes the spiral's radial extent. The sector-dependent spacing (0.13 mm on the flat sides to 0.26 mm at the ends) needs an anisotropic flow or local supervision, not a global number."
+   "learned": "The spacing is not re-learned by the optimizer: the initial value fixes the spiral's radial extent. The sector-dependent spacing (0.13 mm on the flat sides to 0.26 mm at the ends) needs an anisotropic flow or local supervision, not a global number.",
+   "track": "Spiral fit",
+   "short": "Winding spacing \u00d72"
   },
   {
    "id": "sector-audit",
@@ -203,7 +221,9 @@
    "verdict": "finding",
    "metrics": {},
    "images": [],
-   "learned": "A crushed scroll has the same winding count in every direction with spacing varying ~2.5\u00d7 by sector. The uniform regularizer resists exactly that deformation."
+   "learned": "A crushed scroll has the same winding count in every direction with spacing varying ~2.5\u00d7 by sector. The uniform regularizer resists exactly that deformation.",
+   "track": "Spiral fit",
+   "short": "Sector audit"
   },
   {
    "id": "tracer-nodir",
@@ -218,7 +238,9 @@
    "images": [
     "PHerc0191-grown-patch-render-z14.jpg"
    ],
-   "learned": "Without its guidance inputs the tracer ignores the data entirely."
+   "learned": "Without its guidance inputs the tracer ignores the data entirely.",
+   "track": "Patch growing",
+   "short": "Tracer, no guidance"
   },
   {
    "id": "fiber",
@@ -231,7 +253,9 @@
    "verdict": "done",
    "metrics": {},
    "images": [],
-   "learned": "Two encodings, one formula ((u8\u2212128)/127), different layouts. Converted with symlinks plus a computed z component."
+   "learned": "Two encodings, one formula ((u8\u2212128)/127), different layouts. Converted with symlinks plus a computed z component.",
+   "track": "Patch growing",
+   "short": "Fiber direction field"
   },
   {
    "id": "tracer-dirfield",
@@ -246,7 +270,9 @@
    "images": [
     "PHerc0191-dirfield2-gen70-render.jpg"
    ],
-   "learned": "Every growth candidate was accepted \u2014 the data terms were inactive. The docs mark normal grids as REQUIRED for the tracer; no run had passed them."
+   "learned": "Every growth candidate was accepted \u2014 the data terms were inactive. The docs mark normal grids as REQUIRED for the tracer; no run had passed them.",
+   "track": "Patch growing",
+   "short": "Tracer + fiber field"
   },
   {
    "id": "tracer-normalgrid",
@@ -261,7 +287,9 @@
    "images": [
     "PHerc0191-ng70-render.jpg"
    ],
-   "learned": "The patch route is alive. Next: xz/yz normal-grid planes, a cleaner seed, direction weight, Lasagna normals as an alternative field."
+   "learned": "The patch route is alive. Next: xz/yz normal-grid planes, a cleaner seed, direction weight, Lasagna normals as an alternative field.",
+   "track": "Patch growing",
+   "short": "Tracer + normal grids"
   },
   {
    "id": "winding-cache",
@@ -274,7 +302,9 @@
    "verdict": "done",
    "metrics": {},
    "images": [],
-   "learned": "The smoke run sized the full cache: the documented (step 3, spacing 60) settings would have needed 776 GB."
+   "learned": "The smoke run sized the full cache: the documented (step 3, spacing 60) settings would have needed 776 GB.",
+   "track": "Spiral fit",
+   "short": "Winding-model cache"
   },
   {
    "id": "tracer-ng100w3",
@@ -289,7 +319,9 @@
    "images": [
     "PHerc0191-ng100w3-render.jpg"
    ],
-   "learned": "Weighting the direction term harder does not stop crossings. Next: the missing xz/yz normal-grid planes, a seed chosen on a clean region, and the Lasagna normals as an alternative field."
+   "learned": "Weighting the direction term harder does not stop crossings. Next: the missing xz/yz normal-grid planes, a seed chosen on a clean region, and the Lasagna normals as an alternative field.",
+   "track": "Patch growing",
+   "short": "Tracer, field weight 3"
   },
   {
    "id": "exp-dirlow",
@@ -305,7 +337,9 @@
     "satisfied_tracks": 0.0773
    },
    "images": [],
-   "learned": "With the shell active the envelope is right and the interior is wrong: windings are spread incorrectly inside a correct outer boundary. Local spacing supervision (winding model) is the direct remedy, not a uniform stretch or a weaker regularizer. Confounded with the shell; exp-dirlow2 isolates the regularizer."
+   "learned": "With the shell active the envelope is right and the interior is wrong: windings are spread incorrectly inside a correct outer boundary. Local spacing supervision (winding model) is the direct remedy, not a uniform stretch or a weaker regularizer. Confounded with the shell; exp-dirlow2 isolates the regularizer.",
+   "track": "Spiral fit",
+   "short": "Low regularizer + shell"
   },
   {
    "id": "winding-export",
@@ -318,7 +352,9 @@
    "verdict": "done",
    "metrics": {},
    "images": [],
-   "learned": "The 104 GB cache reduces to 1 MB of usable supervision; the exporter keeps only each slab's centre ray. Future caches should be sized for rays, not slabs."
+   "learned": "The 104 GB cache reduces to 1 MB of usable supervision; the exporter keeps only each slab's centre ray. Future caches should be sized for rays, not slabs.",
+   "track": "Spiral fit",
+   "short": "Winding supervision export"
   },
   {
    "id": "exp-wm",
@@ -336,7 +372,9 @@
    "images": [
     "PHerc0191-expwm-w040-render.jpg"
    ],
-   "learned": "Either the supervision is too sparse (6,900 rays for 1,000 slices vs ~140k in the documented PHercParis4 run) or the shell pull costs ~4 points regardless. exp-wm2 removes the shell pull (weight 0, shell kept as the required gate) to separate the two."
+   "learned": "Either the supervision is too sparse (6,900 rays for 1,000 slices vs ~140k in the documented PHercParis4 run) or the shell pull costs ~4 points regardless. exp-wm2 removes the shell pull (weight 0, shell kept as the required gate) to separate the two.",
+   "track": "Spiral fit",
+   "short": "Winding model + shell"
   },
   {
    "id": "tracer-lasagna",
@@ -352,7 +390,9 @@
     "PHerc0191-lasagna70-render.jpg",
     "PHerc0191-lasagna70-ink_seed42-75000_preview-ds2.jpg"
    ],
-   "learned": "The public Lasagna normals steer the tracer at least as well as the Fiber field. Roughly half the patch is on one sheet; ink needs a clean, flattened sheet, so no letters expected yet. A 150-generation version is running."
+   "learned": "The public Lasagna normals steer the tracer at least as well as the Fiber field. Roughly half the patch is on one sheet; ink needs a clean, flattened sheet, so no letters expected yet. A 150-generation version is running.",
+   "track": "Patch growing",
+   "short": "Tracer + Lasagna normals"
   },
   {
    "id": "snap-exp30k",
@@ -368,7 +408,9 @@
     "PHerc0191-exp30k-snapped-w070-render.jpg",
     "PHerc0191-exp30k-snapped-w040-render.jpg"
    ],
-   "learned": "Snapping fixes small normal offsets but cannot repair regions where the fit crosses between sheets. It does produce the first winding worth the full ink treatment: snapped w070 is flattened, rendered in 66 layers, and in the four-model depth sweep."
+   "learned": "Snapping fixes small normal offsets but cannot repair regions where the fit crosses between sheets. It does produce the first winding worth the full ink treatment: snapped w070 is flattened, rendered in 66 layers, and in the four-model depth sweep.",
+   "track": "Spiral fit",
+   "short": "Snap onto predicted sheets"
   },
   {
    "id": "tracer-lasagna150",
@@ -383,7 +425,9 @@
    "images": [
     "PHerc0191-lasagna150-render.jpg"
    ],
-   "learned": "An on-sheet area of order 15 cm\u00b2 in one patch is enough for a First Letters search if the ink is there. This and snapped w070 are the two candidates in the ink pipeline."
+   "learned": "An on-sheet area of order 15 cm\u00b2 in one patch is enough for a First Letters search if the ink is there. This and snapped w070 are the two candidates in the ink pipeline.",
+   "track": "Patch growing",
+   "short": "Lasagna patch, 150 gens"
   },
   {
    "id": "exp-wm2",
@@ -399,7 +443,9 @@
     "satisfied_tracks": 0.081
    },
    "images": [],
-   "learned": "With 6,900 rays the winding-model supervision is neutral, and the shell pull alone explains the ~4-point losses. The fitter route on PHerc0191 is capped near 0.46\u20130.49 with current inputs; the winner's surface-prediction distance field (old fitter) and the post-hoc snap are what remain to test."
+   "learned": "With 6,900 rays the winding-model supervision is neutral, and the shell pull alone explains the ~4-point losses. The fitter route on PHerc0191 is capped near 0.46\u20130.49 with current inputs; the winner's surface-prediction distance field (old fitter) and the post-hoc snap are what remain to test.",
+   "track": "Spiral fit",
+   "short": "Winding model, no shell"
   },
   {
    "id": "w070-sweep-early",
@@ -416,7 +462,9 @@
     "PHerc0191-w070-snapflat-ensemble-d0-mid.jpg",
     "PHerc0191-w070-s42-d+1-read.jpg"
    ],
-   "learned": "The recipe produces geometry good enough for an ink search. One depth of one winding is not a search: the letters in 343 appeared at d = +1 on one winding of many. Next: geometry triage of all 100 snapped windings, then sweeps on the ones that look like this."
+   "learned": "The recipe produces geometry good enough for an ink search. One depth of one winding is not a search: the letters in 343 appeared at d = +1 on one winding of many. Next: geometry triage of all 100 snapped windings, then sweeps on the ones that look like this.",
+   "track": "Ink & render",
+   "short": "w070 ink sweep"
   },
   {
    "id": "geometry-triage",
@@ -431,7 +479,9 @@
    "images": [
     "PHerc0191-triage-montage-1.jpg"
    ],
-   "learned": "If this holds across the band, several hundred cm\u00b2 of searchable sheet exist from one 1,000-slice fit. The ink search, not the geometry, is now the bottleneck."
+   "learned": "If this holds across the band, several hundred cm\u00b2 of searchable sheet exist from one 1,000-slice fit. The ink search, not the geometry, is now the bottleneck.",
+   "track": "Ink & render",
+   "short": "Triage of all windings"
   }
  ],
  "findings": [
