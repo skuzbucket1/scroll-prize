@@ -1,0 +1,13 @@
+# secrets and local-only material
+.secrets
+# large data, mirrors and job outputs live on the GPU box; only small previews are versioned under docs/img
+data/
+# upstream checkout (separate repo, forked as skuzbucket1/villa)
+villa/
+# working memory for the agent sessions (not research output)
+memory/
+# large previews
+docs/img/*.tif
+*.tif
+.DS_Store
+__pycache__/

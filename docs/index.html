@@ -1,0 +1,190 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vesuvius Challenge — PHerc0191 First Letters campaign</title>
+<style>
+:root{--fg:#1d1d1f;--muted:#6e6e73;--line:#e3e3e8;--bg:#fff;--card:#fafafc}
+body{font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);margin:0}
+main{max-width:1080px;margin:0 auto;padding:24px}
+h1{font-size:28px;margin:0 0 4px} h2{font-size:22px;margin:40px 0 12px;border-bottom:1px solid var(--line);padding-bottom:6px} h3{margin:6px 0 10px;font-size:19px}
+.sub{color:var(--muted);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.badge{display:inline-block;color:#fff;border-radius:999px;padding:1px 10px;font-size:12px;font-weight:600;vertical-align:middle}
+table{border-collapse:collapse;width:100%} td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:14px}
+.dim{color:var(--muted)} .up{color:#1b7f3b} .down{color:#c0392b}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+.card header .phase{font-weight:700;color:#355c9a} .card header .date{color:var(--muted);margin:0 8px}
+dl{display:grid;grid-template-columns:140px 1fr;gap:4px 12px;margin:8px 0} dt{color:var(--muted)} dd{margin:0} .learned{font-weight:500}
+.metrics{width:auto;margin:8px 0} .metrics th{font-weight:500;color:var(--muted)}
+.gallery{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px} .gallery a{display:block;width:260px;text-decoration:none;color:var(--muted);font-size:12px}
+.gallery img{width:260px;height:180px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block}
+ul.plain{padding-left:18px} ul.plain li{margin:6px 0}
+footer{color:var(--muted);font-size:13px;margin:40px 0 10px}
+</style></head><body><main>
+<h1>Vesuvius Challenge — PHerc0191 First Letters campaign</h1><p class="sub">Research log: every run, what it asked, what it showed, what changed</p>
+<div class="grid">
+ <div class="box"><b>Goal</b><br>Find 10 legible letters in a 4 cm² area of an unopened Herculaneum scroll (First Letters, $50k/scroll), and surface evidence-backed tooling fixes along the way (Progress Prizes).</div>
+ <div class="box"><b>Scroll</b><br>PHerc0191 — 9.362 µm / 113 keV scan 20250821151635, crushed cross-section, full public data (CT, Lasagna normals, tracks, surface predictions). Not in the community&#x27;s minimal-route sweeps.</div>
+ <div class="box"><b>Hardware</b><br>4-GPU Linux box (2× RTX 3060 12 GB, RTX 3060 Ti 8 GB; GTX 1660 SUPER unusable), i3-9100 4 cores, 1 TB NVMe, 300 Mbps WAN.</div>
+</div>
+<h2>Where we are</h2><ul class="plain"><li><b>P0 · Calibrate the ink detector</b> <span class="badge" style="background:#1b7f3b">Done</span><br><span class='dim'>Prove the render → ink pipeline on a segment with known text before trusting it on new geometry.</span></li><li><b>P1 · Pick a scroll and assemble its inputs</b> <span class="badge" style="background:#1b7f3b">Done</span><br><span class='dim'>PHerc0191: full CT pyramid mirrored (930 GB), Lasagna normals, tracks (9.9 GB), smoothed umbilicus, resident pools.</span></li><li><b>P2 · Get geometry that follows the real sheets</b> <span class="badge" style="background:#2a7fb8">Active</span><br><span class='dim'>Global spiral fit vs. local patch growing. Current blocker: fits sit on the sheet only ~46–49% of the time; tracer needed inputs we were not giving it.</span></li><li><b>P3 · Render + ink at scale</b> <span class="badge" style="background:#8a8a8a">Pending</span><br><span class='dim'>Per-winding flatten → 28-slice render → ink_9um (2 seeds × 2 directions), triage by row structure, then eyes.</span></li><li><b>P4 · Iterate and submit</b> <span class="badge" style="background:#8a8a8a">Pending</span><br><span class='dim'>Depth-offset sweeps where rows appear; document; submit before announcing anything.</span></li></ul>
+<h2>Progression</h2>
+<p class="dim">Spiral-fit quality is measured as the fraction of track points lying within 6 voxels and 0.45 winding of the fitted sheet (and the fraction of tracks fully satisfied). Deltas are against the pilot baseline.</p>
+<table><thead><tr><th>Date</th><th>Run</th><th>On-sheet track points</th><th>Tracks fully satisfied</th><th>Verdict</th></tr></thead><tbody><tr><td>2026-10-08</td><td><a href='#cal-paris4'>Ink detector calibration on PHercParis4 (known text)</a></td><td class='dim'>—</td><td class='dim'>—</td><td><span class="badge" style="background:#1b7f3b">Pass</span></td></tr><tr><td>2026-10-08</td><td><a href='#pherc0800-public'>PHerc0800 public segments, 36 ink runs</a></td><td class='dim'>—</td><td class='dim'>—</td><td><span class="badge" style="background:#8a8a8a">Null result</span></td></tr><tr><td>2026-10-08</td><td><a href='#pilot'>Pilot spiral fit, z 9000–10000, 10k steps</a></td><td>0.461</td><td>0.083</td><td><span class="badge" style="background:#355c9a">Baseline</span></td></tr><tr><td>2026-10-09</td><td><a href='#candidates'>Which eligible scroll? Cross-section survey</a></td><td class='dim'>—</td><td class='dim'>—</td><td><span class="badge" style="background:#355c9a">Decision</span></td></tr><tr><td>2026-10-09</td><td><a href='#exp-30k'>30k optimizer steps</a></td><td>0.490 <span class='up'>(+0.029)</span></td><td>0.102 <span class='up'>(+0.019)</span></td><td><span class="badge" style="background:#1b7f3b">Improved</span></td></tr><tr><td>2026-10-09</td><td><a href='#exp-dr32'>Initial winding spacing 16 → 32 voxels</a></td><td>0.294 <span class='down'>(-0.167)</span></td><td>0.053 <span class='down'>(-0.030)</span></td><td><span class="badge" style="background:#8a8a8a">Null result</span></td></tr><tr><td>2026-10-09</td><td><a href='#exp-shell105'>Outer shell from the CT mask (sparse) + outer winding 105</a></td><td>0.458 <span class='down'>(-0.003)</span></td><td>0.081 <span class='down'>(-0.002)</span></td><td><span class="badge" style="background:#c0392b">Bug found</span></td></tr><tr><td>2026-10-09</td><td><a href='#exp-shell105b'>Dense outer shell (every slice) + outer winding 105</a></td><td>0.396 <span class='down'>(-0.065)</span></td><td>0.074 <span class='down'>(-0.009)</span></td><td><span class="badge" style="background:#8a8a8a">Null result</span></td></tr><tr><td>2026-10-09</td><td><a href='#exp-track2x'>Track loss weight ×2</a></td><td>0.456 <span class='down'>(-0.005)</span></td><td>0.079 <span class='down'>(-0.004)</span></td><td><span class="badge" style="background:#8a8a8a">Null result</span></td></tr><tr><td>2026-10-09</td><td><a href='#fiber'>Fiber-direction inference on the band (SD2 model)</a></td><td class='dim'>—</td><td class='dim'>—</td><td><span class="badge" style="background:#1b7f3b">Done</span></td></tr><tr><td>2026-10-09</td><td><a href='#sector-audit'>Where the fitted spiral sits vs the papyrus (per 30° sector)</a></td><td class='dim'>—</td><td class='dim'>—</td><td><span class="badge" style="background:#6b3fa0">Finding</span></td></tr><tr><td>2026-10-09</td><td><a href='#tracer-dirfield'>Patch growing with the Fiber normal field</a></td><td class='dim'>—</td><td class='dim'>—</td><td><span class="badge" style="background:#8a8a8a">Null result</span></td></tr><tr><td>2026-10-09</td><td><a href='#tracer-nodir'>Patch growing (vc_grow_seg_from_seed) without direction fields</a></td><td class='dim'>—</td><td class='dim'>—</td><td><span class="badge" style="background:#8a8a8a">Null result</span></td></tr><tr><td>2026-10-09</td><td><a href='#tracer-normalgrid'>Patch growing with normal grids + Fiber normal field</a></td><td class='dim'>—</td><td class='dim'>—</td><td><span class="badge" style="background:#b7791f">Partial</span></td></tr><tr><td>2026-10-09</td><td><a href='#winding-cache'>Winding-model supervision cache for the band</a></td><td class='dim'>—</td><td class='dim'>—</td><td><span class="badge" style="background:#2a7fb8">Running</span></td></tr></tbody></table>
+<h2>Findings so far</h2>
+<div class="grid"><div class="box"><b>About the scroll and the geometry</b><ul class="plain"><li><b>The ink detector is not the problem</b><br>Calibrated on known text: three legible Greek lines. All PHerc0191 nulls are geometry.</li><li><b>Minimal-route spiral fits sit on the sheet ~46–49% of the time</b><br>Satisfaction = within 6 voxels and 0.45 winding of the track&#x27;s sheet. Weights don&#x27;t help; 3× steps gives +3 points.</li><li><b>The fitted spiral never reaches the outer third</b><br>Per-sector audit: outermost winding 3–8 mm short of the boundary in the fat sectors; initial spacing fixes the radial extent; stretching hurts the inner tracks.</li><li><b>Crushed scroll = same winding count, 2.5× spacing variation by sector</b><br>0.13 mm on the flattened sides (ray audit under-counts there) to 0.26 mm at the ends. Needs anisotropic deformation or local spacing supervision.</li><li><b>Patch growing needs its normal grids</b><br>Without normal_grid_path the tracer produces data-independent discs. With them it partly follows sheets.</li></ul></div>
+<div class="box"><b>About the tools (Progress Prize material)</b><ul class="plain"><li><b>#1 libvolcomp not installed by the VC3D build (fixed, PR #2008)</b><br>One-line CMake install fix; submitted.</li><li><b>#2–#5 image tags, lockfile rewrite, remote-fetch aborts</b><br>:stable tag missing; uv.lock rewritten by sync; infer and renderer abort on a single transient remote chunk fetch.</li><li><b>#6 Shipped track-crossing cache rejected after download</b><br>Signature uses nanosecond mtime; any download zeroes sub-second mtime. 2.4 GB downloaded for nothing; every run rebuilds.</li><li><b>#7 Outer-shell loss silently zero for sparse shells</b><br>Confidence normalized by an edge spike → 0.22 &lt; 0.25 → no valid samples, no warning. Reproduced outside the fitter.</li><li><b>#8 Fiber inference needs lasagna on PYTHONPATH</b><br>geometry.py imports lasagna.omezarr_pyramid unguarded; the models extra does not ship it.</li></ul></div></div>
+<h2>Next</h2><ul class="plain"><li>exp-wm: first fit with winding-model supervision (queued after the cache export).</li><li>exp-dirlow: sym_dirichlet 10 → 2.5 with the dense shell at winding 125 (queued).</li><li>Tracer: xz/yz normal grids for the band; cleaner seed; direction weight sweep; Lasagna normals as the field.</li><li>Phase 3 on whichever geometry first renders fibre texture over most of a winding: flatten → render → ink on 2–3 mid windings.</li><li>Progress Prize write-ups for findings #6–#8 with before/after evidence.</li></ul>
+<h2>Every run, explained</h2>
+
+<section class="card" id="cal-paris4">
+  <header><span class="phase">P0</span> <span class="date">2026-10-08</span> <span class="badge" style="background:#1b7f3b">Pass</span><h3>Ink detector calibration on PHercParis4 (known text)</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Does our render → ink_9um pipeline reproduce readable letters where letters are known to exist?</dd>
+    <dt>Technique</dt><dd>vc_render_tifxyz (28 slices, flip-normals) on segment 20231016151002 at 9.6 µm, then ink_9um seeds 42/43, 40k/75k steps, both directions.</dd>
+    <dt>Result</dt><dd>Three legible Greek lines in the reverse layer order.</dd>
+    <dt>What we learned</dt><dd class="learned">The ink side works when the geometry is right. Every later null result is a geometry problem until proven otherwise.</dd>
+  </dl>
+  <div class='gallery'><a href='img/sample-9.6um-s42-075k_reverse.jpg' target='_blank'><img loading='lazy' src='img/sample-9.6um-s42-075k_reverse.jpg' alt='sample-9.6um-s42-075k_reverse.jpg'><figcaption>sample-9.6um-s42-075k_reverse.jpg</figcaption></a><a href='img/render-sample-9.6um-z14.jpg' target='_blank'><img loading='lazy' src='img/render-sample-9.6um-z14.jpg' alt='render-sample-9.6um-z14.jpg'><figcaption>render-sample-9.6um-z14.jpg</figcaption></a></div>
+</section>
+<section class="card" id="pherc0800-public">
+  <header><span class="phase">P0</span> <span class="date">2026-10-08</span> <span class="badge" style="background:#8a8a8a">Null result</span><h3>PHerc0800 public segments, 36 ink runs</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Do the six public PHerc0800 segments contain letters the community missed?</dd>
+    <dt>Technique</dt><dd>Same pipeline, 6 segments × 2 seeds × 2 checkpoints × 2 directions.</dd>
+    <dt>Result</dt><dd>No letters; mottled noise or blank.</dd>
+    <dt>What we learned</dt><dd class="learned">Re-running public segments is not a shortcut; the prize is in new geometry.</dd>
+  </dl>
+  <div class='gallery'><a href='img/PHerc0800-20251028220042_seed42-75000.jpg' target='_blank'><img loading='lazy' src='img/PHerc0800-20251028220042_seed42-75000.jpg' alt='PHerc0800-20251028220042_seed42-75000.jpg'><figcaption>PHerc0800-20251028220042_seed42-75000.jpg</figcaption></a><a href='img/PHerc0800-20251028220955_seed42-75000.jpg' target='_blank'><img loading='lazy' src='img/PHerc0800-20251028220955_seed42-75000.jpg' alt='PHerc0800-20251028220955_seed42-75000.jpg'><figcaption>PHerc0800-20251028220955_seed42-75000.jpg</figcaption></a></div>
+</section>
+<section class="card" id="pilot">
+  <header><span class="phase">P2</span> <span class="date">2026-10-08</span> <span class="badge" style="background:#355c9a">Baseline</span><h3>Pilot spiral fit, z 9000–10000, 10k steps</h3></header>
+  <dl>
+    <dt>Question</dt><dd>How well does the minimal-route spiral fit (umbilicus + Lasagna + tracks) follow PHerc0191&#x27;s sheets?</dd>
+    <dt>Technique</dt><dd>spiral-fitting fit_spiral.py, dense_spacing_mode grad_mag, tracks on, no patches/shell/winding model. 46 min on one RTX 3060.</dd>
+    <dt>Result</dt><dd>120 windings exported; on-sheet track points 46%, fully satisfied tracks 8%. Renders of w040/w070/w100 are on-sheet only in patches; ink maps are noise.</dd>
+    <dt>What we learned</dt><dd class="learned">A point counts as on-sheet only within 6 voxels and 0.45 winding of its track&#x27;s sheet, so more than half the track points are off the fitted surface. Ink is noise until that changes.</dd>
+  </dl>
+  <table class='metrics'><tr><th>satisfied_track_points</th><td>0.4607</td></tr><tr><th>satisfied_tracks</th><td>0.083</td></tr></table><div class='gallery'><a href='img/PHerc0191-pilot-tracks-s09525-crop.png' target='_blank'><img loading='lazy' src='img/PHerc0191-pilot-tracks-s09525-crop.png' alt='PHerc0191-pilot-tracks-s09525-crop.png'><figcaption>PHerc0191-pilot-tracks-s09525-crop.png</figcaption></a><a href='img/PHerc0191-pilot-w040-render-z14.jpg' target='_blank'><img loading='lazy' src='img/PHerc0191-pilot-w040-render-z14.jpg' alt='PHerc0191-pilot-w040-render-z14.jpg'><figcaption>PHerc0191-pilot-w040-render-z14.jpg</figcaption></a><a href='img/PHerc0191-pilot-w040-ink-seed42-75000.jpg' target='_blank'><img loading='lazy' src='img/PHerc0191-pilot-w040-ink-seed42-75000.jpg' alt='PHerc0191-pilot-w040-ink-seed42-75000.jpg'><figcaption>PHerc0191-pilot-w040-ink-seed42-75000.jpg</figcaption></a></div>
+</section>
+<section class="card" id="candidates">
+  <header><span class="phase">P1</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#355c9a">Decision</span><h3>Which eligible scroll? Cross-section survey</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Is PHerc0191&#x27;s crushed cross-section unusual among the eligible 9.36 µm scrolls?</dd>
+    <dt>Technique</dt><dd>Level-4 cross-sections at 40% and 65% height for PHerc0125/0211/0813/0826/0257 vs 0191.</dd>
+    <dt>Result</dt><dd>All shortlisted scrolls are crushed or folded; 0191 is typical.</dd>
+    <dt>What we learned</dt><dd class="learned">Stay on PHerc0191. Crushed geometry is the norm, so solving it is the whole game.</dd>
+  </dl>
+  <div class='gallery'><a href='img/candidates-z-survey.jpg' target='_blank'><img loading='lazy' src='img/candidates-z-survey.jpg' alt='candidates-z-survey.jpg'><figcaption>candidates-z-survey.jpg</figcaption></a><a href='img/PHerc0191-z-survey.jpg' target='_blank'><img loading='lazy' src='img/PHerc0191-z-survey.jpg' alt='PHerc0191-z-survey.jpg'><figcaption>PHerc0191-z-survey.jpg</figcaption></a><a href='img/PHerc0191-z9500-umbilicus.jpg' target='_blank'><img loading='lazy' src='img/PHerc0191-z9500-umbilicus.jpg' alt='PHerc0191-z9500-umbilicus.jpg'><figcaption>PHerc0191-z9500-umbilicus.jpg</figcaption></a></div>
+</section>
+<section class="card" id="exp-30k">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#1b7f3b">Improved</span><h3>30k optimizer steps</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Is the fit simply under-converged?</dd>
+    <dt>Technique</dt><dd>Pilot config, 3× steps (80 min).</dd>
+    <dt>Result</dt><dd>Best so far, but geometry identical (outer winding still at 21 mm mean radius).</dd>
+    <dt>What we learned</dt><dd class="learned">Convergence buys three points; it does not move the spiral into the outer third of the papyrus.</dd>
+  </dl>
+  <table class='metrics'><tr><th>satisfied_track_points</th><td>0.4901</td></tr><tr><th>satisfied_tracks</th><td>0.1018</td></tr></table>
+</section>
+<section class="card" id="exp-dr32">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#8a8a8a">Null result</span><h3>Initial winding spacing 16 → 32 voxels</h3></header>
+  <dl>
+    <dt>Question</dt><dd>The ray audit&#x27;s sheet period is 0.25–0.45 mm; does starting the spiral at the real spacing help?</dd>
+    <dt>Technique</dt><dd>model_initial_dr_per_winding 32.</dd>
+    <dt>Result</dt><dd>Much worse: 93 windings span 32 mm; windings 75+ are mostly in air.</dd>
+    <dt>What we learned</dt><dd class="learned">The spacing is not re-learned by the optimizer: the initial value fixes the spiral&#x27;s radial extent. The sector-dependent spacing (0.13 mm on the flat sides to 0.26 mm at the ends) needs an anisotropic flow or local supervision, not a global number.</dd>
+  </dl>
+  <table class='metrics'><tr><th>satisfied_track_points</th><td>0.2937</td></tr><tr><th>satisfied_tracks</th><td>0.053</td></tr></table>
+</section>
+<section class="card" id="exp-shell105">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#c0392b">Bug found</span><h3>Outer shell from the CT mask (sparse) + outer winding 105</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Does telling the fitter where the papyrus ends, and how many windings there really are (~100 by ray audit), fix the outer region?</dd>
+    <dt>Technique</dt><dd>make_outer_shell.py: boundary of the masked CT every 8 slices → tifxyz; shell_outer_winding_idx 105.</dd>
+    <dt>Result</dt><dd>No change — the shell loss was silently zero all run.</dd>
+    <dt>What we learned</dt><dd class="learned">Tooling finding #7: the fitter normalizes shell confidence by its global max; a shell sampled every 8 slices lands every interior value at 0.22, below the 0.25 threshold, so no sample is valid and the loss is 0 with no warning.</dd>
+  </dl>
+  <table class='metrics'><tr><th>satisfied_track_points</th><td>0.4577</td></tr><tr><th>satisfied_tracks</th><td>0.0812</td></tr></table><div class='gallery'><a href='img/PHerc0191-shell105-tracks-s09525-crop.png' target='_blank'><img loading='lazy' src='img/PHerc0191-shell105-tracks-s09525-crop.png' alt='PHerc0191-shell105-tracks-s09525-crop.png'><figcaption>PHerc0191-shell105-tracks-s09525-crop.png</figcaption></a></div>
+</section>
+<section class="card" id="exp-shell105b">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#8a8a8a">Null result</span><h3>Dense outer shell (every slice) + outer winding 105</h3></header>
+  <dl>
+    <dt>Question</dt><dd>With the shell loss actually active, does pulling winding 105 to the boundary help?</dd>
+    <dt>Technique</dt><dd>Shell regenerated with one row per slice (18,980 rows × 720 bins); otherwise as shell105.</dd>
+    <dt>Result</dt><dd>Shell loss active (177 at the end); outer winding moved from 16.5 to 21.5 mm mean radius; track satisfaction dropped.</dd>
+    <dt>What we learned</dt><dd class="learned">Stretching the whole spiral outward hurts the inner tracks: the inner spacing is already about right. The outer, fat sectors need more windings at wider spacing, not a stretched spiral.</dd>
+  </dl>
+  <table class='metrics'><tr><th>satisfied_track_points</th><td>0.396</td></tr><tr><th>satisfied_tracks</th><td>0.0739</td></tr></table>
+</section>
+<section class="card" id="exp-track2x">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#8a8a8a">Null result</span><h3>Track loss weight ×2</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Is the fit under-weighting the track evidence?</dd>
+    <dt>Technique</dt><dd>Pilot config with loss_weight_track_radius doubled.</dd>
+    <dt>Result</dt><dd>Slightly worse than baseline.</dd>
+    <dt>What we learned</dt><dd class="learned">Weights are not the lever; the model cannot satisfy the tracks as posed.</dd>
+  </dl>
+  <table class='metrics'><tr><th>satisfied_track_points</th><td>0.4556</td></tr><tr><th>satisfied_tracks</th><td>0.0788</td></tr></table>
+</section>
+<section class="card" id="fiber">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#1b7f3b">Done</span><h3>Fiber-direction inference on the band (SD2 model)</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Produce the direction field the tracer needs.</dd>
+    <dt>Technique</dt><dd>vesuvius fiber_trace_3d.infer, level 0, z 8500–10500, output scaled down 4×; 1.6 h on one 3060 after fixing a missing-module import (tooling finding #8).</dd>
+    <dt>Result</dt><dd>nx/ny/presence pyramids. The output is a sheet NORMAL field in Lasagna&#x27;s compact encoding, not raw fibre directions; the tracer needs an x/y/z layout, so a converter was written.</dd>
+    <dt>What we learned</dt><dd class="learned">Two encodings, one formula ((u8−128)/127), different layouts. Converted with symlinks plus a computed z component.</dd>
+  </dl>
+  
+</section>
+<section class="card" id="sector-audit">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#6b3fa0">Finding</span><h3>Where the fitted spiral sits vs the papyrus (per 30° sector)</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Is the problem spill into air or failure to reach the outer sheets?</dd>
+    <dt>Technique</dt><dd>mesh_in_mask.py: per-winding fraction of mesh vertices inside the CT mask; per-sector median radius of the outermost winding vs the CT boundary at z 9525.</dd>
+    <dt>Result</dt><dd>No winding is mostly in air. The outermost winding stops 3–8 mm (10–25 sheets) short of the boundary in the fat sectors and only just reaches it in the thin ones.</dd>
+    <dt>What we learned</dt><dd class="learned">A crushed scroll has the same winding count in every direction with spacing varying ~2.5× by sector. The uniform regularizer resists exactly that deformation.</dd>
+  </dl>
+  
+</section>
+<section class="card" id="tracer-dirfield">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#8a8a8a">Null result</span><h3>Patch growing with the Fiber normal field</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Does the direction field make the tracer follow a sheet?</dd>
+    <dt>Technique</dt><dd>dir: normal, scale 2, presence as confidence weight; 70 and 150 generations.</dd>
+    <dt>Result</dt><dd>Still flat discs (6.9 / 21.2 cm²); the field only re-oriented them.</dd>
+    <dt>What we learned</dt><dd class="learned">Every growth candidate was accepted — the data terms were inactive. The docs mark normal grids as REQUIRED for the tracer; no run had passed them.</dd>
+  </dl>
+  <div class='gallery'><a href='img/PHerc0191-dirfield2-gen70-render.jpg' target='_blank'><img loading='lazy' src='img/PHerc0191-dirfield2-gen70-render.jpg' alt='PHerc0191-dirfield2-gen70-render.jpg'><figcaption>PHerc0191-dirfield2-gen70-render.jpg</figcaption></a></div>
+</section>
+<section class="card" id="tracer-nodir">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#8a8a8a">Null result</span><h3>Patch growing (vc_grow_seg_from_seed) without direction fields</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Can local patch growing from a seed on a predicted surface avoid the global-spiral problem?</dd>
+    <dt>Technique</dt><dd>Empty-space tracing on the surface-prediction volume, 70/150 generations.</dd>
+    <dt>Result</dt><dd>Fixed discs of 6.6 / 21–31 cm² regardless of the volume; renders cut across many sheets.</dd>
+    <dt>What we learned</dt><dd class="learned">Without its guidance inputs the tracer ignores the data entirely.</dd>
+  </dl>
+  <div class='gallery'><a href='img/PHerc0191-grown-patch-render-z14.jpg' target='_blank'><img loading='lazy' src='img/PHerc0191-grown-patch-render-z14.jpg' alt='PHerc0191-grown-patch-render-z14.jpg'><figcaption>PHerc0191-grown-patch-render-z14.jpg</figcaption></a></div>
+</section>
+<section class="card" id="tracer-normalgrid">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#b7791f">Partial</span><h3>Patch growing with normal grids + Fiber normal field</h3></header>
+  <dl>
+    <dt>Question</dt><dd>With the required normal-grid input, does the patch follow a sheet?</dd>
+    <dt>Technique</dt><dd>normal_grid_path (PHerc0191 xy grids, level 0, spiral-step 20) + the direction field; 70 generations, 159 s (4× slower → losses active).</dd>
+    <dt>Result</dt><dd>First partly on-sheet patch: large regions of clean fibre texture, one diagonal band still cutting across layers; self-crossing check not clean.</dd>
+    <dt>What we learned</dt><dd class="learned">The patch route is alive. Next: xz/yz normal-grid planes, a cleaner seed, direction weight, Lasagna normals as an alternative field.</dd>
+  </dl>
+  <div class='gallery'><a href='img/PHerc0191-ng70-render.jpg' target='_blank'><img loading='lazy' src='img/PHerc0191-ng70-render.jpg' alt='PHerc0191-ng70-render.jpg'><figcaption>PHerc0191-ng70-render.jpg</figcaption></a></div>
+</section>
+<section class="card" id="winding-cache">
+  <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#2a7fb8">Running</span><h3>Winding-model supervision cache for the band</h3></header>
+  <dl>
+    <dt>Question</dt><dd>Give the spiral fitter a local measurement of sheet spacing (the &#x27;winding model&#x27;) instead of a global number.</dd>
+    <dt>Technique</dt><dd>infer_winding_volume.py native-phase cache, bootstrap = exp-30k, winding step 8, seed spacing 96 → 7,102 slabs (~107 GB at 15 MB/slab), then export_spiral_supervision.py; refit with dense_spacing_mode winding_model (exp-wm).</dd>
+    <dt>Result</dt><dd>Running (CPU-bound on slab extraction: 1.2 s/slab, GPUs idle).</dd>
+    <dt>What we learned</dt><dd class="learned">The smoke run sized the full cache: the documented (step 3, spacing 60) settings would have needed 776 GB.</dd>
+  </dl>
+  
+</section>
+<footer>Generated 2026-10-09 13:23 UTC from research/registry.json by scripts/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
+</main></body></html>
