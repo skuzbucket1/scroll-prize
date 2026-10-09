@@ -17,6 +17,9 @@ export CKPT_DIR=/opt/scroll/ckpt343 PY=/opt/scroll/villa/vesuvius/.venv/bin/pyth
 export N_LAYERS=66 NATIVE_UM=$UM VILLA_BATCH=4 HEC_BATCH=4 HEC_DEVICE=cuda TMPDIR=/opt/scroll/tmp; mkdir -p $TMPDIR
 cd /opt/scroll/villa/vesuvius
 for d in $DEPTHS; do for m in $MODELS; do
+  if [ "$m" = hecate ]; then zc=$(awk -v d="$d" 'BEGIN{printf "%.2f", 32.5 + d}'); f=$R/maps/${NAME}_66__hecate__L66zc${zc}; ext=png
+  else s=$(( 33 + d - 8 )); f=$R/maps/${NAME}_66__${m}__L66s${s}; ext=tif; fi
+  [ -s $f.$ext ] && [ -s ${f}_reverse.$ext ] && continue
   t0=$(date +%s); bash /opt/scroll/bin/ink343/run_ink.sh "$Z" $m $d $R/maps > $R/ink_${m}_d${d}.log 2>&1
   printf 'ink %s d=%s\t%s\t%s\n' $m $d $(( $(date +%s)-t0 )) $? >> $TIM
 done; done

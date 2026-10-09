@@ -9,14 +9,15 @@ source "$HERE/spot.env"
 export AWS_PAGER=""
 STATE=$HERE/state; mkdir -p "$STATE"; chmod 700 "$STATE"
 SSH_KEY=$STATE/$KEY_NAME.pem
+ISTATE=${ISTATE:-$STATE}; mkdir -p "$ISTATE"   # per-instance state (fleet workers set ISTATE=aws/state/fleet/<worker>)
 log(){ echo "[$(date -u +%H:%M:%S)] $*" >&2; }
 awsc(){ aws --profile "$AWS_PROFILE" --region "$AWS_REGION" "$@"; }
 check_account(){
   local acct; acct=$(awsc sts get-caller-identity --query Account --output text) || { echo "cannot authenticate with profile $AWS_PROFILE" >&2; exit 3; }
   [ "$acct" = "$EXPECTED_ACCOUNT_ID" ] || { echo "REFUSED: profile $AWS_PROFILE is account $acct, expected $EXPECTED_ACCOUNT_ID" >&2; exit 3; }
 }
-instance_id(){ cat "$STATE/instance_id" 2>/dev/null || true; }
-instance_ip(){ cat "$STATE/instance_ip" 2>/dev/null || true; }
+instance_id(){ cat "$ISTATE/instance_id" 2>/dev/null || true; }
+instance_ip(){ cat "$ISTATE/instance_ip" 2>/dev/null || true; }
 SSH_OPTS=(-i "$SSH_KEY" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$STATE/known_hosts" -o ConnectTimeout=15 -o ServerAliveInterval=30 -o BatchMode=yes)
 rssh(){ ssh "${SSH_OPTS[@]}" "ubuntu@$(instance_ip)" "$@"; }
 rsync_to(){ rsync -a -e "ssh ${SSH_OPTS[*]}" "$1" "ubuntu@$(instance_ip):$2"; }

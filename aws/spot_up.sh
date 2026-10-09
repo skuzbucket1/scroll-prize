@@ -34,11 +34,11 @@ ROOTDEV=$(awsc ec2 describe-images --image-ids "$AMI" --query 'Images[0].RootDev
 log "AMI $AMI ($ROOTDEV) from $AMI_SSM"
 
 # user-data
-UD=$STATE/userdata.sh
-sed -e "s|@MAX_MINUTES@|$(( MAX_HOURS * 60 ))|g" -e "s|@VILLA_COMMIT@|$VILLA_COMMIT|g" -e "s|@VC3D_RELEASE@|$VC3D_RELEASE|g" "$HERE/userdata.sh.tmpl" > "$UD"
+UD=$ISTATE/userdata.sh
+sed -e "s|@MAX_MINUTES@|$(( ${FLEET_MAX_HOURS:-$MAX_HOURS} * 60 ))|g" -e "s|@VILLA_COMMIT@|$VILLA_COMMIT|g" -e "s|@VC3D_RELEASE@|$VC3D_RELEASE|g" "$HERE/userdata.sh.tmpl" > "$UD"
 
-NAME="$PROJECT_TAG-spot-$(date -u +%Y%m%d-%H%M%S)"
-log "requesting spot (types: ${INSTANCE_TYPES:-$INSTANCE_TYPE}; max \$$MAX_PRICE/h; hard limit ${MAX_HOURS}h)"
+NAME="$PROJECT_TAG-${WORKER_NAME:-spot}-$(date -u +%Y%m%d-%H%M%S)"
+log "requesting spot (types: ${INSTANCE_TYPES:-$INSTANCE_TYPE}; max \$$MAX_PRICE/h; hard limit ${FLEET_MAX_HOURS:-$MAX_HOURS}h)"
 if [ "${MARKET:-spot}" = "ondemand" ]; then MARKET_OPTS=(); log "ON-DEMAND requested (MARKET=ondemand): no spot discount, same hard limit and teardown"
 else MARKET_OPTS=(--instance-market-options "{\"MarketType\":\"spot\",\"SpotOptions\":{\"MaxPrice\":\"$MAX_PRICE\",\"SpotInstanceType\":\"one-time\",\"InstanceInterruptionBehavior\":\"terminate\"}}"); fi
 IID=""; TYPES=${INSTANCE_TYPES:-$INSTANCE_TYPE}; DEADLINE=$(( $(date +%s) + ${RETRY_MINUTES:-0} * 60 ))
@@ -54,10 +54,10 @@ for SUBNET in $SUBNET_IDS; do
     --metadata-options HttpTokens=required \
     --user-data "file://$UD" \
     --tag-specifications "ResourceType=instance,Tags=[{Key=Project,Value=$PROJECT_TAG},{Key=Name,Value=$NAME}]" "ResourceType=volume,Tags=[{Key=Project,Value=$PROJECT_TAG}]" \
-    --query 'Instances[0].InstanceId' --output text 2> "$STATE/run-instances.err"); then
+    --query 'Instances[0].InstanceId' --output text 2> "$ISTATE/run-instances.err"); then
     break 2
   fi
-  log "  no: $(tail -1 "$STATE/run-instances.err" | grep -oE '\((InsufficientInstanceCapacity|SpotMaxPriceTooLow|MaxSpotInstanceCountExceeded|[A-Za-z]+)\)' | head -1)"; IID=""
+  log "  no: $(tail -1 "$ISTATE/run-instances.err" | grep -oE '\((InsufficientInstanceCapacity|SpotMaxPriceTooLow|MaxSpotInstanceCountExceeded|[A-Za-z]+)\)' | head -1)"; IID=""
 done
 done
 [ -n "$IID" ] && break
@@ -66,11 +66,11 @@ log "no capacity in any type/subnet; retrying in 2 min (until $(date -u -r $DEAD
 done
 [ -n "$IID" ] || { echo "spot request failed for every type/subnet (see aws/state/run-instances.err)" >&2; exit 7; }
 log "got $INSTANCE_TYPE in $SUBNET"
-echo "$IID" > "$STATE/instance_id"; date -u +%s > "$STATE/launched_at"; echo "$INSTANCE_TYPE" > "$STATE/instance_type"
+echo "$IID" > "$ISTATE/instance_id"; date -u +%s > "$ISTATE/launched_at"; echo "$INSTANCE_TYPE" > "$ISTATE/instance_type"
 log "instance $IID requested; waiting for running"
 awsc ec2 wait instance-running --instance-ids "$IID"
 IP=$(awsc ec2 describe-instances --instance-ids "$IID" --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-echo "$IP" > "$STATE/instance_ip"; log "running at $IP"
+echo "$IP" > "$ISTATE/instance_ip"; log "running at $IP"
 
 log "waiting for SSH"
 for _ in $(seq 1 40); do rssh true 2>/dev/null && break; sleep 10; done

@@ -38,3 +38,14 @@ Ubuntu 24.04 Deep Learning Base GPU AMI (looked up via SSM at launch) → uv →
 (`uv sync --extra models`, skipping the compiled VC package, which ink inference does not need) → VC3D Linux AppImage
 from the villa GitHub release (for `vc_render_tifxyz`) → checkpoints from Hugging Face: ink_9um seeds 42/43
 (Vesuvius Challenge), Hecate (Giorgio Angelotti), dense_native (Erwin Nieuwlaar).
+
+## Fleet (many workers; prepped, run only on Ted's go-ahead)
+`aws/fleet.sh N --yes [windings|all]` = stage flattened windings from the GPU box → split across N workers → launch them in
+parallel → each runs render + four-model ink ensemble (depths 0,+1) per winding → poll + fetch every 5 min → final fetch →
+terminate everything (also on failure or Ctrl-C). Results: `data/aws-results/fleet/<worker>/<segment>/ensemble/*.png`.
+
+Step by step: `stage_segments.sh [--skip-done] [w… | all]` → `fleet_plan.sh N` (prints time and cost) →
+`fleet_up.sh --yes [max_hours]` → `fleet_run.sh` → `fleet_status.sh` → `fleet_fetch.sh [--maps]` → `fleet_down.sh`.
+
+Measured on the proof of concept (on-demand g4dn.2xlarge): bootstrap 2 min, render from S3 43 s, one ink map 157 s,
+output identical to the home GPU box within 1/255. Estimate: ~35 min per winding for all four models at two depths.
