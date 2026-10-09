@@ -1,17 +1,17 @@
 {
  "project": {
-  "title": "Vesuvius Challenge \u2014 PHerc0191 First Letters campaign",
+  "title": "Vesuvius Challenge — PHerc0191 First Letters campaign",
   "subtitle": "Research log: every run, what it asked, what it showed, what changed",
-  "goal": "Find 10 legible letters in a 4 cm\u00b2 area of an unopened Herculaneum scroll (First Letters, $50k/scroll), and surface evidence-backed tooling fixes along the way (Progress Prizes).",
-  "scroll": "PHerc0191 \u2014 9.362 \u00b5m / 113 keV scan 20250821151635, crushed cross-section, full public data (CT, Lasagna normals, tracks, surface predictions). Not in the community's minimal-route sweeps.",
-  "hardware": "4-GPU Linux box (2\u00d7 RTX 3060 12 GB, RTX 3060 Ti 8 GB; GTX 1660 SUPER unusable), i3-9100 4 cores, 1 TB NVMe, 300 Mbps WAN."
+  "goal": "Find 10 legible letters in a 4 cm² area of an unopened Herculaneum scroll (First Letters, $50k/scroll), and surface evidence-backed tooling fixes along the way (Progress Prizes).",
+  "scroll": "PHerc0191 — 9.362 µm / 113 keV scan 20250821151635, crushed cross-section, full public data (CT, Lasagna normals, tracks, surface predictions). Not in the community's minimal-route sweeps.",
+  "hardware": "4-GPU Linux box (2× RTX 3060 12 GB, RTX 3060 Ti 8 GB; GTX 1660 SUPER unusable), i3-9100 4 cores, 1 TB NVMe, 300 Mbps WAN."
  },
  "phases": [
   {
    "id": "P0",
    "title": "Calibrate the ink detector",
    "status": "done",
-   "summary": "Prove the render \u2192 ink pipeline on a segment with known text before trusting it on new geometry."
+   "summary": "Prove the render → ink pipeline on a segment with known text before trusting it on new geometry."
   },
   {
    "id": "P1",
@@ -23,13 +23,13 @@
    "id": "P2",
    "title": "Get geometry that follows the real sheets",
    "status": "active",
-   "summary": "Global spiral fit vs. local patch growing. Spiral fits plateau at ~46\u201349% on-sheet; the post-hoc snap + Lasagna flatten (PHerc. 343 recipe) gives windings with clean papyrus weave. The winner's fitter version (surface-prediction distance field) is running."
+   "summary": "Global spiral fit vs. local patch growing. Spiral fits plateau at ~46–49% on-sheet; the post-hoc snap + Lasagna flatten (PHerc. 343 recipe) gives windings with clean papyrus weave. The winner's fitter version (surface-prediction distance field) is running."
   },
   {
    "id": "P3",
    "title": "Render + ink at scale",
    "status": "active",
-   "summary": "Flatten \u2192 66-layer render \u2192 ink. Geometry triage of all 100 snapped windings and a fast ink pass (ink_9um, d \u22121..+2) are running; full four-model depth sweeps on promising windings."
+   "summary": "Flatten → 66-layer render → ink. Geometry triage of all 100 snapped windings and a fast ink pass (ink_9um, d −1..+2) are running; full four-model depth sweeps on promising windings."
   },
   {
    "id": "P4",
@@ -44,8 +44,8 @@
    "date": "2026-10-08",
    "phase": "P0",
    "title": "Ink detector calibration on PHercParis4 (known text)",
-   "question": "Does our render \u2192 ink_9um pipeline reproduce readable letters where letters are known to exist?",
-   "technique": "vc_render_tifxyz (28 slices, flip-normals) on segment 20231016151002 at 9.6 \u00b5m, then ink_9um seeds 42/43, 40k/75k steps, both directions.",
+   "question": "Does our render → ink_9um pipeline reproduce readable letters where letters are known to exist?",
+   "technique": "vc_render_tifxyz (28 slices, flip-normals) on segment 20231016151002 at 9.6 µm, then ink_9um seeds 42/43, 40k/75k steps, both directions.",
    "result": "Three legible Greek lines in the reverse layer order.",
    "verdict": "pass",
    "metrics": {},
@@ -69,7 +69,7 @@
    "phase": "P0",
    "title": "PHerc0800 public segments, 36 ink runs",
    "question": "Do the six public PHerc0800 segments contain letters the community missed?",
-   "technique": "Same pipeline, 6 segments \u00d7 2 seeds \u00d7 2 checkpoints \u00d7 2 directions.",
+   "technique": "Same pipeline, 6 segments × 2 seeds × 2 checkpoints × 2 directions.",
    "result": "No letters; mottled noise or blank.",
    "verdict": "null",
    "metrics": {},
@@ -92,7 +92,7 @@
    "date": "2026-10-09",
    "phase": "P1",
    "title": "Which eligible scroll? Cross-section survey",
-   "question": "Is PHerc0191's crushed cross-section unusual among the eligible 9.36 \u00b5m scrolls?",
+   "question": "Is PHerc0191's crushed cross-section unusual among the eligible 9.36 µm scrolls?",
    "technique": "Level-4 cross-sections at 40% and 65% height for PHerc0125/0211/0813/0826/0257 vs 0191.",
    "result": "All shortlisted scrolls are crushed or folded; 0191 is typical.",
    "verdict": "decision",
@@ -114,7 +114,7 @@
    "id": "pilot",
    "date": "2026-10-08",
    "phase": "P2",
-   "title": "Pilot spiral fit, z 9000\u201310000, 10k steps",
+   "title": "Pilot spiral fit, z 9000–10000, 10k steps",
    "question": "How well does the minimal-route spiral fit (umbilicus + Lasagna + tracks) follow PHerc0191's sheets?",
    "technique": "spiral-fitting fit_spiral.py, dense_spacing_mode grad_mag, tracks on, no patches/shell/winding model. 46 min on one RTX 3060.",
    "result": "120 windings exported; on-sheet track points 46%, fully satisfied tracks 8%. Renders of w040/w070/w100 are on-sheet only in patches; ink maps are noise.",
@@ -142,7 +142,7 @@
    "id": "exp-track2x",
    "date": "2026-10-09",
    "phase": "P2",
-   "title": "Track loss weight \u00d72",
+   "title": "Track loss weight ×2",
    "question": "Is the fit under-weighting the track evidence?",
    "technique": "Pilot config with loss_weight_track_radius doubled.",
    "result": "Slightly worse than baseline.",
@@ -154,7 +154,7 @@
    "images": [],
    "learned": "Weights are not the lever; the model cannot satisfy the tracks as posed.",
    "track": "Spiral fit",
-   "short": "Track weight \u00d72",
+   "short": "Track weight ×2",
    "credits": [
     "spiral-fitter",
     "vc-predictions",
@@ -168,8 +168,8 @@
    "phase": "P2",
    "title": "30k optimizer steps",
    "question": "Is the fit simply under-converged?",
-   "technique": "Pilot config, 3\u00d7 steps (80 min).",
-   "result": "0.4901 / 0.1018, best of the fits; w040 render: roughly half fibre texture, half laminated crossings \u2014 matches the metric.",
+   "technique": "Pilot config, 3× steps (80 min).",
+   "result": "0.4901 / 0.1018, best of the fits; w040 render: roughly half fibre texture, half laminated crossings — matches the metric.",
    "verdict": "improved",
    "metrics": {
     "satisfied_track_points": 0.4901,
@@ -194,8 +194,8 @@
    "phase": "P2",
    "title": "Outer shell from the CT mask (sparse) + outer winding 105",
    "question": "Does telling the fitter where the papyrus ends, and how many windings there really are (~100 by ray audit), fix the outer region?",
-   "technique": "make_outer_shell.py: boundary of the masked CT every 8 slices \u2192 tifxyz; shell_outer_winding_idx 105.",
-   "result": "No change \u2014 the shell loss was silently zero all run.",
+   "technique": "make_outer_shell.py: boundary of the masked CT every 8 slices → tifxyz; shell_outer_winding_idx 105.",
+   "result": "No change — the shell loss was silently zero all run.",
    "verdict": "bug-found",
    "metrics": {
     "satisfied_track_points": 0.4577,
@@ -220,7 +220,7 @@
    "phase": "P2",
    "title": "Dense outer shell (every slice) + outer winding 105",
    "question": "With the shell loss actually active, does pulling winding 105 to the boundary help?",
-   "technique": "Shell regenerated with one row per slice (18,980 rows \u00d7 720 bins); otherwise as shell105.",
+   "technique": "Shell regenerated with one row per slice (18,980 rows × 720 bins); otherwise as shell105.",
    "result": "Shell loss active (177 at the end); outer winding moved from 16.5 to 21.5 mm mean radius; track satisfaction dropped.",
    "verdict": "null",
    "metrics": {
@@ -242,8 +242,8 @@
    "id": "exp-dr32",
    "date": "2026-10-09",
    "phase": "P2",
-   "title": "Initial winding spacing 16 \u2192 32 voxels",
-   "question": "The ray audit's sheet period is 0.25\u20130.45 mm; does starting the spiral at the real spacing help?",
+   "title": "Initial winding spacing 16 → 32 voxels",
+   "question": "The ray audit's sheet period is 0.25–0.45 mm; does starting the spiral at the real spacing help?",
    "technique": "model_initial_dr_per_winding 32.",
    "result": "Much worse: 93 windings span 32 mm; windings 75+ are mostly in air.",
    "verdict": "null",
@@ -254,7 +254,7 @@
    "images": [],
    "learned": "The spacing is not re-learned by the optimizer: the initial value fixes the spiral's radial extent. The sector-dependent spacing (0.13 mm on the flat sides to 0.26 mm at the ends) needs an anisotropic flow or local supervision, not a global number.",
    "track": "Spiral fit",
-   "short": "Winding spacing \u00d72",
+   "short": "Winding spacing ×2",
    "credits": [
     "spiral-fitter",
     "vc-predictions",
@@ -266,14 +266,14 @@
    "id": "sector-audit",
    "date": "2026-10-09",
    "phase": "P2",
-   "title": "Where the fitted spiral sits vs the papyrus (per 30\u00b0 sector)",
+   "title": "Where the fitted spiral sits vs the papyrus (per 30° sector)",
    "question": "Is the problem spill into air or failure to reach the outer sheets?",
    "technique": "mesh_in_mask.py: per-winding fraction of mesh vertices inside the CT mask; per-sector median radius of the outermost winding vs the CT boundary at z 9525.",
-   "result": "No winding is mostly in air. The outermost winding stops 3\u20138 mm (10\u201325 sheets) short of the boundary in the fat sectors and only just reaches it in the thin ones.",
+   "result": "No winding is mostly in air. The outermost winding stops 3–8 mm (10–25 sheets) short of the boundary in the fat sectors and only just reaches it in the thin ones.",
    "verdict": "finding",
    "metrics": {},
    "images": [],
-   "learned": "A crushed scroll has the same winding count in every direction with spacing varying ~2.5\u00d7 by sector. The uniform regularizer resists exactly that deformation.",
+   "learned": "A crushed scroll has the same winding count in every direction with spacing varying ~2.5× by sector. The uniform regularizer resists exactly that deformation.",
    "track": "Spiral fit",
    "short": "Sector audit",
    "credits": [
@@ -289,7 +289,7 @@
    "title": "Patch growing (vc_grow_seg_from_seed) without direction fields",
    "question": "Can local patch growing from a seed on a predicted surface avoid the global-spiral problem?",
    "technique": "Empty-space tracing on the surface-prediction volume, 70/150 generations.",
-   "result": "Fixed discs of 6.6 / 21\u201331 cm\u00b2 regardless of the volume; renders cut across many sheets.",
+   "result": "Fixed discs of 6.6 / 21–31 cm² regardless of the volume; renders cut across many sheets.",
    "verdict": "null",
    "metrics": {},
    "images": [
@@ -310,12 +310,12 @@
    "phase": "P2",
    "title": "Fiber-direction inference on the band (SD2 model)",
    "question": "Produce the direction field the tracer needs.",
-   "technique": "vesuvius fiber_trace_3d.infer, level 0, z 8500\u201310500, output scaled down 4\u00d7; 1.6 h on one 3060 after fixing a missing-module import (tooling finding #8).",
+   "technique": "vesuvius fiber_trace_3d.infer, level 0, z 8500–10500, output scaled down 4×; 1.6 h on one 3060 after fixing a missing-module import (tooling finding #8).",
    "result": "nx/ny/presence pyramids. The output is a sheet NORMAL field in Lasagna's compact encoding, not raw fibre directions; the tracer needs an x/y/z layout, so a converter was written.",
    "verdict": "done",
    "metrics": {},
    "images": [],
-   "learned": "Two encodings, one formula ((u8\u2212128)/127), different layouts. Converted with symlinks plus a computed z component.",
+   "learned": "Two encodings, one formula ((u8−128)/127), different layouts. Converted with symlinks plus a computed z component.",
    "track": "Patch growing",
    "short": "Fiber direction field",
    "credits": [
@@ -332,13 +332,13 @@
    "title": "Patch growing with the Fiber normal field",
    "question": "Does the direction field make the tracer follow a sheet?",
    "technique": "dir: normal, scale 2, presence as confidence weight; 70 and 150 generations.",
-   "result": "Still flat discs (6.9 / 21.2 cm\u00b2); the field only re-oriented them.",
+   "result": "Still flat discs (6.9 / 21.2 cm²); the field only re-oriented them.",
    "verdict": "null",
    "metrics": {},
    "images": [
     "PHerc0191-dirfield2-gen70-render.jpg"
    ],
-   "learned": "Every growth candidate was accepted \u2014 the data terms were inactive. The docs mark normal grids as REQUIRED for the tracer; no run had passed them.",
+   "learned": "Every growth candidate was accepted — the data terms were inactive. The docs mark normal grids as REQUIRED for the tracer; no run had passed them.",
    "track": "Patch growing",
    "short": "Tracer + fiber field",
    "credits": [
@@ -354,7 +354,7 @@
    "phase": "P2",
    "title": "Patch growing with normal grids + Fiber normal field",
    "question": "With the required normal-grid input, does the patch follow a sheet?",
-   "technique": "normal_grid_path (PHerc0191 xy grids, level 0, spiral-step 20) + the direction field; 70 generations, 159 s (4\u00d7 slower \u2192 losses active).",
+   "technique": "normal_grid_path (PHerc0191 xy grids, level 0, spiral-step 20) + the direction field; 70 generations, 159 s (4× slower → losses active).",
    "result": "First partly on-sheet patch: large regions of clean fibre texture, one diagonal band still cutting across layers; self-crossing check not clean.",
    "verdict": "partial",
    "metrics": {},
@@ -377,8 +377,8 @@
    "phase": "P2",
    "title": "Winding-model supervision cache for the band",
    "question": "Give the spiral fitter a local measurement of sheet spacing (the 'winding model') instead of a global number.",
-   "technique": "infer_winding_volume.py native-phase cache, bootstrap = exp-30k, winding step 8, seed spacing 96 \u2192 7,102 slabs (~107 GB at 15 MB/slab), then export_spiral_supervision.py; refit with dense_spacing_mode winding_model (exp-wm).",
-   "result": "Done: 7,102 slabs, 104 GB, 2 h 47 min on two GPUs (CPU-bound at 1.0\u20131.4 s/slab). Cache complete; exported (see next entry). exp-wm, the first fit using it, is running.",
+   "technique": "infer_winding_volume.py native-phase cache, bootstrap = exp-30k, winding step 8, seed spacing 96 → 7,102 slabs (~107 GB at 15 MB/slab), then export_spiral_supervision.py; refit with dense_spacing_mode winding_model (exp-wm).",
+   "result": "Done: 7,102 slabs, 104 GB, 2 h 47 min on two GPUs (CPU-bound at 1.0–1.4 s/slab). Cache complete; exported (see next entry). exp-wm, the first fit using it, is running.",
    "verdict": "done",
    "metrics": {},
    "images": [],
@@ -399,7 +399,7 @@
    "title": "Patch growing: direction weight 3, 100 generations, normal grids",
    "question": "Does a stronger direction-field weight remove the sheet crossings?",
    "technique": "As the normal-grid run with direction_fields weight 3.0 and 100 generations (304 s).",
-   "result": "16.9 cm\u00b2 patch; more on-sheet fibre texture in absolute terms, but swirled cross-section regions remain and the self-crossing check is still not clean.",
+   "result": "16.9 cm² patch; more on-sheet fibre texture in absolute terms, but swirled cross-section regions remain and the self-crossing check is still not clean.",
    "verdict": "partial",
    "metrics": {},
    "images": [
@@ -419,10 +419,10 @@
    "id": "exp-dirlow",
    "date": "2026-10-09",
    "phase": "P2",
-   "title": "Low deformation regularizer (sym_dirichlet 10 \u2192 2.5) + dense shell at winding 125",
+   "title": "Low deformation regularizer (sym_dirichlet 10 → 2.5) + dense shell at winding 125",
    "question": "If the uniform regularizer is what stops the flow field from stretching into the fat sectors, does relaxing it help?",
    "technique": "loss_weight_sym_dirichlet 2.5 with the dense outer shell active at shell_outer_winding_idx 125, 10k steps on GPU 0.",
-   "result": "Worse than baseline on tracks, but the outermost winding now follows the crushed CT boundary within ~0.5 mm in every 30\u00b0 sector (mean 23.0 vs 23.8 mm; pilot 20.6).",
+   "result": "Worse than baseline on tracks, but the outermost winding now follows the crushed CT boundary within ~0.5 mm in every 30° sector (mean 23.0 vs 23.8 mm; pilot 20.6).",
    "verdict": "null",
    "metrics": {
     "satisfied_track_points": 0.4223,
@@ -446,7 +446,7 @@
    "title": "Winding cache exported to Spiral supervision",
    "question": "Turn the 104 GB native-phase cache into the compact crossing store the fitter reads.",
    "technique": "export_spiral_supervision.py, 4 workers, 106 s; store validated.",
-   "result": "6,902 rays retained (of 7,102), 130,124 crossings, median 16\u201321 crossings per ray, 1.1 MB store.",
+   "result": "6,902 rays retained (of 7,102), 130,124 crossings, median 16–21 crossings per ray, 1.1 MB store.",
    "verdict": "done",
    "metrics": {},
    "images": [],
@@ -466,7 +466,7 @@
    "title": "First fit with winding-model supervision (+ dense shell at winding 125)",
    "question": "Does local sheet-spacing supervision from the winding model fix the interior distribution of windings?",
    "technique": "dense_spacing_mode winding_model with the exported store (6,900 rays in range, 130k crossings), shell loss weight 1 at winding 125, 10k steps on the 3060 Ti. Both winding-model loss terms active (relative 11.4, density 1.7 at the end).",
-   "result": "0.4213 / 0.0786 \u2014 same band as every other shell-active run; no improvement on tracks. w040 render looks like exp-30k's: about half fibre texture, half crossings.",
+   "result": "0.4213 / 0.0786 — same band as every other shell-active run; no improvement on tracks. w040 render looks like exp-30k's: about half fibre texture, half crossings.",
    "verdict": "null",
    "metrics": {
     "satisfied_track_points": 0.4213,
@@ -492,7 +492,7 @@
    "title": "Patch growing with the community Lasagna normals as the direction field",
    "question": "Is the Fiber-model normal field the limiting input, or would the public Lasagna normals do as well or better?",
    "technique": "Lasagna nx/ny (level 2) converted with make_dirfield_zarr.py, dir: normal, weight 1, xy normal grids, 70 generations, same seed as the Fiber-field run.",
-   "result": "7.1 cm\u00b2 in 161 s. Best patch so far: the left and centre show the cross-hatched papyrus fibre weave, i.e. on-sheet; the right third still shows laminated crossings. Ink maps (2 seeds \u00d7 2 orders) are mottled noise.",
+   "result": "7.1 cm² in 161 s. Best patch so far: the left and centre show the cross-hatched papyrus fibre weave, i.e. on-sheet; the right third still shows laminated crossings. Ink maps (2 seeds × 2 orders) are mottled noise.",
    "verdict": "partial",
    "metrics": {},
    "images": [
@@ -514,7 +514,7 @@
    "phase": "P2",
    "title": "Post-hoc snap of exp-30k windings onto the m7 surface prediction (the PHerc. 343 winner's step)",
    "question": "Does moving each vertex onto the nearest predicted sheet turn a half-on-sheet winding into a usable one?",
-   "technique": "Nieuwlaar's snap_meshes.py on w020\u2013w119 with the band of the m7 prediction mirrored at level 0: \u00b115 vox search along normals, jump rejection, Gaussian regularisation. 67 s for 100 windings.",
+   "technique": "Nieuwlaar's snap_meshes.py on w020–w119 with the band of the m7 prediction mirrored at level 0: ±15 vox search along normals, jump rejection, Gaussian regularisation. 67 s for 100 windings.",
    "result": "99.5% of vertices snapped, median move 1.8 vox, only 19% were already within 2 vox. w040 render: modest gain, crossings remain. w070 render: the largest continuous fibre-textured region of any winding so far (~40% of a 3 cm strip) and a clean self-crossing check.",
    "verdict": "partial",
    "metrics": {},
@@ -539,13 +539,13 @@
    "title": "Patch growing, Lasagna-normals field, 150 generations",
    "question": "How far does the on-sheet region extend when the Lasagna-guided patch keeps growing?",
    "technique": "As the 70-generation run, 150 generations (796 s).",
-   "result": "35.8 cm\u00b2 patch; the fibre weave covers roughly half of it (left/centre), laminated crossings on the right. Flattened and rendered in 66 layers; four-model depth sweep queued.",
+   "result": "35.8 cm² patch; the fibre weave covers roughly half of it (left/centre), laminated crossings on the right. Flattened and rendered in 66 layers; four-model depth sweep queued.",
    "verdict": "partial",
    "metrics": {},
    "images": [
     "PHerc0191-lasagna150-render.jpg"
    ],
-   "learned": "An on-sheet area of order 15 cm\u00b2 in one patch is enough for a First Letters search if the ink is there. This and snapped w070 are the two candidates in the ink pipeline.",
+   "learned": "An on-sheet area of order 15 cm² in one patch is enough for a First Letters search if the ink is there. This and snapped w070 are the two candidates in the ink pipeline.",
    "track": "Patch growing",
    "short": "Lasagna patch, 150 gens",
    "credits": [
@@ -561,14 +561,14 @@
    "title": "Winding-model supervision without the shell pull",
    "question": "Separate the winding model's effect from the shell loss that cost every shell-active run ~4 points.",
    "technique": "As exp-wm with loss_weight_shell_outer 0 (shell kept only as the required gate).",
-   "result": "0.4605 / 0.081 \u2014 back to the pilot baseline exactly.",
+   "result": "0.4605 / 0.081 — back to the pilot baseline exactly.",
    "verdict": "null",
    "metrics": {
     "satisfied_track_points": 0.4605,
     "satisfied_tracks": 0.081
    },
    "images": [],
-   "learned": "With 6,900 rays the winding-model supervision is neutral, and the shell pull alone explains the ~4-point losses. The fitter route on PHerc0191 is capped near 0.46\u20130.49 with current inputs; the winner's surface-prediction distance field (old fitter) and the post-hoc snap are what remain to test.",
+   "learned": "With 6,900 rays the winding-model supervision is neutral, and the shell pull alone explains the ~4-point losses. The fitter route on PHerc0191 is capped near 0.46–0.49 with current inputs; the winner's surface-prediction distance field (old fitter) and the post-hoc snap are what remain to test.",
    "track": "Spiral fit",
    "short": "Winding model, no shell",
    "credits": [
@@ -583,9 +583,9 @@
    "date": "2026-10-09",
    "phase": "P3",
    "title": "Snapped + flattened w070: 66-layer render and first ink-ensemble depths",
-   "question": "With the PHerc. 343 recipe (snap \u2192 Lasagna flatten \u2192 66-layer render \u2192 four-model ensemble), does the best winding show ink?",
-   "technique": "Nieuwlaar's run_depth_sweep.sh / ensemble_maps.py with ink_9um seeds 42/43, dense_native and Hecate 9.6 \u00b5m; z-score ensemble on the reading side, blind side for comparison.",
-   "result": "The surface layer of the flattened winding shows clean papyrus fibre weave over its whole middle \u2014 the best geometry of the campaign. Ink: four-model ensemble at d 0 and ink_9um seed 42 at d +1 (where the 343 letters appeared) are mottled noise on both sides; no rows of letter-sized strokes. The full 31-depth sweep is paused (the 4-core CPU is the bottleneck) after d \u22122..+2 for the villa models.",
+   "question": "With the PHerc. 343 recipe (snap → Lasagna flatten → 66-layer render → four-model ensemble), does the best winding show ink?",
+   "technique": "Nieuwlaar's run_depth_sweep.sh / ensemble_maps.py with ink_9um seeds 42/43, dense_native and Hecate 9.6 µm; z-score ensemble on the reading side, blind side for comparison.",
+   "result": "The surface layer of the flattened winding shows clean papyrus fibre weave over its whole middle — the best geometry of the campaign. Ink: four-model ensemble at d 0 and ink_9um seed 42 at d +1 (where the 343 letters appeared) are mottled noise on both sides; no rows of letter-sized strokes. The full 31-depth sweep is paused (the 4-core CPU is the bottleneck) after d −2..+2 for the villa models.",
    "verdict": "partial",
    "metrics": {},
    "images": [
@@ -612,14 +612,14 @@
    "phase": "P3",
    "title": "Geometry triage of all snapped windings (flatten + 66-layer render + CT surface layer)",
    "question": "How much of the band is in the same clean on-sheet state as w070?",
-   "technique": "For every snapped exp-30k winding from w070 outwards: Lasagna flatten (~7 min GPU), 66-layer render, preview of layer 33 (the surface). Then a fast ink pass (ink_9um seed 42, d +1/0/+2/\u22121) on each.",
-   "result": "w068\u2013w072: papyrus weave over most of each winding (each ~9.3 \u00d7 1.9 cm, ~10 cm\u00b2 after flattening); damage concentrated at the ends. Scale check: flattened renders are 1.02 px/voxel; raw spiral windings were rendered 23\u201333% compressed (tooling finding #10).",
+   "technique": "For every snapped exp-30k winding from w070 outwards: Lasagna flatten (~7 min GPU), 66-layer render, preview of layer 33 (the surface). Then a fast ink pass (ink_9um seed 42, d +1/0/+2/−1) on each.",
+   "result": "w068–w072: papyrus weave over most of each winding (each ~9.3 × 1.9 cm, ~10 cm² after flattening); damage concentrated at the ends. Scale check: flattened renders are 1.02 px/voxel; raw spiral windings were rendered 23–33% compressed (tooling finding #10).",
    "verdict": "partial",
    "metrics": {},
    "images": [
     "PHerc0191-triage-montage-1.jpg"
    ],
-   "learned": "If this holds across the band, several hundred cm\u00b2 of searchable sheet exist from one 1,000-slice fit. The ink search, not the geometry, is now the bottleneck.",
+   "learned": "If this holds across the band, several hundred cm² of searchable sheet exist from one 1,000-slice fit. The ink search, not the geometry, is now the bottleneck.",
    "track": "Ink & render",
    "short": "Triage of all windings",
    "credits": [
@@ -646,7 +646,7 @@
     "PHerc0343-control-hecate-rows.jpg",
     "PHerc0343-control-s42-rows.jpg"
    ],
-   "learned": "Our pipeline can see prize-grade ink, but only with the ensemble (or Hecate) and a row-scale view. A single model at whole-winding scale would have missed it, so the single-model nulls on w069\u2013w072 are not evidence of absence. The PHerc. 0191 search must use the ensemble.",
+   "learned": "Our pipeline can see prize-grade ink, but only with the ensemble (or Hecate) and a row-scale view. A single model at whole-winding scale would have missed it, so the single-model nulls on w069–w072 are not evidence of absence. The PHerc. 0191 search must use the ensemble.",
    "credits": [
     "nieuwlaar-343",
     "vc-data",
@@ -670,12 +670,65 @@
    "verdict": "pass",
    "metrics": {},
    "images": [],
-   "learned": "Each cloud T4 does about twice the work of one home GPU, and renders ~6\u00d7 faster next to the data, for ~$0.75/h on-demand. The ink search can now scale out horizontally; spot capacity for this account is the open question.",
+   "learned": "Each cloud T4 does about twice the work of one home GPU, and renders ~6× faster next to the data, for ~$0.75/h on-demand. The ink search can now scale out horizontally; spot capacity for this account is the open question.",
    "credits": [
     "villa",
     "ink9um",
     "nieuwlaar-343",
     "vc-data",
+    "ours"
+   ]
+  },
+  {
+   "id": "ensemble-w070",
+   "date": "2026-10-09",
+   "phase": "P3",
+   "track": "Ink & render",
+   "short": "Ensemble on w070 (d 0, +1)",
+   "title": "Four-model ink ensemble on PHerc. 0191 winding w070 at depths 0 and +1",
+   "question": "With the method that passed the PHerc. 343 control, does our best-looking winding show ink?",
+   "technique": "Snapped + Lasagna-flattened exp-30k winding w070, 66-layer render; ink_9um seeds 42/43, dense_native and Hecate at depths 0 and +1 (Erwin Nieuwlaar's run_ink.sh / ensemble_maps.py), viewed at row scale on the reading side, checked against the blind side and the CT; scored with the stroke score (next run).",
+   "result": "No ink. No rows of strokes at either depth. The only high-scoring patch (depth +1) sits inside a CT crack/void loop at the segment edge and lights up on the blind side too.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [
+    "PHerc0191-w070-strokes-top-tile-d+1.jpg"
+   ],
+   "learned": "A real null this time (the method sees ink on the control), but only for one ~10 cm² winding at two depths. Next windings w069, w071, w068, w072 are running; damaged CT zones are the main source of false positives.",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "vc-predictions",
+    "villa",
+    "ink9um",
+    "hecate",
+    "dense-native",
+    "ours"
+   ]
+  },
+  {
+   "id": "stroke-score",
+   "date": "2026-10-09",
+   "phase": "P3",
+   "track": "Ink & render",
+   "short": "Stroke score (calibrated on 343)",
+   "title": "An automatic stroke score, calibrated on the PHerc. 343 control, to rank windings for review",
+   "question": "Can a number computed from the ink maps tell text from no text well enough to decide which windings deserve eyes and the expensive ensemble?",
+   "technique": "bin/stroke_score.py: per side (reading vs blind) the ensemble z-score (each model normalised by the reading side's mean/SD, as in ensemble_maps.py), minus a 1.5 mm background; pixels > 2.0 above it; keep 8-connected components of letter-stroke size (0.02–1.5 mm²); ignore a 0.5 mm margin at the segment edge and around CT voids (pinholes filled first). Scores: share of area covered by strokes (reading / blind) and the best 4 mm × 4 mm tile. bin/stroke_rank.sh scores every winding with maps; bin/stroke_watch.sh re-ranks as new maps land.",
+   "result": "Control (343, d+1, four models): reading/blind stroke area 12.8×, best reading tile 0.168 vs best blind tile 0.036. PHerc. 0191 w070 (no visible ink): 1.7× (d0) and 2.6× (d+1, from a CT-damage patch), best tile 0.046–0.106. Cheaper model sets still separate the two: three models without Hecate 6.3× vs 1.0–1.1×; ink_9um seed 42 alone 2.2× vs 0.86–0.90×. First ranking of the single-model pass (w066–w074, depths −1..+2): every PHerc. 0191 row 0.83–1.41×, none near the control.",
+   "verdict": "pass",
+   "metrics": {},
+   "images": [
+    "PHerc0343-strokes-top-tile.jpg"
+   ],
+   "learned": "The ranking can be automated. It is calibrated on one positive segment and one negative winding, so it is a triage aid, not evidence. Two practical wins: the single-model fast pass can pre-rank windings before the slow ensemble, and dropping Hecate (31 min per map at home) may cost little. CT damage (voids, cracks) is the main false-positive source; the top tiles carry a damage fraction.",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "villa",
+    "ink9um",
+    "hecate",
+    "dense-native",
     "ours"
    ]
   }
@@ -693,17 +746,17 @@
   },
   {
    "kind": "scroll",
-   "title": "Minimal-route spiral fits sit on the sheet ~46\u201349% of the time",
-   "text": "Satisfaction = within 6 voxels and 0.45 winding of the track's sheet. Weights don't help; 3\u00d7 steps gives +3 points."
+   "title": "Minimal-route spiral fits sit on the sheet ~46–49% of the time",
+   "text": "Satisfaction = within 6 voxels and 0.45 winding of the track's sheet. Weights don't help; 3× steps gives +3 points."
   },
   {
    "kind": "scroll",
    "title": "The fitted spiral never reaches the outer third",
-   "text": "Per-sector audit: outermost winding 3\u20138 mm short of the boundary in the fat sectors; initial spacing fixes the radial extent; stretching hurts the inner tracks."
+   "text": "Per-sector audit: outermost winding 3–8 mm short of the boundary in the fat sectors; initial spacing fixes the radial extent; stretching hurts the inner tracks."
   },
   {
    "kind": "scroll",
-   "title": "Crushed scroll = same winding count, 2.5\u00d7 spacing variation by sector",
+   "title": "Crushed scroll = same winding count, 2.5× spacing variation by sector",
    "text": "0.13 mm on the flattened sides (ray audit under-counts there) to 0.26 mm at the ends. Needs anisotropic deformation or local spacing supervision."
   },
   {
@@ -718,7 +771,7 @@
   },
   {
    "kind": "tooling",
-   "title": "#2\u2013#5 image tags, lockfile rewrite, remote-fetch aborts",
+   "title": "#2–#5 image tags, lockfile rewrite, remote-fetch aborts",
    "text": ":stable tag missing; uv.lock rewritten by sync; infer and renderer abort on a single transient remote chunk fetch."
   },
   {
@@ -729,7 +782,7 @@
   {
    "kind": "tooling",
    "title": "#7 Outer-shell loss silently zero for sparse shells",
-   "text": "Confidence normalized by an edge spike \u2192 0.22 < 0.25 \u2192 no valid samples, no warning. Reproduced outside the fitter."
+   "text": "Confidence normalized by an edge spike → 0.22 < 0.25 → no valid samples, no warning. Reproduced outside the fitter."
   },
   {
    "kind": "tooling",
@@ -739,7 +792,7 @@
   {
    "kind": "scroll",
    "title": "The PHerc. 343 First Letters win (2026-10-08) used our pipeline plus three steps we lacked",
-   "text": "Spiral fit with the surface-prediction distance field, no shell, 30k steps; post-hoc snap of every vertex onto the nearest predicted sheet (\u00b115 vox); 66-layer render swept over 31 depths through a four-model ink ensemble. All open source; adopted (see notes/prior-art-digest.md)."
+   "text": "Spiral fit with the surface-prediction distance field, no shell, 30k steps; post-hoc snap of every vertex onto the nearest predicted sheet (±15 vox); 66-layer render swept over 31 depths through a four-model ink ensemble. All open source; adopted (see notes/prior-art-digest.md)."
   },
   {
    "kind": "tooling",
@@ -753,16 +806,16 @@
   },
   {
    "kind": "tooling",
-   "title": "#10 Raw spiral windings render 23\u201333% compressed",
-   "text": "Meshes declare a 20-voxel grid but nodes are 26\u201330 voxels apart; ink models see letters too small unless the winding is flattened first. Mesh areas are understated ~2\u00d7."
+   "title": "#10 Raw spiral windings render 23–33% compressed",
+   "text": "Meshes declare a 20-voxel grid but nodes are 26–30 voxels apart; ink models see letters too small unless the winding is flattened first. Mesh areas are understated ~2×."
   }
  ],
  "next": [
-  "Re-run the PHerc. 0191 ink search with the ensemble: w068\u2013w072 first (seed-42 maps already done; add seed 43, dense_native, Hecate at d 0/+1), review at row scale.",
-  "AWS: spot capacity unavailable to this account in every us-east-1 zone (2026-10-09); proof of concept pending a decision on on-demand (~$0.75/h).",
-  "Old fitter (winner's version) at ~25%; snap + triage its windings when done.",
-  "Automatic stroke score calibrated on the PHerc. 343 control, to rank windings for review.",
-  "Progress Prize write-ups for findings #6\u2013#10 (three PRs staged for Ted)."
+  "Ensemble on w069, w071, w068, w072 (running, GPU 3); each is stroke-scored automatically as its maps land.",
+  "Use the stroke score to choose which windings get the ensemble next (single-model pre-rank), and test a three-model ensemble without Hecate for speed.",
+  "Old fitter (winner's version) at ~26%, ETA ~01:15 UTC; snap + triage its windings when done.",
+  "AWS fleet built and dry-run (~$20 for 44 windings on-demand); waiting on a go/no-go.",
+  "Progress Prize write-ups for findings #6–#10 (three PRs staged for Ted)."
  ],
  "credits": [
   {
@@ -798,7 +851,7 @@
   {
    "id": "hecate",
    "who": "Giorgio Angelotti",
-   "what": "Hecate 9.6 \u00b5m ink model.",
+   "what": "Hecate 9.6 µm ink model.",
    "link": "https://huggingface.co/scrollprize/hecate"
   },
   {
@@ -828,7 +881,7 @@
   {
    "id": "vc-tutorial",
    "who": "Vesuvius Challenge",
-   "what": "The First Letters workflow tutorial (spiral fit \u2192 flatten \u2192 render \u2192 ink) that this campaign follows.",
+   "what": "The First Letters workflow tutorial (spiral fit → flatten → render → ink) that this campaign follows.",
    "link": "https://scrollprize.substack.com/p/from-ct-scan-to-ancient-text-a-first"
   },
   {
