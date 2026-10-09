@@ -44,7 +44,7 @@ Full inference log from the run that then completed: `[predict3d] 20172/20172 ti
 - Tested commit: `6222bbb8b` (branch on upstream `a329895ea`). Environment: Ubuntu 24.04, Python 3.14.8 via uv, `uv sync --extra models` in `villa/vesuvius`, CUDA 12.8, RTX 3060 12 GB.
 - Command that failed before and ran after:
   `uv run --extra models python -m vesuvius.neural_tracing.fiber_trace_3d.infer --input <vol>/0 --output <out>/fiber.lasagna.json --checkpoint <ckpt> --devices all --no-download --crop 0 0 8500 8387 8387 2000 --tile-size 256 --overlap 48 --border 16 --inference-scaledown-power 2`
-- Limitation: this only fixes the documented `PYTHONPATH=lasagna` layout. Making `lasagna` a path dependency of the `models` extra (like `volume-cartographer`) would remove the need for `PYTHONPATH` entirely; I left that decision to you.
+- Limitation: this only fixes the documented `PYTHONPATH=lasagna` layout. A broader fix would make `lasagna` a path dependency of the `models` extra (as `volume-cartographer` already is), which would remove the need for `PYTHONPATH` entirely; this PR deliberately stays minimal. Happy to do the dependency change instead if that is preferred.
 
 ## Re-run the proof yourself on the box (≈5 s)
 ```
