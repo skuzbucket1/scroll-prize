@@ -5,4 +5,5 @@ source "$(dirname "$0")/lib.sh"
 rssh 'mkdir -p /opt/scroll/bin /opt/scroll/jobs /opt/scroll/results'
 rsync_to "$ROOT/box/bin/ink343" /opt/scroll/bin/
 rsync_to "$HERE/remote/" /opt/scroll/bin/
+rsync_to "$ROOT/box/bin/stroke_score.py" /opt/scroll/bin/
 rssh 'bash /opt/scroll/bin/setup_models.sh'

@@ -731,6 +731,83 @@
     "dense-native",
     "ours"
    ]
+  },
+  {
+   "id": "ensemble-w068-w071",
+   "date": "2026-10-09",
+   "phase": "P3",
+   "track": "Ink & render",
+   "short": "Ensemble on w068, w069, w071",
+   "title": "Four-model ink ensemble on PHerc. 0191 windings w068, w069 and w071 (depths 0, +1)",
+   "question": "Do the other clean-weave windings next to w070 show ink with the method that passed the control?",
+   "technique": "Same as the w070 run: snapped + Lasagna-flattened exp-30k windings, 66-layer renders, ink_9um 42/43, dense_native and Hecate at depths 0 and +1 on the home box, viewed at row scale (reading side vs blind side vs CT) and scored with the stroke score.",
+   "result": "No ink on any of them. Reading-side stroke area 0.0046–0.0066 (control 0.034); w071 has a diffuse brighter cloud at depth 0 next to a long CT crack, with no strokes or rows.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [],
+   "learned": "Four of the five best-geometry windings are now checked with the full ensemble at the two depths where the PHerc. 343 letters sit; none shows text. The search needs more windings (and possibly more depths), which is what the AWS fleet is for.",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "vc-predictions",
+    "villa",
+    "ink9um",
+    "hecate",
+    "dense-native",
+    "ours"
+   ]
+  },
+  {
+   "id": "aws-fleet-run1",
+   "date": "2026-10-09",
+   "phase": "P3",
+   "track": "Setup",
+   "short": "AWS fleet: 2 workers, real work",
+   "title": "First real AWS fleet run: four-model ensemble on w073 and w074 on two cloud GPUs",
+   "question": "Does the fleet do real work end to end (launch, bootstrap, render from S3, four models, fetch, teardown), how fast is each model on a T4, and do its results match the home box?",
+   "technique": "aws/fleet.sh on 2 on-demand g4dn.2xlarge (Tesla T4) in our dedicated VPC; each worker rendered one winding (w073, w074) straight from the public S3 volume and ran ink_9um 42/43, dense_native and Hecate at depths 0 and +1 (Erwin Nieuwlaar's scripts), then his ensemble images; raw maps fetched and stroke-scored on the home box; seed-42 maps compared with the home box's own maps of the same windings.",
+   "result": "Worked: both windings done in 1 h 47 min, results fetched, instances terminated; cost $3.28. Both first bootstraps failed at apt-get update (NVIDIA's CUDA package mirror was mid-sync); fixed in the user-data and recovered on the live instances without relaunching. Per depth on a T4: render 48–53 s, ink_9um 90–142 s, dense_native 92–112 s, Hecate ~47 min (two passes). Seed-42 maps match the home box (r 0.99998, max difference 1/255). Ink: none on w073 or w074 by eye; stroke area 0.0055–0.0067, like the other windings.",
+   "verdict": "pass",
+   "metrics": {},
+   "images": [
+    "PHerc0191-w073-aws-ensemble-d+1-right.jpg"
+   ],
+   "learned": "Hecate is ~88% of the cost of a four-model winding (~100 min on a T4). A three-model pass without Hecate is ~13 min per winding (~$10 for 59 windings on 10 workers); Hecate can then go only to windings the stroke score flags. Disk is not a bottleneck (everything sits in page cache).",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "vc-predictions",
+    "villa",
+    "vc-tutorial",
+    "ink9um",
+    "hecate",
+    "dense-native",
+    "ours"
+   ]
+  },
+  {
+   "id": "stroke-score-v2",
+   "date": "2026-10-09",
+   "phase": "P3",
+   "track": "Ink & render",
+   "short": "Stroke score v2: absolute metrics",
+   "title": "Stroke score v2: rank by absolute stroke area and a 4 cm² window, not by the reading/blind ratio",
+   "question": "w073 scored 7.45× reading/blind, far above every other PHerc. 0191 winding. Real, or an artefact of the metric?",
+   "technique": "Per-model scores on w073/w074 (AWS) and w068–w071 (home box); raw reading and blind stroke areas; a new First-Letters-scale window (best 2 × 2 cm reading-side stroke share, clamped to the winding height); three-model and four-model sets.",
+   "result": "Artefact of the ratio: w073's reading side (0.0066) is like every other winding (0.0046–0.0073); its blind side was unusually quiet (0.0009), and a small denominator inflates the ratio. Absolute metrics separate the control cleanly. Three models: control area 0.0354, reading minus blind +0.030, best window 0.050; PHerc. 0191 ≤ 0.0064, ≤ +0.0021, ≤ 0.017. Four models: control 0.0335 / +0.031 / 0.048; PHerc. 0191 ≤ 0.0073 / ≤ +0.0057 / ≤ 0.023.",
+   "verdict": "improved",
+   "metrics": {},
+   "images": [],
+   "learned": "Flag rule now: look at a winding if reading-side stroke area ≥ 0.015, or reading minus blind ≥ 0.010, or its best 4 cm² window ≥ 0.030 (three models) / 0.035 (four). Still calibrated on one positive segment; a triage aid, not evidence.",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "villa",
+    "ink9um",
+    "hecate",
+    "dense-native",
+    "ours"
+   ]
   }
  ],
  "findings": [
@@ -811,10 +888,9 @@
   }
  ],
  "next": [
-  "Ensemble on w069, w071, w068, w072 (running, GPU 3); each is stroke-scored automatically as its maps land.",
-  "Use the stroke score to choose which windings get the ensemble next (single-model pre-rank), and test a three-model ensemble without Hecate for speed.",
-  "Old fitter (winner's version) at ~26%, ETA ~01:15 UTC; snap + triage its windings when done.",
-  "AWS fleet built and dry-run (~$20 for 44 windings on-demand); waiting on a go/no-go.",
+  "Go/no-go on a 10-worker AWS three-model pass over the remaining 59 windings (~$10, ~1.4 h); Hecate only on windings the stroke score flags.",
+  "Box: four-model ensemble on w072 (running); old fitter (winner's version) at ~61%, ETA ~01:25 UTC, then snap + triage its windings.",
+  "Consider more depths (−1, +2) for the best windings: the 343 letters were at +1, but PHerc. 0191's layer offset is unknown.",
   "Progress Prize write-ups for findings #6–#10 (three PRs staged for Ted)."
  ],
  "credits": [

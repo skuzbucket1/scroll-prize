@@ -6,7 +6,10 @@ set -uo pipefail
 shutdown -h +@MAX_MINUTES@ "scroll-prize spot hard limit reached"
 mkdir -p /opt/scroll && chown ubuntu:ubuntu /opt/scroll
 echo "bootstrap start $(date -u +%FT%TZ)" > /opt/scroll/bootstrap.times
-apt-get update -y && apt-get install -y git zstd rsync curl || { touch /opt/scroll/BOOTSTRAP-FAILED; exit 1; }
+# apt-get update fails on a partial index (e.g. NVIDIA's CUDA repo mid-sync, 2026-10-09); the packages we need come from
+# Ubuntu's own mirrors, so retry the update a few times but only fail if the install itself fails.
+for i in 1 2 3; do apt-get update -y && break; echo "apt-get update failed (attempt $i), retrying"; sleep 20; done
+apt-get install -y git zstd rsync curl || { touch /opt/scroll/BOOTSTRAP-FAILED; exit 1; }
 cat > /opt/scroll/setup.sh <<'SETUP'
 #!/bin/bash
 set -euo pipefail

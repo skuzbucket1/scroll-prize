@@ -94,19 +94,20 @@ def strokes(E, valid, a):
     return keep[lab], int(keep.sum()), n - 1
 
 
-def tile_scores(S, valid, a):
-    t = max(8, int(round(a.tile_mm * 1000 / a.um)))
+def tile_scores(S, valid, a, tile_mm=None, min_frac=0.6):
+    tile_mm = a.tile_mm if tile_mm is None else tile_mm
+    t = max(8, int(round(tile_mm * 1000 / a.um)))
     step = max(4, int(round(a.step_mm * 1000 / a.um)))
     H, W = S.shape
+    ty, tx = min(t, H), min(t, W)
     cs = lambda x: np.pad(x.astype(np.float64), ((1, 0), (1, 0))).cumsum(0).cumsum(1)
     I_s, I_v = cs(S & valid), cs(valid)
-    ys = np.arange(0, max(1, H - t + 1), step)
-    xs = np.arange(0, max(1, W - t + 1), step)
-    box = lambda I: I[ys[:, None] + t, xs[None, :] + t] - I[ys[:, None], xs[None, :] + t] \
-        - I[ys[:, None] + t, xs[None, :]] + I[ys[:, None], xs[None, :]]
+    ys = np.arange(0, H - ty + 1, step)
+    xs = np.arange(0, W - tx + 1, step)
+    box = lambda I: I[ys[:, None] + ty, xs[None, :] + tx] - I[ys[:, None], xs[None, :] + tx] \
+        - I[ys[:, None] + ty, xs[None, :]] + I[ys[:, None], xs[None, :]]
     nv, ns = box(I_v), box(I_s)
-    tv = min(t, H) * min(t, W)
-    sc = np.where(nv >= 0.6 * tv, ns / np.maximum(nv, 1), np.nan)
+    sc = np.where(nv >= min_frac * ty * tx, ns / np.maximum(nv, 1), np.nan)
     return sc, ys, xs, t
 
 
@@ -132,6 +133,9 @@ def main():
     ap.add_argument('--amax-mm2', type=float, default=1.5)
     ap.add_argument('--tile-mm', type=float, default=4.0)
     ap.add_argument('--step-mm', type=float, default=1.0)
+    ap.add_argument('--window-mm', type=float, default=20.0,
+                    help='second, First-Letters-scale window (20 mm = 4 cm2; clamped to the surface height)')
+    ap.add_argument('--window-min-frac', type=float, default=0.3, help='usable share a window needs to be scored')
     ap.add_argument('--top', type=int, default=10)
     ap.add_argument('--models', default='dnative,hecate,ink9-42,ink9-43', help='subset of the ensemble (comma list)')
     ap.add_argument('--tag', default='', help='suffix for the output names (e.g. a model subset)')
@@ -190,7 +194,7 @@ def main():
     out = dict(name=name, depth=d, models=sorted(maps), um=a.um, H=H, W=W, valid_px=int(valid.sum()),
                used_px=int(use.sum()), void_px=int(void.sum()), ct_p1=cp1, ct_p99_5=cp99,
                params=dict(thr=a.thr, bg_mm=a.bg_mm, amin_mm2=a.amin_mm2, amax_mm2=a.amax_mm2,
-                           tile_mm=a.tile_mm, step_mm=a.step_mm, edge_mm=a.edge_mm, hole_mm2=a.hole_mm2, void_frac=a.void_frac,
+                           tile_mm=a.tile_mm, window_mm=a.window_mm, step_mm=a.step_mm, edge_mm=a.edge_mm, hole_mm2=a.hole_mm2, void_frac=a.void_frac,
                            void_dilate_mm=a.void_dilate_mm), norm=norm, sides={})
     grids = {}
     Ez = {}
@@ -201,8 +205,9 @@ def main():
         S &= use
         sc, ys, xs, t = tile_scores(S, use, a)
         grids[label] = sc
+        w2, _, _, _ = tile_scores(S, use, a, a.window_mm, a.window_min_frac)
         out['sides'][label] = dict(components_kept=nk, components_all=nc,
-                                   stroke_frac=float(S[use].mean()), tiles=summary(sc))
+                                   stroke_frac=float(S[use].mean()), tiles=summary(sc), window=summary(w2))
     # top reading tiles, coordinates in reading orientation (rotated 180 deg) and in raw render pixels
     sc = grids['reading']
     blind_max = out['sides']['blind']['tiles'].get('max', float('nan'))

@@ -16,6 +16,12 @@ while IFS=$'\t' read -r NAME SEG URL UM MODELS DEPTHS; do
   (cd /opt/scroll/villa/vesuvius && $PY /opt/scroll/bin/ink343/ensemble_maps.py --surface /opt/scroll/work/${NAME}_66.zarr --name ${NAME}_66 \
       --maps $OUT/$NAME/maps --out $OUT/$NAME/ensemble --stat-depths $SD --write-depths $SD > $OUT/$NAME/ensemble/ensemble.log 2>&1) \
     && touch $OUT/$NAME/DONE
+  # stroke score (bin/stroke_score.py) on the worker, so only small results need fetching: the models this batch ran
+  SM=$(echo "$MODELS" | tr ',' '\n' | sed -e 's/^hybrid_3d2d-seed42$/ink9-42/' -e 's/^hybrid_3d2d-seed43$/ink9-43/' | paste -sd, -)
+  for d in $SD; do
+    (cd /opt/scroll/villa/vesuvius && $PY /opt/scroll/bin/stroke_score.py --surface /opt/scroll/work/${NAME}_66.zarr --maps $OUT/$NAME/maps \
+        --name ${NAME}_66 --out $OUT/$NAME/strokes --um "$UM" --depth $d --models "$SM" --crops 3 >> $OUT/$NAME/strokes.log 2>&1) || true
+  done
   rm -rf /opt/scroll/work/${NAME}_66.zarr          # renders are ~1 GB each; keep the disk small
   echo "$k/$N $NAME done $(date -u +%FT%TZ)" > $OUT/progress.txt
 done < $B
