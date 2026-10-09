@@ -131,13 +131,15 @@
    "title": "30k optimizer steps",
    "question": "Is the fit simply under-converged?",
    "technique": "Pilot config, 3\u00d7 steps (80 min).",
-   "result": "Best so far, but geometry identical (outer winding still at 21 mm mean radius).",
+   "result": "0.4901 / 0.1018, best of the fits; w040 render: roughly half fibre texture, half laminated crossings \u2014 matches the metric.",
    "verdict": "improved",
    "metrics": {
     "satisfied_track_points": 0.4901,
     "satisfied_tracks": 0.1018
    },
-   "images": [],
+   "images": [
+    "PHerc0191-exp30k-w040-render.jpg"
+   ],
    "learned": "Convergence buys three points; it does not move the spiral into the outer third of the papyrus."
   },
   {
