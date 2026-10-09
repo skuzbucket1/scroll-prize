@@ -86,3 +86,4 @@ Tailscale ip of llm: 100.74.214.106
 - GPU box `llm` (192.168.1.61 / llm.tailb8796.ts.net): work tree `~/scroll-prizes` → `/mnt/nvme/scroll-prizes` (NVMe); tools in `bin/`, job logs `*.log`;
   scroll data under `data/PHerc0191/`. Credentials: `.secrets` (labelled lines; never print).
 - GPUs on `llm`: use only 0 (RTX 3060 12 GB), 2 (RTX 3060 Ti 8 GB), 3 (RTX 3060 12 GB). **GPU 1 (GTX 1660 SUPER) is not usable for any of this work** (fits at 0.04 it/s, ink inference writes all-zero maps, no bf16) — decided 2026-10-09; never schedule on it.
+- Public repo: https://github.com/skuzbucket1/scroll-prize (MIT) with the research-log site at https://skuzbucket1.github.io/scroll-prize/ (GitHub Pages, `docs/`). Registry `research/registry.json` → `python3 scripts/build_site.py`. `memory/`, `data/`, `villa/`, `.secrets` are not versioned. Box scripts are synced into `box/bin/`.
