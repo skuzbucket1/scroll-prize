@@ -55,7 +55,13 @@
    ],
    "learned": "The ink side works when the geometry is right. Every later null result is a geometry problem until proven otherwise.",
    "track": "Ink & render",
-   "short": "Ink calibration"
+   "short": "Ink calibration",
+   "credits": [
+    "vc-data",
+    "villa",
+    "ink9um",
+    "ours"
+   ]
   },
   {
    "id": "pherc0800-public",
@@ -73,7 +79,13 @@
    ],
    "learned": "Re-running public segments is not a shortcut; the prize is in new geometry.",
    "track": "Ink & render",
-   "short": "PHerc0800 public segments"
+   "short": "PHerc0800 public segments",
+   "credits": [
+    "vc-data",
+    "villa",
+    "ink9um",
+    "ours"
+   ]
   },
   {
    "id": "candidates",
@@ -92,7 +104,11 @@
    ],
    "learned": "Stay on PHerc0191. Crushed geometry is the norm, so solving it is the whole game.",
    "track": "Setup",
-   "short": "Scroll choice"
+   "short": "Scroll choice",
+   "credits": [
+    "vc-data",
+    "ours"
+   ]
   },
   {
    "id": "pilot",
@@ -114,7 +130,13 @@
    ],
    "learned": "A point counts as on-sheet only within 6 voxels and 0.45 winding of its track's sheet, so more than half the track points are off the fitted surface. Ink is noise until that changes.",
    "track": "Spiral fit",
-   "short": "Pilot spiral fit"
+   "short": "Pilot spiral fit",
+   "credits": [
+    "spiral-fitter",
+    "vc-predictions",
+    "vc-tutorial",
+    "ours"
+   ]
   },
   {
    "id": "exp-track2x",
@@ -132,7 +154,13 @@
    "images": [],
    "learned": "Weights are not the lever; the model cannot satisfy the tracks as posed.",
    "track": "Spiral fit",
-   "short": "Track weight \u00d72"
+   "short": "Track weight \u00d72",
+   "credits": [
+    "spiral-fitter",
+    "vc-predictions",
+    "vc-tutorial",
+    "ours"
+   ]
   },
   {
    "id": "exp-30k",
@@ -152,7 +180,13 @@
    ],
    "learned": "Convergence buys three points; it does not move the spiral into the outer third of the papyrus.",
    "track": "Spiral fit",
-   "short": "30k steps"
+   "short": "30k steps",
+   "credits": [
+    "spiral-fitter",
+    "vc-predictions",
+    "vc-tutorial",
+    "ours"
+   ]
   },
   {
    "id": "exp-shell105",
@@ -172,7 +206,13 @@
    ],
    "learned": "Tooling finding #7: the fitter normalizes shell confidence by its global max; a shell sampled every 8 slices lands every interior value at 0.22, below the 0.25 threshold, so no sample is valid and the loss is 0 with no warning.",
    "track": "Spiral fit",
-   "short": "Outer shell (sparse)"
+   "short": "Outer shell (sparse)",
+   "credits": [
+    "spiral-fitter",
+    "vc-predictions",
+    "vc-tutorial",
+    "ours"
+   ]
   },
   {
    "id": "exp-shell105b",
@@ -190,7 +230,13 @@
    "images": [],
    "learned": "Stretching the whole spiral outward hurts the inner tracks: the inner spacing is already about right. The outer, fat sectors need more windings at wider spacing, not a stretched spiral.",
    "track": "Spiral fit",
-   "short": "Outer shell (dense)"
+   "short": "Outer shell (dense)",
+   "credits": [
+    "spiral-fitter",
+    "vc-predictions",
+    "vc-tutorial",
+    "ours"
+   ]
   },
   {
    "id": "exp-dr32",
@@ -208,7 +254,13 @@
    "images": [],
    "learned": "The spacing is not re-learned by the optimizer: the initial value fixes the spiral's radial extent. The sector-dependent spacing (0.13 mm on the flat sides to 0.26 mm at the ends) needs an anisotropic flow or local supervision, not a global number.",
    "track": "Spiral fit",
-   "short": "Winding spacing \u00d72"
+   "short": "Winding spacing \u00d72",
+   "credits": [
+    "spiral-fitter",
+    "vc-predictions",
+    "vc-tutorial",
+    "ours"
+   ]
   },
   {
    "id": "sector-audit",
@@ -223,7 +275,12 @@
    "images": [],
    "learned": "A crushed scroll has the same winding count in every direction with spacing varying ~2.5\u00d7 by sector. The uniform regularizer resists exactly that deformation.",
    "track": "Spiral fit",
-   "short": "Sector audit"
+   "short": "Sector audit",
+   "credits": [
+    "vc-data",
+    "spiral-fitter",
+    "ours"
+   ]
   },
   {
    "id": "tracer-nodir",
@@ -240,7 +297,12 @@
    ],
    "learned": "Without its guidance inputs the tracer ignores the data entirely.",
    "track": "Patch growing",
-   "short": "Tracer, no guidance"
+   "short": "Tracer, no guidance",
+   "credits": [
+    "villa",
+    "vc-predictions",
+    "ours"
+   ]
   },
   {
    "id": "fiber",
@@ -255,7 +317,13 @@
    "images": [],
    "learned": "Two encodings, one formula ((u8\u2212128)/127), different layouts. Converted with symlinks plus a computed z component.",
    "track": "Patch growing",
-   "short": "Fiber direction field"
+   "short": "Fiber direction field",
+   "credits": [
+    "fiber-model",
+    "villa",
+    "vc-data",
+    "ours"
+   ]
   },
   {
    "id": "tracer-dirfield",
@@ -272,7 +340,13 @@
    ],
    "learned": "Every growth candidate was accepted \u2014 the data terms were inactive. The docs mark normal grids as REQUIRED for the tracer; no run had passed them.",
    "track": "Patch growing",
-   "short": "Tracer + fiber field"
+   "short": "Tracer + fiber field",
+   "credits": [
+    "villa",
+    "vc-predictions",
+    "fiber-model",
+    "ours"
+   ]
   },
   {
    "id": "tracer-normalgrid",
@@ -289,7 +363,13 @@
    ],
    "learned": "The patch route is alive. Next: xz/yz normal-grid planes, a cleaner seed, direction weight, Lasagna normals as an alternative field.",
    "track": "Patch growing",
-   "short": "Tracer + normal grids"
+   "short": "Tracer + normal grids",
+   "credits": [
+    "villa",
+    "vc-predictions",
+    "fiber-model",
+    "ours"
+   ]
   },
   {
    "id": "winding-cache",
@@ -304,7 +384,13 @@
    "images": [],
    "learned": "The smoke run sized the full cache: the documented (step 3, spacing 60) settings would have needed 776 GB.",
    "track": "Spiral fit",
-   "short": "Winding-model cache"
+   "short": "Winding-model cache",
+   "credits": [
+    "winding-model",
+    "villa",
+    "spiral-fitter",
+    "ours"
+   ]
   },
   {
    "id": "tracer-ng100w3",
@@ -321,7 +407,13 @@
    ],
    "learned": "Weighting the direction term harder does not stop crossings. Next: the missing xz/yz normal-grid planes, a seed chosen on a clean region, and the Lasagna normals as an alternative field.",
    "track": "Patch growing",
-   "short": "Tracer, field weight 3"
+   "short": "Tracer, field weight 3",
+   "credits": [
+    "villa",
+    "vc-predictions",
+    "fiber-model",
+    "ours"
+   ]
   },
   {
    "id": "exp-dirlow",
@@ -339,7 +431,13 @@
    "images": [],
    "learned": "With the shell active the envelope is right and the interior is wrong: windings are spread incorrectly inside a correct outer boundary. Local spacing supervision (winding model) is the direct remedy, not a uniform stretch or a weaker regularizer. Confounded with the shell; exp-dirlow2 isolates the regularizer.",
    "track": "Spiral fit",
-   "short": "Low regularizer + shell"
+   "short": "Low regularizer + shell",
+   "credits": [
+    "spiral-fitter",
+    "vc-predictions",
+    "vc-tutorial",
+    "ours"
+   ]
   },
   {
    "id": "winding-export",
@@ -354,7 +452,12 @@
    "images": [],
    "learned": "The 104 GB cache reduces to 1 MB of usable supervision; the exporter keeps only each slab's centre ray. Future caches should be sized for rays, not slabs.",
    "track": "Spiral fit",
-   "short": "Winding supervision export"
+   "short": "Winding supervision export",
+   "credits": [
+    "winding-model",
+    "villa",
+    "ours"
+   ]
   },
   {
    "id": "exp-wm",
@@ -374,7 +477,13 @@
    ],
    "learned": "Either the supervision is too sparse (6,900 rays for 1,000 slices vs ~140k in the documented PHercParis4 run) or the shell pull costs ~4 points regardless. exp-wm2 removes the shell pull (weight 0, shell kept as the required gate) to separate the two.",
    "track": "Spiral fit",
-   "short": "Winding model + shell"
+   "short": "Winding model + shell",
+   "credits": [
+    "spiral-fitter",
+    "winding-model",
+    "vc-predictions",
+    "ours"
+   ]
   },
   {
    "id": "tracer-lasagna",
@@ -392,7 +501,12 @@
    ],
    "learned": "The public Lasagna normals steer the tracer at least as well as the Fiber field. Roughly half the patch is on one sheet; ink needs a clean, flattened sheet, so no letters expected yet. A 150-generation version is running.",
    "track": "Patch growing",
-   "short": "Tracer + Lasagna normals"
+   "short": "Tracer + Lasagna normals",
+   "credits": [
+    "villa",
+    "vc-predictions",
+    "ours"
+   ]
   },
   {
    "id": "snap-exp30k",
@@ -410,7 +524,13 @@
    ],
    "learned": "Snapping fixes small normal offsets but cannot repair regions where the fit crosses between sheets. It does produce the first winding worth the full ink treatment: snapped w070 is flattened, rendered in 66 layers, and in the four-model depth sweep.",
    "track": "Spiral fit",
-   "short": "Snap onto predicted sheets"
+   "short": "Snap onto predicted sheets",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-predictions",
+    "spiral-fitter",
+    "ours"
+   ]
   },
   {
    "id": "tracer-lasagna150",
@@ -427,7 +547,12 @@
    ],
    "learned": "An on-sheet area of order 15 cm\u00b2 in one patch is enough for a First Letters search if the ink is there. This and snapped w070 are the two candidates in the ink pipeline.",
    "track": "Patch growing",
-   "short": "Lasagna patch, 150 gens"
+   "short": "Lasagna patch, 150 gens",
+   "credits": [
+    "villa",
+    "vc-predictions",
+    "ours"
+   ]
   },
   {
    "id": "exp-wm2",
@@ -445,7 +570,13 @@
    "images": [],
    "learned": "With 6,900 rays the winding-model supervision is neutral, and the shell pull alone explains the ~4-point losses. The fitter route on PHerc0191 is capped near 0.46\u20130.49 with current inputs; the winner's surface-prediction distance field (old fitter) and the post-hoc snap are what remain to test.",
    "track": "Spiral fit",
-   "short": "Winding model, no shell"
+   "short": "Winding model, no shell",
+   "credits": [
+    "spiral-fitter",
+    "winding-model",
+    "vc-predictions",
+    "ours"
+   ]
   },
   {
    "id": "w070-sweep-early",
@@ -464,7 +595,16 @@
    ],
    "learned": "The recipe produces geometry good enough for an ink search. One depth of one winding is not a search: the letters in 343 appeared at d = +1 on one winding of many. Next: geometry triage of all 100 snapped windings, then sweeps on the ones that look like this.",
    "track": "Ink & render",
-   "short": "w070 ink sweep"
+   "short": "w070 ink sweep",
+   "credits": [
+    "nieuwlaar-343",
+    "villa",
+    "ink9um",
+    "hecate",
+    "dense-native",
+    "vc-predictions",
+    "ours"
+   ]
   },
   {
    "id": "geometry-triage",
@@ -481,7 +621,13 @@
    ],
    "learned": "If this holds across the band, several hundred cm\u00b2 of searchable sheet exist from one 1,000-slice fit. The ink search, not the geometry, is now the bottleneck.",
    "track": "Ink & render",
-   "short": "Triage of all windings"
+   "short": "Triage of all windings",
+   "credits": [
+    "villa",
+    "nieuwlaar-343",
+    "ink9um",
+    "ours"
+   ]
   }
  ],
  "findings": [
@@ -562,5 +708,85 @@
   "Finish the w070 and Lasagna-patch sweeps; build ensemble images at every depth.",
   "Old fitter (winner's version, surface-prediction distance field) attempt 3 running; snap + triage its windings if it beats exp-30k.",
   "Progress Prize write-ups for findings #6\u2013#8 (PRs staged for Ted)."
+ ],
+ "credits": [
+  {
+   "id": "vc-data",
+   "who": "Vesuvius Challenge",
+   "what": "CT scans and open data for PHerc. 0191, PHerc. 0343, PHerc. 0800 and PHerc. Paris 4 (CC BY-NC 4.0); all images on this site are derived from it.",
+   "link": "https://scrollprize.org/data"
+  },
+  {
+   "id": "vc-predictions",
+   "who": "Vesuvius Challenge",
+   "what": "Published derived data for PHerc. 0191: m7 surface prediction, Lasagna normal / gradient-magnitude volumes, spiral tracks, normal grids.",
+   "link": "https://scrollprize.org/data"
+  },
+  {
+   "id": "villa",
+   "who": "ScrollPrize/villa contributors",
+   "what": "VC3D / Volume Cartographer (vc_render_tifxyz, vc_grow_seg_from_seed, vc_gen_umbilicus), the vesuvius package (ink inference, fibre and winding inference), Lasagna (flattening).",
+   "link": "https://github.com/ScrollPrize/villa"
+  },
+  {
+   "id": "spiral-fitter",
+   "who": "Paul Henderson & Sean Johnson (Vesuvius Challenge)",
+   "what": "The spiral fitter (villa/spiral-fitting), used for every global fit here, including the pre-September version at villa 0fb38c45.",
+   "link": "https://scrollprize.org/tutorial_spiral"
+  },
+  {
+   "id": "ink9um",
+   "who": "Elian Rafael (original training), Vesuvius Challenge",
+   "what": "ink_9um cross-scroll ink models, seeds 42 and 43.",
+   "link": "https://huggingface.co/scrollprize/ink_9um"
+  },
+  {
+   "id": "hecate",
+   "who": "Giorgio Angelotti",
+   "what": "Hecate 9.6 \u00b5m ink model.",
+   "link": "https://huggingface.co/scrollprize/hecate"
+  },
+  {
+   "id": "dense-native",
+   "who": "Erwin Nieuwlaar",
+   "what": "dense_native ink model (fine-tune on PHerc. 0139).",
+   "link": "https://huggingface.co/Nieuwlaar/ink9um-dense-native"
+  },
+  {
+   "id": "nieuwlaar-343",
+   "who": "Erwin Nieuwlaar",
+   "what": "The PHerc. 343 First Letters pipeline we adopted: the snap-onto-prediction step (snap_meshes.py), the 66-layer render / depth-sweep / four-model ensemble scripts (copied unchanged under MIT), the shell-optional patch, and the winning mesh used as our positive control.",
+   "link": "https://github.com/Nieuwlaar/pherc343-first-letters"
+  },
+  {
+   "id": "winding-model",
+   "who": "Vesuvius Challenge",
+   "what": "winding_model_9um (winding-number inference used for spiral-fit supervision).",
+   "link": "https://huggingface.co/scrollprize/winding_model_9um"
+  },
+  {
+   "id": "fiber-model",
+   "who": "Vesuvius Challenge",
+   "what": "lasagna-fiber model (SD2 checkpoint) used for the fibre/normal direction field.",
+   "link": "https://huggingface.co/scrollprize/lasagna-fiber"
+  },
+  {
+   "id": "vc-tutorial",
+   "who": "Vesuvius Challenge",
+   "what": "The First Letters workflow tutorial (spiral fit \u2192 flatten \u2192 render \u2192 ink) that this campaign follows.",
+   "link": "https://scrollprize.substack.com/p/from-ct-scan-to-ancient-text-a-first"
+  },
+  {
+   "id": "community-prior-art",
+   "who": "pscamillo, rodriguescarson, gmDevi and other community contributors",
+   "what": "Public minimal-route meshes, atlases and ink sweeps on the eligible scrolls, reviewed so we would not repeat them.",
+   "link": ""
+  },
+  {
+   "id": "ours",
+   "who": "This project (Ted Bienapfl)",
+   "what": "Experiment design and analysis; our scripts in box/bin (mirroring, outer-shell builder, mesh audits, triage, direction-field converter, fast ink pass, site generator); the tooling findings and fixes.",
+   "link": "https://github.com/skuzbucket1/scroll-prize"
+  }
  ]
 }

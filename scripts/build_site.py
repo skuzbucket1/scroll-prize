@@ -57,6 +57,7 @@ for n, e in enumerate(exps, 1):
 baseline = next((e for e in exps if e.get("verdict") == "baseline"), None)
 b_val = (baseline or {}).get("metrics", {}).get(METRIC)
 phases = {p["id"]: p for p in d["phases"]}
+credits = {c["id"]: c for c in d.get("credits", [])}
 p = d["project"]
 now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
@@ -167,12 +168,39 @@ findings = f"""
   </div>
 </section>"""
 
+
+cl = "".join(
+    f'<li><b>{(chr(60)+"a href=\""+esc(c["link"])+"\""+chr(62)+esc(c["who"])+chr(60)+"/a"+chr(62)) if c.get("link") else esc(c["who"])}</b><p>{esc(c["what"])}</p>'
+    f'<p class="used">Used in {sum(1 for e in exps if c["id"] in e.get("credits", []))} of {len(exps)} runs</p></li>'
+    for c in d.get("credits", []))
+creditsview = f"""
+<section class="view" id="credits" aria-labelledby="h-credits">
+  <h1 id="h-credits">Credits</h1>
+  <p class="lede">This campaign is built almost entirely on other people's work. Everything below is theirs; only the entry marked "This project" is ours. Each run page lists exactly what it used.</p>
+  <ul class="plain creditlist">{cl}</ul>
+  <p class="note">Scan data and everything derived from it (all images here) are the Vesuvius Challenge's, under CC BY-NC 4.0. Copied third-party code keeps its licence notice in the repository (box/bin/ink343/).</p>
+</section>"""
+
 nexts = "".join(f"<li>{esc(n)}</li>" for n in d.get("next", []))
 nextview = f"""
 <section class="view" id="next" aria-labelledby="h-next">
   <h1 id="h-next">Next</h1>
   <ol class="plain">{nexts}</ol>
 </section>"""
+
+
+def credit_card(e):
+    ids = e.get("credits", [])
+    if not ids:
+        return ""
+    items = []
+    for cid in ids:
+        c = credits.get(cid)
+        if not c:
+            continue
+        who = f'<a href="{esc(c["link"])}">{esc(c["who"])}</a>' if c.get("link") else esc(c["who"])
+        items.append(f'<li><b>{who}</b> — {esc(c["what"])}</li>')
+    return f'<div class="card credits"><h3>Built on</h3><ul class="plain">{"".join(items)}</ul><p class="more"><a href="#credits">All credits</a></p></div>'
 
 # ---------------------------------------------------------------- one page per run
 run_views = []
@@ -210,6 +238,7 @@ for i, e in enumerate(exps):
     <div class="card"><h3>Technique</h3><p>{esc(e.get('technique',''))}</p></div>
     <div class="card"><h3>Result</h3><p>{esc(e.get('result',''))}</p></div>
     <div class="card learned"><h3>What we learned</h3><p>{esc(e.get('learned',''))}</p></div>
+    {credit_card(e)}
   </div>
   {f'<div class="gallery">{"".join(imgs)}</div>' if imgs else ''}
   {pager}
@@ -262,7 +291,7 @@ h1{font-size:26px;line-height:1.25;margin:4px 0 8px}h2{font-size:19px;margin:32p
 .card p{margin:0}.card.link{text-decoration:none;color:var(--ink);display:block}.card.link:hover{border-color:var(--accent)}
 .card.link p{color:var(--ink2);font-size:13px;margin-top:6px}
 .cardhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.cardhead .num{color:var(--muted);font-size:12px}
-.qa{display:grid;gap:10px}.qa .learned{border-left:3px solid var(--accent)}
+.qa{display:grid;gap:10px}.card.credits li{font-size:13px;margin:4px 0}.card.credits .more{margin-top:6px;font-size:12px}.creditlist li{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;list-style:none;margin:8px 0}.creditlist{padding:0}.creditlist .used{font-size:12px;color:var(--muted)}.qa .learned{border-left:3px solid var(--accent)}
 .stats{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 14px}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;min-width:180px}
 .stat .k{font-size:12px;color:var(--ink2)}.stat .val{font-size:24px;font-weight:600}
@@ -368,13 +397,13 @@ page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name
 <div class="layout">
 <aside aria-label="Research navigation">
   <div class="brand"><b>{esc(p['title'])}</b><span>{len(exps)} runs · updated {now}</span></div>
-  <nav class="topnav"><a href="#overview" data-view="overview">Overview</a><a href="#findings" data-view="findings">Findings</a><a href="#next" data-view="next">Next</a></nav>
+  <nav class="topnav"><a href="#overview" data-view="overview">Overview</a><a href="#findings" data-view="findings">Findings</a><a href="#next" data-view="next">Next</a><a href="#credits" data-view="credits">Credits</a></nav>
   <div class="filter"><input id="filter" type="search" placeholder="Filter runs (e.g. tracer, shell, ink)" aria-label="Filter runs"></div>
   <div class="navscroll">{''.join(nav_groups)}</div>
   <div class="sidefoot"><span>← → step through runs</span><button id="theme" type="button">Light / dark</button></div>
 </aside>
-<main>{overview}{findings}{nextview}{''.join(run_views)}
-<footer class="foot">Generated {now} from research/registry.json by scripts/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
+<main>{overview}{findings}{nextview}{creditsview}{''.join(run_views)}
+<footer class="foot">Scan data and derived images: Vesuvius Challenge, CC BY-NC 4.0. Tools, models and methods by others are credited on each run and on the <a href="#credits">Credits</a> page. Generated {now} from research/registry.json by scripts/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
 </main></div>
 <div class="lightbox" id="lightbox" hidden><button type="button" aria-label="Close">✕</button><img alt=""><div class="cap"></div></div>
 <script>{JS}</script></body></html>"""
