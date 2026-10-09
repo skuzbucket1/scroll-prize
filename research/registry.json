@@ -353,6 +353,37 @@
     "PHerc0191-lasagna70-ink_seed42-75000_preview-ds2.jpg"
    ],
    "learned": "The public Lasagna normals steer the tracer at least as well as the Fiber field. Roughly half the patch is on one sheet; ink needs a clean, flattened sheet, so no letters expected yet. A 150-generation version is running."
+  },
+  {
+   "id": "snap-exp30k",
+   "date": "2026-10-09",
+   "phase": "P2",
+   "title": "Post-hoc snap of exp-30k windings onto the m7 surface prediction (the PHerc. 343 winner's step)",
+   "question": "Does moving each vertex onto the nearest predicted sheet turn a half-on-sheet winding into a usable one?",
+   "technique": "Nieuwlaar's snap_meshes.py on w020\u2013w119 with the band of the m7 prediction mirrored at level 0: \u00b115 vox search along normals, jump rejection, Gaussian regularisation. 67 s for 100 windings.",
+   "result": "99.5% of vertices snapped, median move 1.8 vox, only 19% were already within 2 vox. w040 render: modest gain, crossings remain. w070 render: the largest continuous fibre-textured region of any winding so far (~40% of a 3 cm strip) and a clean self-crossing check.",
+   "verdict": "partial",
+   "metrics": {},
+   "images": [
+    "PHerc0191-exp30k-snapped-w070-render.jpg",
+    "PHerc0191-exp30k-snapped-w040-render.jpg"
+   ],
+   "learned": "Snapping fixes small normal offsets but cannot repair regions where the fit crosses between sheets. It does produce the first winding worth the full ink treatment: snapped w070 is flattened, rendered in 66 layers, and in the four-model depth sweep."
+  },
+  {
+   "id": "tracer-lasagna150",
+   "date": "2026-10-09",
+   "phase": "P2",
+   "title": "Patch growing, Lasagna-normals field, 150 generations",
+   "question": "How far does the on-sheet region extend when the Lasagna-guided patch keeps growing?",
+   "technique": "As the 70-generation run, 150 generations (796 s).",
+   "result": "35.8 cm\u00b2 patch; the fibre weave covers roughly half of it (left/centre), laminated crossings on the right. Flattened and rendered in 66 layers; four-model depth sweep queued.",
+   "verdict": "partial",
+   "metrics": {},
+   "images": [
+    "PHerc0191-lasagna150-render.jpg"
+   ],
+   "learned": "An on-sheet area of order 15 cm\u00b2 in one patch is enough for a First Letters search if the ink is there. This and snapped w070 are the two candidates in the ink pipeline."
   }
  ],
  "findings": [
