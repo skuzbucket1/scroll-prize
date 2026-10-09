@@ -19,7 +19,8 @@ if [ -n "$IDS" ] && [ "$IDS" != "None" ]; then
   [ -n "$KILL" ] && awsc ec2 wait instance-terminated --instance-ids $KILL && log "terminated:$KILL"
   if [ -f "$STATE/launched_at" ]; then
     h=$(python3 -c "import time; print(round((time.time()-$(cat "$STATE/launched_at"))/3600, 2))")
-    log "ran ~${h} h; at the spot ceiling of \$$MAX_PRICE/h that is at most \$$(python3 -c "print(round($h*$MAX_PRICE, 2))") (actual spot price is lower)"
+    if [ "${MARKET:-spot}" = "ondemand" ]; then RATE=${ONDEMAND_PRICE:-0.752}; WHAT="on-demand rate"; else RATE=$MAX_PRICE; WHAT="spot ceiling (actual spot price is lower)"; fi
+    log "ran ~${h} h; at the $WHAT of \$$RATE/h that is about \$$(python3 -c "print(round($h*$RATE, 2))")"
   fi
 else
   log "no instance to terminate"

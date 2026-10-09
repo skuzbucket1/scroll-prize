@@ -22,7 +22,8 @@ cd /opt/scroll
 URL=$(curl -s https://api.github.com/repos/ScrollPrize/villa/releases/tags/@VC3D_RELEASE@ | grep -oE '"browser_download_url": "[^"]+linux-x86_64\.AppImage"' | head -1 | cut -d'"' -f4)
 curl -sL -o vc3d.AppImage "$URL" && chmod +x vc3d.AppImage && ./vc3d.AppImage --appimage-extract > /dev/null && mv squashfs-root vc3d && rm vc3d.AppImage
 echo "$URL" > /opt/scroll/vc3d.txt
-QT_QPA_PLATFORM=offscreen ./vc3d/AppRun vc_render_tifxyz --help | head -1
+QT_QPA_PLATFORM=offscreen ./vc3d/AppRun vc_render_tifxyz --help > /opt/scroll/vc_render_help.txt 2>&1 || true   # no '| head': SIGPIPE + pipefail = false failure
+grep -q 'vc_render_tifxyz' /opt/scroll/vc_render_help.txt
 mkdir -p /opt/scroll/hf
 cd /opt/scroll/villa/vesuvius && uv run --no-sync python - <<'PY'
 from huggingface_hub import hf_hub_download

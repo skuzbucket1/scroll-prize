@@ -656,6 +656,28 @@
     "dense-native",
     "ours"
    ]
+  },
+  {
+   "id": "aws-poc",
+   "date": "2026-10-09",
+   "phase": "P3",
+   "track": "Setup",
+   "short": "AWS GPU proof of concept",
+   "title": "AWS proof of concept: render + ink on an EC2 GPU next to the data",
+   "question": "Can a cloud GPU in us-east-1 run our exact pipeline (render from S3, ink model) and match the home box, quickly and cheaply?",
+   "technique": "aws/poc.sh from the Mac: dedicated VPC, on-demand g4dn.2xlarge (Tesla T4, 8 vCPU), Ubuntu 24.04 Deep Learning Base AMI; bootstrap = uv + villa vesuvius env + VC3D Linux AppImage + four ink checkpoints from Hugging Face; job = 66-layer render of the PHerc. 343 control segment straight from the public S3 volume, ink_9um seed 42 at depth +1; fetch; terminate. Spot was tried first but refused in every us-east-1 zone and type that afternoon.",
+   "result": "Worked end to end in 7 minutes: bootstrap 2 min, render 43 s (vs 280 s at home), ink map 157 s (vs ~290 s on the CPU-starved home 3060). Output matches the home box: Pearson r 0.99998, max difference 1/255, 97.7% of pixels identical.",
+   "verdict": "pass",
+   "metrics": {},
+   "images": [],
+   "learned": "Each cloud T4 does about twice the work of one home GPU, and renders ~6\u00d7 faster next to the data, for ~$0.75/h on-demand. The ink search can now scale out horizontally; spot capacity for this account is the open question.",
+   "credits": [
+    "villa",
+    "ink9um",
+    "nieuwlaar-343",
+    "vc-data",
+    "ours"
+   ]
   }
  ],
  "findings": [
