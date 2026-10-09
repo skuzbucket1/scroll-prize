@@ -141,10 +141,10 @@ footer{color:var(--muted);font-size:13px;margin:40px 0 10px}
   <dl>
     <dt>Question</dt><dd>Does local sheet-spacing supervision from the winding model fix the interior distribution of windings?</dd>
     <dt>Technique</dt><dd>dense_spacing_mode winding_model with the exported store (6,900 rays in range, 130k crossings), shell loss weight 1 at winding 125, 10k steps on the 3060 Ti. Both winding-model loss terms active (relative 11.4, density 1.7 at the end).</dd>
-    <dt>Result</dt><dd>0.4213 / 0.0786 — same band as every other shell-active run; no improvement on tracks.</dd>
+    <dt>Result</dt><dd>0.4213 / 0.0786 — same band as every other shell-active run; no improvement on tracks. w040 render looks like exp-30k&#x27;s: about half fibre texture, half crossings.</dd>
     <dt>What we learned</dt><dd class="learned">Either the supervision is too sparse (6,900 rays for 1,000 slices vs ~140k in the documented PHercParis4 run) or the shell pull costs ~4 points regardless. exp-wm2 removes the shell pull (weight 0, shell kept as the required gate) to separate the two.</dd>
   </dl>
-  <table class='metrics'><tr><th>satisfied_track_points</th><td>0.4213</td></tr><tr><th>satisfied_tracks</th><td>0.0786</td></tr></table>
+  <table class='metrics'><tr><th>satisfied_track_points</th><td>0.4213</td></tr><tr><th>satisfied_tracks</th><td>0.0786</td></tr></table><div class='gallery'><a href='img/PHerc0191-expwm-w040-render.jpg' target='_blank'><img loading='lazy' src='img/PHerc0191-expwm-w040-render.jpg' alt='PHerc0191-expwm-w040-render.jpg'><figcaption>PHerc0191-expwm-w040-render.jpg</figcaption></a></div>
 </section>
 <section class="card" id="fiber">
   <header><span class="phase">P2</span> <span class="date">2026-10-09</span> <span class="badge" style="background:#1b7f3b">Done</span><h3>Fiber-direction inference on the band (SD2 model)</h3></header>
@@ -236,5 +236,5 @@ footer{color:var(--muted);font-size:13px;margin:40px 0 10px}
   </dl>
   
 </section>
-<footer>Generated 2026-10-09 15:01 UTC from research/registry.json by scripts/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
+<footer>Generated 2026-10-09 15:08 UTC from research/registry.json by scripts/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
 </main></body></html>

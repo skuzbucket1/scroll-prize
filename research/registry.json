@@ -327,13 +327,15 @@
    "title": "First fit with winding-model supervision (+ dense shell at winding 125)",
    "question": "Does local sheet-spacing supervision from the winding model fix the interior distribution of windings?",
    "technique": "dense_spacing_mode winding_model with the exported store (6,900 rays in range, 130k crossings), shell loss weight 1 at winding 125, 10k steps on the 3060 Ti. Both winding-model loss terms active (relative 11.4, density 1.7 at the end).",
-   "result": "0.4213 / 0.0786 \u2014 same band as every other shell-active run; no improvement on tracks.",
+   "result": "0.4213 / 0.0786 \u2014 same band as every other shell-active run; no improvement on tracks. w040 render looks like exp-30k's: about half fibre texture, half crossings.",
    "verdict": "null",
    "metrics": {
     "satisfied_track_points": 0.4213,
     "satisfied_tracks": 0.0786
    },
-   "images": [],
+   "images": [
+    "PHerc0191-expwm-w040-render.jpg"
+   ],
    "learned": "Either the supervision is too sparse (6,900 rays for 1,000 slices vs ~140k in the documented PHercParis4 run) or the shell pull costs ~4 points regardless. exp-wm2 removes the shell pull (weight 0, shell kept as the required gate) to separate the two."
   },
   {
