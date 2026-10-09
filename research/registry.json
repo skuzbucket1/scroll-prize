@@ -408,14 +408,30 @@
    "title": "Snapped + flattened w070: 66-layer render and first ink-ensemble depths",
    "question": "With the PHerc. 343 recipe (snap \u2192 Lasagna flatten \u2192 66-layer render \u2192 four-model ensemble), does the best winding show ink?",
    "technique": "Nieuwlaar's run_depth_sweep.sh / ensemble_maps.py with ink_9um seeds 42/43, dense_native and Hecate 9.6 \u00b5m; z-score ensemble on the reading side, blind side for comparison.",
-   "result": "The surface layer of the flattened winding shows clean papyrus fibre weave over its whole middle (~3 \u00d7 1.5 cm in the crop) \u2014 the best geometry of the campaign. Depth 0 ensemble: mottled, a few faint vertical streaks along fibres, no letter rows; blind side similar. Depths \u00b11 done for the villa models, the rest running (Hecate takes 31 min per depth on a 3060).",
-   "verdict": "partial",
+   "result": "The surface layer of the flattened winding shows clean papyrus fibre weave over its whole middle \u2014 the best geometry of the campaign. Ink: four-model ensemble at d 0 and ink_9um seed 42 at d +1 (where the 343 letters appeared) are mottled noise on both sides; no rows of letter-sized strokes. The full 31-depth sweep is paused (the 4-core CPU is the bottleneck) after d \u22122..+2 for the villa models.",
+   "verdict": "null",
    "metrics": {},
    "images": [
     "PHerc0191-w070-snapflat-ct-d0-mid.jpg",
-    "PHerc0191-w070-snapflat-ensemble-d0-mid.jpg"
+    "PHerc0191-w070-snapflat-ensemble-d0-mid.jpg",
+    "PHerc0191-w070-s42-d+1-read.jpg"
    ],
    "learned": "The recipe produces geometry good enough for an ink search. One depth of one winding is not a search: the letters in 343 appeared at d = +1 on one winding of many. Next: geometry triage of all 100 snapped windings, then sweeps on the ones that look like this."
+  },
+  {
+   "id": "geometry-triage",
+   "date": "2026-10-09",
+   "phase": "P3",
+   "title": "Geometry triage of all snapped windings (flatten + 66-layer render + CT surface layer)",
+   "question": "How much of the band is in the same clean on-sheet state as w070?",
+   "technique": "For every snapped exp-30k winding from w070 outwards: Lasagna flatten (~7 min GPU), 66-layer render, preview of layer 33 (the surface). Then a fast ink pass (ink_9um seed 42, d +1/0/+2/\u22121) on each.",
+   "result": "w068\u2013w072: papyrus weave over most of each winding (each ~9.3 \u00d7 1.9 cm, ~10 cm\u00b2 after flattening); damage concentrated at the ends. Scale check: flattened renders are 1.02 px/voxel; raw spiral windings were rendered 23\u201333% compressed (tooling finding #10).",
+   "verdict": "partial",
+   "metrics": {},
+   "images": [
+    "PHerc0191-triage-montage-1.jpg"
+   ],
+   "learned": "If this holds across the band, several hundred cm\u00b2 of searchable sheet exist from one 1,000-slice fit. The ink search, not the geometry, is now the bottleneck."
   }
  ],
  "findings": [
@@ -478,6 +494,16 @@
    "kind": "tooling",
    "title": "Upstream removed the inputs the winner used (Spiral simplification, 2026-09-23)",
    "text": "surf-SDT support and the 'phase' dense-spacing mode were deleted from spiral-fitting three weeks before they won a prize. We run the pre-removal commit in a worktree to reproduce the route."
+  },
+  {
+   "kind": "tooling",
+   "title": "#9 Resident-pool sidecars reused after the source store is rebuilt",
+   "text": "The fitter silently trained on a stale SDT pool (1 of 1,456 bricks) after the store was rebuilt at the same path."
+  },
+  {
+   "kind": "tooling",
+   "title": "#10 Raw spiral windings render 23\u201333% compressed",
+   "text": "Meshes declare a 20-voxel grid but nodes are 26\u201330 voxels apart; ink models see letters too small unless the winding is flattened first. Mesh areas are understated ~2\u00d7."
   }
  ],
  "next": [

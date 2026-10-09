@@ -101,3 +101,19 @@ Each entry: what was run, what happened, evidence, candidate fix. Candidates for
 **Cause:** `lasagna` lives in `villa/lasagna` and is not a dependency of any `vesuvius` extra. `fiber_trace_3d/infer.py` and `inference_adapter.py` guard their lasagna imports with a `PYTHONPATH=lasagna`-style fallback (`except ImportError: from live_omezarr_cache import …`), but `fiber_trace/geometry.py` imports `lasagna.omezarr_pyramid` unguarded, so neither a clean env nor the documented `PYTHONPATH=lasagna` layout works; only `PYTHONPATH=<villa root>` (so `lasagna.` resolves as a namespace package) does.
 
 **Fix idea (small PR):** add the same fallback import to `geometry.py` (and any other unguarded `lasagna.` imports), or declare `lasagna` as a path dependency of the `models` extra like `volume-cartographer` is; document `PYTHONPATH=<villa root>` meanwhile. Workaround used here: `export PYTHONPATH=/mnt/nvme/scroll-prizes/villa` in `bin/fiber_band.sh`.
+
+## 9. Resident-pool sidecars are reused after their source store is rebuilt (spiral-fitting, 0fb38c45 and current)
+
+**Observed (2026-10-09, PHerc0191):** after rebuilding the surf-SDT store (first build had the wrong working-z range), the fitter loaded `surf_sdt: resident pool 1/1,456 bricks … from surf_sdt_band9000-10000.ome.zarr.respool_g1` — the sidecar packed at 15:24 from the *first* store, not the rebuilt one (15:48). The fit started training with effectively no SDT data and no warning. Deleting the sidecar fixed it.
+
+**Cause:** the respool `meta.json` records the source channel paths and shapes but no fingerprint of the source store (mtime, attrs `created`, or a content hash), so a rebuilt store at the same path with the same shape passes the reuse check.
+
+**Fix idea:** store the source store's `created` attribute / `.zattrs` hash in the sidecar `meta.json` and repack when it differs. Applies to the Lasagna normal/grad-mag pools too. Check whether current `main`'s `pack_resident_pools.py` has the same gap before filing.
+
+## 10. Spiral-fit winding meshes declare a 20-voxel grid but are spaced 26–30 voxels → unflattened renders are compressed 25–33% and areas understated ~2×
+
+**Observed (2026-10-09, PHerc0191 exp-30k w070, snapped):** `meta.json` `scale: [0.05, 0.05]` (one node per 20 voxels), but the median 3D distance between neighbouring nodes is 26.1 voxels along u and 29.9 along v. `vc_render_tifxyz --scale 1` therefore renders 0.77 × 0.67 pixels per voxel, i.e. the CT is shrunk by 23–33% in the rendered sheet, and `area_cm2` (5.62 cm²) is about half the true area. After Lasagna flattening the same winding has 19.6/19.7-voxel spacing and renders at 1.02 px/voxel (≈ 9.9 cm²).
+
+**Why it matters:** the released 9 µm ink models are trained on 9 µm/px renders. The official First Letters workflow describes Lasagna flattening as "optional"; rendering a raw spiral winding feeds the models letters 25–33% too small in crushed regions. All of our pilot ink runs on raw windings were affected.
+
+**Fix idea:** export spiral windings with the true node spacing in `scale` (or resample to 20 voxels on export), compute `area_cm2` from the 3D quads, and document flattening as required for ink inference.

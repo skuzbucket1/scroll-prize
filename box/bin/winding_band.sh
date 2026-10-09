@@ -29,6 +29,7 @@ FREE=$(df -B1 --output=avail /mnt/nvme | tail -1)
 echo "smoke bytes for 256 slabs: ${BPS:-unknown}; free bytes: $FREE"
 cd $S/villa/vesuvius
 export CUDA_VISIBLE_DEVICES=$GPU
+NGPU=$(echo "$GPU" | tr "," "\n" | wc -l); GPUS=$(seq -s, 0 $((NGPU - 1)))
 CACHE=$OUT/winding_native_phase_ws${STEP}_ss${SPACING}.zarr
 rm -rf "$CACHE" "${CACHE%.zarr}.tmp"
 ( while true; do nvidia-smi --id=$CUDA_VISIBLE_DEVICES --query-gpu=memory.used --format=csv,noheader,nounits; sleep 30; done ) > "$OUT/band_vram.txt" 2>/dev/null &
@@ -41,7 +42,7 @@ t0=$(date +%s)
   --umbilicus $D/spiral-dataset/umbilicus.json \
   --seed-source meshes --meshes-dir "$MESHES" \
   --z-range $Z0 $Z1 --winding-range $W0 $W1 --winding-step $STEP --seed-spacing $SPACING \
-  --batch-size $BS --extract-threads 8 --gpus $(seq -s, 0 $(( $(echo $GPU | tr , "\n" | wc -l) - 1 ))) \
+  --batch-size $BS --extract-threads 8 --gpus "$GPUS" \
   --native-phase-only > "$OUT/band_ws${STEP}_ss${SPACING}.log" 2>&1
 rc=$?; kill $SAMP 2>/dev/null
 echo "cache rc=$rc wall=$(( $(date +%s) - t0 ))s peakVRAM_MiB=$(sort -n "$OUT/band_vram.txt" | tail -1) size=$(du -sh "$CACHE" 2>/dev/null | cut -f1)"
