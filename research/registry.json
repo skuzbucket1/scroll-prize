@@ -400,6 +400,22 @@
    },
    "images": [],
    "learned": "With 6,900 rays the winding-model supervision is neutral, and the shell pull alone explains the ~4-point losses. The fitter route on PHerc0191 is capped near 0.46\u20130.49 with current inputs; the winner's surface-prediction distance field (old fitter) and the post-hoc snap are what remain to test."
+  },
+  {
+   "id": "w070-sweep-early",
+   "date": "2026-10-09",
+   "phase": "P3",
+   "title": "Snapped + flattened w070: 66-layer render and first ink-ensemble depths",
+   "question": "With the PHerc. 343 recipe (snap \u2192 Lasagna flatten \u2192 66-layer render \u2192 four-model ensemble), does the best winding show ink?",
+   "technique": "Nieuwlaar's run_depth_sweep.sh / ensemble_maps.py with ink_9um seeds 42/43, dense_native and Hecate 9.6 \u00b5m; z-score ensemble on the reading side, blind side for comparison.",
+   "result": "The surface layer of the flattened winding shows clean papyrus fibre weave over its whole middle (~3 \u00d7 1.5 cm in the crop) \u2014 the best geometry of the campaign. Depth 0 ensemble: mottled, a few faint vertical streaks along fibres, no letter rows; blind side similar. Depths \u00b11 done for the villa models, the rest running (Hecate takes 31 min per depth on a 3060).",
+   "verdict": "partial",
+   "metrics": {},
+   "images": [
+    "PHerc0191-w070-snapflat-ct-d0-mid.jpg",
+    "PHerc0191-w070-snapflat-ensemble-d0-mid.jpg"
+   ],
+   "learned": "The recipe produces geometry good enough for an ink search. One depth of one winding is not a search: the letters in 343 appeared at d = +1 on one winding of many. Next: geometry triage of all 100 snapped windings, then sweeps on the ones that look like this."
   }
  ],
  "findings": [
@@ -465,11 +481,10 @@
   }
  ],
  "next": [
-  "Snap exp-30k windings onto the m7 surface prediction (queued), then flatten (Lasagna) \u2192 66-layer render \u2192 4-model depth sweep.",
-  "Reproduce the winner's fit at villa 0fb38c45: surf-SDT + phase mode, no shell, 30k steps on the pilot band.",
-  "exp-wm2 (winding model, shell pull 0) and winding renders of exp-30k/exp-wm: compare eye vs metric.",
-  "Tracer: Lasagna-normals field is the better guide; 150-generation run in progress; xz/yz normal grids later.",
-  "Discord export (route 1) once the token is in place; digest at notes/prior-art-digest.md.",
-  "Progress Prize write-ups for findings #6\u2013#8 (PRs staged)."
+  "Geometry triage of all snapped exp-30k windings (flatten + 66-layer render + CT preview; running on GPU 0).",
+  "Depth sweeps on the windings whose CT layer shows clean weave; villa models first (4 min/map), Hecate only where something appears (31 min/map).",
+  "Finish the w070 and Lasagna-patch sweeps; build ensemble images at every depth.",
+  "Old fitter (winner's version, surface-prediction distance field) attempt 3 running; snap + triage its windings if it beats exp-30k.",
+  "Progress Prize write-ups for findings #6\u2013#8 (PRs staged for Ted)."
  ]
 }
