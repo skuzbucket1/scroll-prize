@@ -384,6 +384,22 @@
     "PHerc0191-lasagna150-render.jpg"
    ],
    "learned": "An on-sheet area of order 15 cm\u00b2 in one patch is enough for a First Letters search if the ink is there. This and snapped w070 are the two candidates in the ink pipeline."
+  },
+  {
+   "id": "exp-wm2",
+   "date": "2026-10-09",
+   "phase": "P2",
+   "title": "Winding-model supervision without the shell pull",
+   "question": "Separate the winding model's effect from the shell loss that cost every shell-active run ~4 points.",
+   "technique": "As exp-wm with loss_weight_shell_outer 0 (shell kept only as the required gate).",
+   "result": "0.4605 / 0.081 \u2014 back to the pilot baseline exactly.",
+   "verdict": "null",
+   "metrics": {
+    "satisfied_track_points": 0.4605,
+    "satisfied_tracks": 0.081
+   },
+   "images": [],
+   "learned": "With 6,900 rays the winding-model supervision is neutral, and the shell pull alone explains the ~4-point losses. The fitter route on PHerc0191 is capped near 0.46\u20130.49 with current inputs; the winner's surface-prediction distance field (old fitter) and the post-hoc snap are what remain to test."
   }
  ],
  "findings": [
