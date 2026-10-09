@@ -268,8 +268,8 @@
    "title": "Winding-model supervision cache for the band",
    "question": "Give the spiral fitter a local measurement of sheet spacing (the 'winding model') instead of a global number.",
    "technique": "infer_winding_volume.py native-phase cache, bootstrap = exp-30k, winding step 8, seed spacing 96 \u2192 7,102 slabs (~107 GB at 15 MB/slab), then export_spiral_supervision.py; refit with dense_spacing_mode winding_model (exp-wm).",
-   "result": "Running (CPU-bound on slab extraction: 1.2 s/slab, GPUs idle).",
-   "verdict": "running",
+   "result": "Done: 7,102 slabs, 104 GB, 2 h 47 min on two GPUs (CPU-bound at 1.0\u20131.4 s/slab). Cache complete; exported (see next entry). exp-wm, the first fit using it, is running.",
+   "verdict": "done",
    "metrics": {},
    "images": [],
    "learned": "The smoke run sized the full cache: the documented (step 3, spacing 60) settings would have needed 776 GB."
@@ -288,6 +288,35 @@
     "PHerc0191-ng100w3-render.jpg"
    ],
    "learned": "Weighting the direction term harder does not stop crossings. Next: the missing xz/yz normal-grid planes, a seed chosen on a clean region, and the Lasagna normals as an alternative field."
+  },
+  {
+   "id": "exp-dirlow",
+   "date": "2026-10-09",
+   "phase": "P2",
+   "title": "Low deformation regularizer (sym_dirichlet 10 \u2192 2.5) + dense shell at winding 125",
+   "question": "If the uniform regularizer is what stops the flow field from stretching into the fat sectors, does relaxing it help?",
+   "technique": "loss_weight_sym_dirichlet 2.5 with the dense outer shell active at shell_outer_winding_idx 125, 10k steps on GPU 0.",
+   "result": "Worse than baseline.",
+   "verdict": "null",
+   "metrics": {
+    "satisfied_track_points": 0.4223,
+    "satisfied_tracks": 0.0773
+   },
+   "images": [],
+   "learned": "Confounded: two changes at once, and every run with the shell loss active has scored lower. A clean regularizer-only run (exp-dirlow2) is in flight."
+  },
+  {
+   "id": "winding-export",
+   "date": "2026-10-09",
+   "phase": "P2",
+   "title": "Winding cache exported to Spiral supervision",
+   "question": "Turn the 104 GB native-phase cache into the compact crossing store the fitter reads.",
+   "technique": "export_spiral_supervision.py, 4 workers, 106 s; store validated.",
+   "result": "6,902 rays retained (of 7,102), 130,124 crossings, median 16\u201321 crossings per ray, 1.1 MB store.",
+   "verdict": "done",
+   "metrics": {},
+   "images": [],
+   "learned": "The 104 GB cache reduces to 1 MB of usable supervision; the exporter keeps only each slab's centre ray. Future caches should be sized for rays, not slabs."
   }
  ],
  "findings": [
