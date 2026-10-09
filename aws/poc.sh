@@ -5,7 +5,8 @@
 # Usage: aws/poc.sh [--keep]   (--keep leaves the instance running for inspection; terminate later with aws/spot_down.sh)
 source "$(dirname "$0")/lib.sh"
 KEEP=0; [ "${1:-}" = "--keep" ] && KEEP=1
-[ $KEEP -eq 1 ] || trap 'log "teardown"; "$HERE/spot_down.sh"' EXIT
+save_logs(){ [ -n "$(instance_ip)" ] && rssh 'cat /var/log/scroll-bootstrap.log; echo ===; cat /opt/scroll/bootstrap.times /opt/scroll/torch.txt 2>/dev/null' > "$STATE/bootstrap-$(instance_id).log" 2>/dev/null || true; }
+[ $KEEP -eq 1 ] || trap 'save_logs; log "teardown"; "$HERE/spot_down.sh"' EXIT
 T0=$(date +%s)
 "$HERE/spot_up.sh"
 "$HERE/spot_push.sh"

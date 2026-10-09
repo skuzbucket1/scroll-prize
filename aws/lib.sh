@@ -6,7 +6,6 @@ HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd); ROOT=$(cd "$HERE/.." && pwd)
 source "$HERE/spot.env"
 [ -n "${AWS_PROFILE:-}" ] || { echo "AWS_PROFILE is empty in aws/spot.env (no default on purpose)" >&2; exit 2; }
 [ -n "${EXPECTED_ACCOUNT_ID:-}" ] || { echo "EXPECTED_ACCOUNT_ID is empty in aws/spot.env" >&2; exit 2; }
-[ -n "${VPC_ID:-}" ] && [ -n "${SUBNET_IDS:-}" ] || { echo "VPC_ID and SUBNET_IDS must be set in aws/spot.env" >&2; exit 2; }
 export AWS_PAGER=""
 STATE=$HERE/state; mkdir -p "$STATE"; chmod 700 "$STATE"
 SSH_KEY=$STATE/$KEY_NAME.pem
@@ -22,3 +21,6 @@ SSH_OPTS=(-i "$SSH_KEY" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFil
 rssh(){ ssh "${SSH_OPTS[@]}" "ubuntu@$(instance_ip)" "$@"; }
 rsync_to(){ rsync -a -e "ssh ${SSH_OPTS[*]}" "$1" "ubuntu@$(instance_ip):$2"; }
 rsync_from(){ rsync -a -e "ssh ${SSH_OPTS[*]}" "${@:3}" "ubuntu@$(instance_ip):$1" "$2"; }
+
+require_net(){ [ -n "${VPC_ID:-}" ] && [ -n "${SUBNET_IDS:-}" ] || { echo "VPC_ID and SUBNET_IDS must be set in aws/spot.env (run aws/vpc_up.sh)" >&2; exit 2; }; }
+set_env(){ local k=$1 v=$2; if grep -q "^$k=" "$HERE/spot.env"; then sed -i "" "s|^$k=.*|$k=\"$v\"|" "$HERE/spot.env"; else echo "$k=\"$v\"" >> "$HERE/spot.env"; fi; }

@@ -3,6 +3,7 @@
 # Usage: aws/spot_up.sh            (state written to aws/state/: instance_id, instance_ip, launched_at)
 source "$(dirname "$0")/lib.sh"
 check_account
+require_net
 [ -n "$(instance_id)" ] && { echo "an instance is already recorded in aws/state ($(instance_id)); run aws/spot_down.sh first" >&2; exit 4; }
 
 # key pair (ed25519), private key kept locally
@@ -37,24 +38,34 @@ UD=$STATE/userdata.sh
 sed -e "s|@MAX_MINUTES@|$(( MAX_HOURS * 60 ))|g" -e "s|@VILLA_COMMIT@|$VILLA_COMMIT|g" -e "s|@VC3D_RELEASE@|$VC3D_RELEASE|g" "$HERE/userdata.sh.tmpl" > "$UD"
 
 NAME="$PROJECT_TAG-spot-$(date -u +%Y%m%d-%H%M%S)"
-log "requesting $INSTANCE_TYPE spot (max \$$MAX_PRICE/h, hard limit ${MAX_HOURS}h)"
-IID=""
+log "requesting spot (types: ${INSTANCE_TYPES:-$INSTANCE_TYPE}; max \$$MAX_PRICE/h; hard limit ${MAX_HOURS}h)"
+if [ "${MARKET:-spot}" = "ondemand" ]; then MARKET_OPTS=(); log "ON-DEMAND requested (MARKET=ondemand): no spot discount, same hard limit and teardown"
+else MARKET_OPTS=(--instance-market-options "{\"MarketType\":\"spot\",\"SpotOptions\":{\"MaxPrice\":\"$MAX_PRICE\",\"SpotInstanceType\":\"one-time\",\"InstanceInterruptionBehavior\":\"terminate\"}}"); fi
+IID=""; TYPES=${INSTANCE_TYPES:-$INSTANCE_TYPE}; DEADLINE=$(( $(date +%s) + ${RETRY_MINUTES:-0} * 60 ))
+while [ -z "$IID" ]; do
+for INSTANCE_TYPE in $TYPES; do
 for SUBNET in $SUBNET_IDS; do
-  log "trying subnet $SUBNET"
+  log "trying $INSTANCE_TYPE in subnet $SUBNET"
   if IID=$(awsc ec2 run-instances --image-id "$AMI" --instance-type "$INSTANCE_TYPE" --key-name "$KEY_NAME" \
     --network-interfaces "[{\"DeviceIndex\":0,\"SubnetId\":\"$SUBNET\",\"Groups\":[\"$SG\"],\"AssociatePublicIpAddress\":true,\"DeleteOnTermination\":true}]" \
-    --instance-market-options "{\"MarketType\":\"spot\",\"SpotOptions\":{\"MaxPrice\":\"$MAX_PRICE\",\"SpotInstanceType\":\"one-time\",\"InstanceInterruptionBehavior\":\"terminate\"}}" \
+    "${MARKET_OPTS[@]}" \
     --instance-initiated-shutdown-behavior terminate \
     --block-device-mappings "[{\"DeviceName\":\"$ROOTDEV\",\"Ebs\":{\"VolumeSize\":$VOLUME_GB,\"VolumeType\":\"gp3\",\"DeleteOnTermination\":true}}]" \
     --metadata-options HttpTokens=required \
     --user-data "file://$UD" \
     --tag-specifications "ResourceType=instance,Tags=[{Key=Project,Value=$PROJECT_TAG},{Key=Name,Value=$NAME}]" "ResourceType=volume,Tags=[{Key=Project,Value=$PROJECT_TAG}]" \
     --query 'Instances[0].InstanceId' --output text 2> "$STATE/run-instances.err"); then
-    break
+    break 2
   fi
-  log "subnet $SUBNET failed: $(tail -1 "$STATE/run-instances.err")"; IID=""
+  log "  no: $(tail -1 "$STATE/run-instances.err" | grep -oE '\((InsufficientInstanceCapacity|SpotMaxPriceTooLow|MaxSpotInstanceCountExceeded|[A-Za-z]+)\)' | head -1)"; IID=""
 done
-[ -n "$IID" ] || { echo "spot request failed in every subnet (see aws/state/run-instances.err)" >&2; exit 7; }
+done
+[ -n "$IID" ] && break
+[ "$(date +%s)" -lt "$DEADLINE" ] || break
+log "no capacity in any type/subnet; retrying in 2 min (until $(date -u -r $DEADLINE +%H:%M) UTC)"; sleep 120
+done
+[ -n "$IID" ] || { echo "spot request failed for every type/subnet (see aws/state/run-instances.err)" >&2; exit 7; }
+log "got $INSTANCE_TYPE in $SUBNET"
 echo "$IID" > "$STATE/instance_id"; date -u +%s > "$STATE/launched_at"; echo "$INSTANCE_TYPE" > "$STATE/instance_type"
 log "instance $IID requested; waiting for running"
 awsc ec2 wait instance-running --instance-ids "$IID"

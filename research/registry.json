@@ -586,14 +586,14 @@
    "question": "With the PHerc. 343 recipe (snap \u2192 Lasagna flatten \u2192 66-layer render \u2192 four-model ensemble), does the best winding show ink?",
    "technique": "Nieuwlaar's run_depth_sweep.sh / ensemble_maps.py with ink_9um seeds 42/43, dense_native and Hecate 9.6 \u00b5m; z-score ensemble on the reading side, blind side for comparison.",
    "result": "The surface layer of the flattened winding shows clean papyrus fibre weave over its whole middle \u2014 the best geometry of the campaign. Ink: four-model ensemble at d 0 and ink_9um seed 42 at d +1 (where the 343 letters appeared) are mottled noise on both sides; no rows of letter-sized strokes. The full 31-depth sweep is paused (the 4-core CPU is the bottleneck) after d \u22122..+2 for the villa models.",
-   "verdict": "null",
+   "verdict": "partial",
    "metrics": {},
    "images": [
     "PHerc0191-w070-snapflat-ct-d0-mid.jpg",
     "PHerc0191-w070-snapflat-ensemble-d0-mid.jpg",
     "PHerc0191-w070-s42-d+1-read.jpg"
    ],
-   "learned": "The recipe produces geometry good enough for an ink search. One depth of one winding is not a search: the letters in 343 appeared at d = +1 on one winding of many. Next: geometry triage of all 100 snapped windings, then sweeps on the ones that look like this.",
+   "learned": "The recipe produces geometry good enough for an ink search. One depth of one winding is not a search: the letters in 343 appeared at d = +1 on one winding of many. Next: geometry triage of all 100 snapped windings, then sweeps on the ones that look like this. Update after the PHerc. 343 positive control: a single model at whole-winding scale misses real ink, so this is not yet evidence of absence; re-check with the full ensemble.",
    "track": "Ink & render",
    "short": "w070 ink sweep",
    "credits": [
@@ -628,6 +628,34 @@
     "ink9um",
     "ours"
    ]
+  },
+  {
+   "id": "control-343",
+   "date": "2026-10-09",
+   "phase": "P3",
+   "track": "Ink & render",
+   "short": "Positive control: PHerc. 343",
+   "title": "Positive control: the PHerc. 343 winning segment through our pipeline",
+   "question": "Would our ink search see letters where letters are known to be? (If not, our nulls on PHerc. 0191 mean nothing.)",
+   "technique": "Erwin Nieuwlaar's published winning mesh, rendered by us in 66 layers straight from the public PHerc. 343 CT; then (a) our fast pass: ink_9um seed 42 at depth +1, whole-segment preview; (b) his full four-model ensemble at depth +1 (ink_9um 42/43, dense_native, Hecate) with his ensemble_maps.py; crops placed on his published letter boxes.",
+   "result": "(a) Single model, whole-segment view: letters NOT obvious; only faint blobby structure on the reading side. (b) Four-model ensemble: two rows of bright strokes exactly at the published letter rows; Hecate alone shows them almost as strongly; the two ink_9um seeds averaged show them weakly. Strokes are soft blobs at native zoom, not crisp letters.",
+   "verdict": "pass",
+   "metrics": {},
+   "images": [
+    "PHerc0343-control-ensemble-rows.jpg",
+    "PHerc0343-control-hecate-rows.jpg",
+    "PHerc0343-control-s42-rows.jpg"
+   ],
+   "learned": "Our pipeline can see prize-grade ink, but only with the ensemble (or Hecate) and a row-scale view. A single model at whole-winding scale would have missed it, so the single-model nulls on w069\u2013w072 are not evidence of absence. The PHerc. 0191 search must use the ensemble.",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "villa",
+    "ink9um",
+    "hecate",
+    "dense-native",
+    "ours"
+   ]
   }
  ],
  "findings": [
@@ -635,6 +663,11 @@
    "kind": "scroll",
    "title": "The ink detector is not the problem",
    "text": "Calibrated on known text: three legible Greek lines. All PHerc0191 nulls are geometry."
+  },
+  {
+   "kind": "scroll",
+   "title": "Positive control passes only with the ensemble",
+   "text": "On the PHerc. 343 winning segment our four-model ensemble shows the letter rows; ink_9um seed 42 alone at whole-segment scale does not. Searches on 0191 need the ensemble (Hecate is the strongest single model)."
   },
   {
    "kind": "scroll",
@@ -703,12 +736,11 @@
   }
  ],
  "next": [
-  "Geometry triage of all snapped exp-30k windings (flatten + 66-layer render + CT preview; running on GPU 0).",
-  "AWS spot burst (scripts ready in aws/, not yet run): g4dn.2xlarge spot (~$0.32/h, quota 8 at once) renders from S3 in-region and runs the ink ensemble; first a one-map proof of concept on the PHerc. 343 control (aws/poc.sh, < $1).",
-  "Depth sweeps on the windings whose CT layer shows clean weave; villa models first (4 min/map), Hecate only where something appears (31 min/map).",
-  "Finish the w070 and Lasagna-patch sweeps; build ensemble images at every depth.",
-  "Old fitter (winner's version, surface-prediction distance field) attempt 3 running; snap + triage its windings if it beats exp-30k.",
-  "Progress Prize write-ups for findings #6\u2013#8 (PRs staged for Ted)."
+  "Re-run the PHerc. 0191 ink search with the ensemble: w068\u2013w072 first (seed-42 maps already done; add seed 43, dense_native, Hecate at d 0/+1), review at row scale.",
+  "AWS: spot capacity unavailable to this account in every us-east-1 zone (2026-10-09); proof of concept pending a decision on on-demand (~$0.75/h).",
+  "Old fitter (winner's version) at ~25%; snap + triage its windings when done.",
+  "Automatic stroke score calibrated on the PHerc. 343 control, to rank windings for review.",
+  "Progress Prize write-ups for findings #6\u2013#10 (three PRs staged for Ted)."
  ],
  "credits": [
   {
