@@ -296,14 +296,14 @@
    "title": "Low deformation regularizer (sym_dirichlet 10 \u2192 2.5) + dense shell at winding 125",
    "question": "If the uniform regularizer is what stops the flow field from stretching into the fat sectors, does relaxing it help?",
    "technique": "loss_weight_sym_dirichlet 2.5 with the dense outer shell active at shell_outer_winding_idx 125, 10k steps on GPU 0.",
-   "result": "Worse than baseline.",
+   "result": "Worse than baseline on tracks, but the outermost winding now follows the crushed CT boundary within ~0.5 mm in every 30\u00b0 sector (mean 23.0 vs 23.8 mm; pilot 20.6).",
    "verdict": "null",
    "metrics": {
     "satisfied_track_points": 0.4223,
     "satisfied_tracks": 0.0773
    },
    "images": [],
-   "learned": "Confounded: two changes at once, and every run with the shell loss active has scored lower. A clean regularizer-only run (exp-dirlow2) is in flight."
+   "learned": "With the shell active the envelope is right and the interior is wrong: windings are spread incorrectly inside a correct outer boundary. Local spacing supervision (winding model) is the direct remedy, not a uniform stretch or a weaker regularizer. Confounded with the shell; exp-dirlow2 isolates the regularizer."
   },
   {
    "id": "winding-export",

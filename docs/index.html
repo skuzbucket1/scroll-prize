@@ -91,8 +91,8 @@ footer{color:var(--muted);font-size:13px;margin:40px 0 10px}
   <dl>
     <dt>Question</dt><dd>If the uniform regularizer is what stops the flow field from stretching into the fat sectors, does relaxing it help?</dd>
     <dt>Technique</dt><dd>loss_weight_sym_dirichlet 2.5 with the dense outer shell active at shell_outer_winding_idx 125, 10k steps on GPU 0.</dd>
-    <dt>Result</dt><dd>Worse than baseline.</dd>
-    <dt>What we learned</dt><dd class="learned">Confounded: two changes at once, and every run with the shell loss active has scored lower. A clean regularizer-only run (exp-dirlow2) is in flight.</dd>
+    <dt>Result</dt><dd>Worse than baseline on tracks, but the outermost winding now follows the crushed CT boundary within ~0.5 mm in every 30° sector (mean 23.0 vs 23.8 mm; pilot 20.6).</dd>
+    <dt>What we learned</dt><dd class="learned">With the shell active the envelope is right and the interior is wrong: windings are spread incorrectly inside a correct outer boundary. Local spacing supervision (winding model) is the direct remedy, not a uniform stretch or a weaker regularizer. Confounded with the shell; exp-dirlow2 isolates the regularizer.</dd>
   </dl>
   <table class='metrics'><tr><th>satisfied_track_points</th><td>0.4223</td></tr><tr><th>satisfied_tracks</th><td>0.0773</td></tr></table>
 </section>
@@ -216,5 +216,5 @@ footer{color:var(--muted);font-size:13px;margin:40px 0 10px}
   </dl>
   
 </section>
-<footer>Generated 2026-10-09 14:18 UTC from research/registry.json by scripts/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
+<footer>Generated 2026-10-09 14:19 UTC from research/registry.json by scripts/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
 </main></body></html>
