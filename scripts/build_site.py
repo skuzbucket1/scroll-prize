@@ -8,6 +8,7 @@ Usage: python3 scripts/build_site.py   (copies referenced images from data/resul
 import datetime
 import html
 import json
+import math
 import pathlib
 import shutil
 
@@ -43,12 +44,19 @@ def badge(v):
 
 def copy_img(name):
     src = IMG_SRC / name
-    if not src.exists():
-        return None
     dst = IMG_DST / name
-    if not dst.exists() or src.stat().st_mtime > dst.stat().st_mtime:
-        shutil.copy2(src, dst)
-    return f"img/{name}"
+    if src.exists():
+        if not dst.exists() or src.stat().st_mtime > dst.stat().st_mtime:
+            shutil.copy2(src, dst)
+        return f"img/{name}"
+    return f"img/{name}" if dst.exists() else None      # images placed straight into docs/img/
+
+
+def img_entry(im):
+    """A run image is a file name, or {"file": ..., "caption": ...}; the caption doubles as alt text."""
+    if isinstance(im, str):
+        return im, im
+    return im["file"], im.get("caption") or im["file"]
 
 
 exps = d["experiments"]                      # registry order is chronological
@@ -138,6 +146,205 @@ phase_list = "".join(
     f'<li><div class="phrow"><b>{esc(ph["id"])} · {esc(ph["title"])}</b>{badge(ph["status"])}</div><p>{esc(ph["summary"])}</p></li>'
     for ph in d["phases"])
 
+# ---------------------------------------------------------------- pipeline overview (concepts only; content in registry "pipeline")
+ARROW = ('<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12h16M13 6l6 6-6 6"/></svg>')
+
+
+def _poly(pts):
+    return " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+
+
+def _arrow(x1, y1, x2, y2, head=5.0):
+    a = math.atan2(y2 - y1, x2 - x1)
+    hx1, hy1 = x2 - head * math.cos(a - 0.5), y2 - head * math.sin(a - 0.5)
+    hx2, hy2 = x2 - head * math.cos(a + 0.5), y2 - head * math.sin(a + 0.5)
+    return (f'<path class="ic-acc" d="M{x1:.1f} {y1:.1f}L{x2:.1f} {y2:.1f}"/>'
+            f'<path class="ic-head" d="M{hx1:.1f} {hy1:.1f}L{x2:.1f} {y2:.1f}L{hx2:.1f} {hy2:.1f}"/>')
+
+
+def _icon_spiral():
+    cx, cy, pts, t = 74, 45, [], 0.6
+    while t <= 5.6 * math.pi:
+        r = 2.55 * t
+        pts.append((cx + r * math.cos(t), cy + 0.72 * r * math.sin(t)))
+        t += 0.12
+    dots = ""
+    for t, off in ((2.6 * math.pi, 1.06), (3.3 * math.pi, 0.95), (4.1 * math.pi, 1.04), (4.6 * math.pi, 0.97),
+                   (5.05 * math.pi, 1.03), (5.45 * math.pi, 0.98), (3.8 * math.pi, 1.0)):
+        r = 2.55 * t * off
+        dots += f'<circle class="ic-dot" cx="{cx + r * math.cos(t):.1f}" cy="{cy + 0.72 * r * math.sin(t):.1f}" r="2.2"/>'
+    return ('<svg viewBox="0 0 200 90" aria-hidden="true" focusable="false">'
+            f'<polyline class="ic-acc" points="{_poly(pts)}"/>{dots}'
+            '<line class="ic-acc" x1="134" y1="34" x2="150" y2="34"/><text class="ic-txt" x="154" y="38">spiral</text>'
+            '<circle class="ic-dot" cx="142" cy="56" r="2.6"/><text class="ic-txt" x="154" y="60">tracks</text></svg>')
+
+
+def _icon_snap():
+    xs = range(8, 194, 4)
+    fit = [(x, 30 + 9 * math.sin(x / 17)) for x in xs]
+    surf = [(x, 62 + 4 * math.sin(x / 29 + 1.2)) for x in xs]
+    arrows = "".join(_arrow(x, 30 + 9 * math.sin(x / 17) + 5, x, 62 + 4 * math.sin(x / 29 + 1.2) - 6) for x in (40, 88, 136, 180))
+    return ('<svg viewBox="0 0 200 90" aria-hidden="true" focusable="false">'
+            f'<polyline class="ic-acc ic-dash" points="{_poly(fit)}"/><polyline class="ic-line" points="{_poly(surf)}"/>{arrows}'
+            '<text class="ic-txt acc" x="8" y="13">fitted</text><text class="ic-txt" x="8" y="85">predicted surface</text></svg>')
+
+
+def _icon_render():
+    lines = "".join(f'<line class="ic-thin" x1="10" y1="{y}" x2="132" y2="{y}"/>' for y in (12, 20, 28, 36, 54, 62, 70, 78))
+    return ('<svg viewBox="0 0 200 90" aria-hidden="true" focusable="false">'
+            f'{lines}<line class="ic-acc" x1="10" y1="45" x2="132" y2="45" style="stroke-width:3.4"/>'
+            '<text class="ic-txt" x="140" y="28">layers</text><text class="ic-txt acc" x="140" y="49">surface</text>'
+            '<text class="ic-txt" x="140" y="70">layers</text></svg>')
+
+
+def _icon_look():
+    out = []
+    for i, (lab, op) in enumerate((("writing side", 0.85), ("back", 0.3), ("CT", None))):
+        x = 8 + i * 66
+        out.append(f'<rect class="ic-panel" x="{x}" y="6" width="52" height="50" rx="4"/>')
+        if op is None:
+            out.append("".join(f'<line class="ic-thin" x1="{x + 5}" y1="{y}" x2="{x + 47}" y2="{y}"/>' for y in (16, 24, 32, 40, 48)))
+            out.append(f'<path class="ic-line" d="M{x + 6} 36l8 -4 6 6 8 -5 7 4 9 -3"/>')
+        else:
+            for bx, by, br in ((14, 18, 4), (26, 30, 5), (38, 22, 3.5), (20, 44, 3.5), (40, 42, 4.5)):
+                out.append(f'<circle class="ic-blob" cx="{x + bx}" cy="{by}" r="{br}" style="opacity:{op}"/>')
+        out.append(f'<text class="ic-txt" x="{x + 26}" y="74" text-anchor="middle">{lab}</text>')
+    return '<svg viewBox="0 0 200 90" aria-hidden="true" focusable="false">' + "".join(out) + "</svg>"
+
+
+def _icon_gate():
+    arrows = "".join(_arrow(66, 45, 112, y) for y in (16, 45, 74))
+    return ('<svg viewBox="0 0 200 90" aria-hidden="true" focusable="false">'
+            '<polygon class="ic-wash ic-acc" points="36,8 64,45 36,82 8,45"/><text class="ic-txt acc" x="36" y="50" text-anchor="middle" style="font-size:15px;font-weight:600">?</text>'
+            f'{arrows}<text class="ic-txt" x="118" y="20">go deeper</text><text class="ic-txt" x="118" y="49">next band</text>'
+            '<text class="ic-txt" x="118" y="78">next scroll</text></svg>')
+
+
+ICONS = {"spiral": _icon_spiral(), "snap": _icon_snap(), "render": _icon_render(), "look": _icon_look(), "gate": _icon_gate()}
+GROUP_CLS = {"Geometry": "geo", "Ink": "ink", "Decision": "dec"}
+
+
+def snake(i, cols=3):
+    """Grid cell of stage i in a 3-wide snake (row 2 runs right to left), so arrows always point to the next stage."""
+    r, c = divmod(i, cols)
+    return r + 1, (cols - c if r % 2 else c + 1)
+
+
+def thumb_html(img, alt, icon=None, cls="thumb"):
+    if img and (IMG_DST / img).exists():
+        return (f'<button type="button" class="zoom {cls}" data-src="img/{esc(img)}" data-cap="{esc(alt)}" aria-label="Enlarge: {esc(alt)}">'
+                f'<img loading="lazy" src="img/{esc(img)}" alt="{esc(alt)}"></button>')
+    return f'<div class="{cls} icon" role="img" aria-label="{esc(alt)}">{ICONS.get(icon, "")}</div>'
+
+
+pipeline_html = ""
+pl = d.get("pipeline")
+if pl:
+    st = pl["stages"]
+    lis = []
+    for i, s in enumerate(st):
+        r, c = snake(i)
+        g = GROUP_CLS.get(s.get("group"), "geo")
+        arrow = ""
+        if i + 1 < len(st):
+            r2, c2 = snake(i + 1)
+            dirn = "d" if r2 != r else ("r" if c2 > c else "l")
+            arrow = f'<span class="arrow {dirn}" aria-hidden="true">{ARROW}</span>'
+        by = f'<p class="by">{esc(s["by"])}</p>' if s.get("by") else ""
+        lis.append(
+            f'<li class="stage {g}" style="--r:{r};--c:{c}"><div class="sthead"><span class="snum">{i + 1}</span><b>{esc(s["title"])}</b>'
+            f'<span class="stag"><span class="dot {g}" aria-hidden="true"></span>{esc(s.get("group", ""))}</span></div>'
+            f'<div class="stbody">{thumb_html(s.get("img"), s["alt"], s.get("icon"))}<div class="sttext"><p>{esc(s["text"])}</p>{by}</div></div>{arrow}</li>')
+    side = []
+    ctl = pl.get("control")
+    if ctl:
+        names = {i + 1: s["title"] for i, s in enumerate(st)}
+        chips = '<span class="to" aria-hidden="true">' + ARROW + '</span>'
+        links = [f'<span class="chip">{n} · {esc(names.get(n, ""))}</span>' for n in ctl.get("steps", [])]
+        if ctl.get("outcome"):
+            links.append(f'<span class="chip end">{esc(ctl["outcome"])}</span>')
+        chain = links[0] + "".join(f'<span class="nw">{chips}{c}</span>' for c in links[1:])   # arrow stays with the chip it points to
+        side.append(
+            f'<div class="lane control"><div class="lanehead"><b>{esc(ctl["title"])}</b><span class="stag">runs alongside steps '
+            f'{ctl["steps"][0]}–{ctl["steps"][-1]}</span></div><div class="lanebody">{thumb_html(ctl.get("img"), ctl["alt"], cls="thumb wide")}'
+            f'<p>{esc(ctl["text"])}</p></div><p class="chips" aria-label="Steps the control goes through">{chain}</p></div>')
+    wh = pl.get("where")
+    if wh:
+        items = "".join(f'<li><b>{esc(it["label"])}</b><p>{esc(it["text"])}</p></li>' for it in wh["items"])
+        side.append(f'<div class="lane where"><div class="lanehead"><b>{esc(wh["title"])}</b></div><ul class="plain">{items}</ul></div>')
+    pipeline_html = (f'<h2 id="h-pipeline">{esc(pl["title"])}</h2><p class="note">{esc(pl["lede"])}</p>'
+                     f'<div class="pipe" aria-labelledby="h-pipeline"><ol class="pipe-flow">{"".join(lis)}</ol>'
+                     f'<div class="pipe-side">{"".join(side)}</div></div>')
+
+
+# ---------------------------------------------------------------- per-run extras: a data table and a depth chart
+def table_html(t):
+    if not t:
+        return ""
+    head = "".join(f"<th>{esc(h)}</th>" for h in t["head"])
+    rows = "".join("<tr>" + "".join(f"<td>{esc(c)}</td>" for c in r) + "</tr>" for r in t["rows"])
+    cap = f'<p class="note tcap">{esc(t["caption"])}</p>' if t.get("caption") else ""
+    return f'<div class="runtable">{cap}<div class="tscroll"><table class="data"><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table></div></div>'
+
+
+def depth_chart(ch):
+    """One y axis: a value per (series, depth) as dots, the mean per depth as a line, reference values as horizontal lines."""
+    if not ch:
+        return ""
+    xs_v, series, refs = ch["x"], ch["series"], ch.get("refs", [])
+    W, H, ml, mr, mt, mb = 760, 330, 74, 176, 22, 58
+    vals = [v for s in series.values() for v in s if v is not None]
+    step = ch.get("y_step", 0.005)
+    lo = math.floor(min(vals + [0.0]) / step - 1e-9) * step
+    hi = math.ceil(max(vals + [r["value"] for r in refs]) / step + 1e-9) * step
+    pw, phh = W - ml - mr, H - mt - mb
+    X = lambda i: ml + pw * (i + 0.5) / len(xs_v)
+    Y = lambda v: mt + phh * (1 - (v - lo) / (hi - lo))
+    fmt = lambda v: "0" if abs(v) < 1e-12 else f"{v:+.3f}".replace("-", "−")
+    parts = []
+    k = 0
+    while lo + k * step <= hi + 1e-12:
+        t = lo + k * step
+        cls = "axis" if abs(t) < 1e-12 else "grid"
+        parts.append(f'<line class="{cls}" x1="{ml}" x2="{W - mr}" y1="{Y(t):.1f}" y2="{Y(t):.1f}"/>'
+                     f'<text class="tick" x="{ml - 8}" y="{Y(t) + 4:.1f}" text-anchor="end">{fmt(t)}</text>')
+        k += 1
+    for i, xv in enumerate(xs_v):
+        lab = "0" if xv == 0 else f"{xv:+d}".replace("-", "−")
+        parts.append(f'<text class="tick" x="{X(i):.1f}" y="{H - mb + 18}" text-anchor="middle">{lab}</text>')
+    parts.append(f'<text class="axt" x="{ml + pw / 2:.1f}" y="{H - 12}" text-anchor="middle">{esc(ch.get("x_label", ""))}</text>')
+    parts.append(f'<text class="axt" transform="translate(16,{mt + phh / 2:.1f}) rotate(-90)" text-anchor="middle">{esc(ch.get("y_label", ""))}</text>')
+    for r in refs:
+        y = Y(r["value"])
+        parts.append(f'<line class="ref {esc(r.get("style", "dashed"))}" x1="{ml}" x2="{W - mr}" y1="{y:.1f}" y2="{y:.1f}"/>'
+                     f'<text class="reflbl" x="{W - mr + 8}" y="{y - 2:.1f}">{esc(r["label"])}</text>'
+                     f'<text class="reflbl" x="{W - mr + 8}" y="{y + 11:.1f}">{fmt(r["value"])}</text>')
+    n = len(series)
+    for j, (name, sv) in enumerate(series.items()):
+        dx = (j - (n - 1) / 2) * 5
+        for i, v in enumerate(sv):
+            if v is None:
+                continue
+            parts.append(f'<circle class="dotw" cx="{X(i) + dx:.1f}" cy="{Y(v):.1f}" r="3.6"><title>{esc(name)}, depth {xs_v[i]:+d}: {fmt(v)}</title></circle>')
+    means = []
+    for i in range(len(xs_v)):
+        col = [s[i] for s in series.values() if s[i] is not None]
+        means.append(sum(col) / len(col) if col else None)
+    mpts = [(X(i), Y(m)) for i, m in enumerate(means) if m is not None]
+    parts.append(f'<polyline class="meanline" points="{_poly(mpts)}"/>')
+    for i, m in enumerate(means):
+        if m is None:
+            continue
+        parts.append(f'<circle class="meanpt" cx="{X(i):.1f}" cy="{Y(m):.1f}" r="4.5"/>'
+                     f'<text class="meanlbl" x="{X(i) + 8:.1f}" y="{Y(m) + 15:.1f}">{f"{m:+.4f}".replace("-", "−")}</text>')
+    ly = mt + phh - 30
+    parts.append(f'<circle class="dotw" cx="{W - mr + 14}" cy="{ly}" r="3.6"/><text class="reflbl" x="{W - mr + 24}" y="{ly + 4}">one winding</text>'
+                 f'<line class="meanline" x1="{W - mr + 6}" x2="{W - mr + 22}" y1="{ly + 20}" y2="{ly + 20}"/>'
+                 f'<circle class="meanpt" cx="{W - mr + 14}" cy="{ly + 20}" r="4"/><text class="reflbl" x="{W - mr + 24}" y="{ly + 24}">mean</text>')
+    svg = (f'<svg class="chart" viewBox="0 0 {W} {H}" role="img" aria-label="{esc(ch["title"])}">{"".join(parts)}</svg>')
+    note = f'<p class="note cnote">{esc(ch["note"])}</p>' if ch.get("note") else ""
+    return f'<div class="runchart"><h3>{esc(ch["title"])}</h3><div class="chartwrap static">{svg}</div>{note}</div>'
+
 overview = f"""
 <section class="view" id="overview" aria-labelledby="h-overview">
   <h1 id="h-overview">{esc(p['title'])}</h1>
@@ -147,14 +354,15 @@ overview = f"""
     <div class="card"><h3>Scroll</h3><p>{esc(p['scroll'])}</p></div>
     <div class="card"><h3>Hardware</h3><p>{esc(p['hardware'])}</p></div>
   </div>
+  {pipeline_html}
   <h2>Latest</h2>
   <div class="grid3">{latest_cards}</div>
   <h2>Where we are</h2>
   <ul class="phases">{phase_list}</ul>
   <h2>Spiral-fit progression</h2>
-  <p class="note">{METRIC_LABEL}: the share of track points lying within 6 voxels and 0.45 winding of the fitted sheet. Each dot is one fit run, in run order; hover for details, click to open the run.</p>
+  <p class="note">{METRIC_LABEL}: the share of track points lying within 6 voxels and 0.45 winding of the fitted sheet. Each dot is one fit run, in run order; hover for details, click to open the run. {esc(p.get('fit_chart_note', ''))}</p>
   <div class="chartwrap">{chart_svg}<div class="tip" role="tooltip" hidden></div></div>
-  <table class="data"><thead><tr><th>#</th><th>Run</th><th>{METRIC_LABEL}</th><th>vs baseline</th><th>Tracks fully satisfied</th><th>Verdict</th></tr></thead><tbody>{table_rows}</tbody></table>
+  <div class="tscroll"><table class="data"><thead><tr><th>#</th><th>Run</th><th>{METRIC_LABEL}</th><th>vs baseline</th><th>Tracks fully satisfied</th><th>Verdict</th></tr></thead><tbody>{table_rows}</tbody></table></div>
 </section>"""
 
 fs = "".join(f'<li><b>{esc(f["title"])}</b><p>{esc(f["text"])}</p></li>' for f in d["findings"] if f["kind"] == "scroll")
@@ -178,7 +386,7 @@ creditsview = f"""
   <h1 id="h-credits">Credits</h1>
   <p class="lede">This campaign is built almost entirely on other people's work. Everything below is theirs; only the entry marked "This project" is ours. Each run page lists exactly what it used.</p>
   <ul class="plain creditlist">{cl}</ul>
-  <p class="note">Scan data and everything derived from it (all images here) are the Vesuvius Challenge's, under CC BY-NC 4.0. Copied third-party code keeps its licence notice in the repository (box/bin/ink343/).</p>
+  <p class="note">Scan data and everything derived from it (all images here) are the Vesuvius Challenge's and EduceLab's, under CC BY-NC 4.0. Copied third-party code keeps its licence notice in the repository (box/bin/ink343/).</p>
 </section>"""
 
 nexts = "".join(f"<li>{esc(n)}</li>" for n in d.get("next", []))
@@ -208,11 +416,13 @@ for i, e in enumerate(exps):
     prev_e = exps[i - 1] if i > 0 else None
     next_e = exps[i + 1] if i + 1 < len(exps) else None
     imgs = []
-    for name in e.get("images", []):
+    for im in e.get("images", []):
+        name, cap = img_entry(im)
         src = copy_img(name)
+        wide = ' class="wide"' if isinstance(im, dict) and im.get("wide") else ""
         if src:
-            imgs.append(f'<figure><button class="zoom" data-src="{src}" data-cap="{esc(name)}" aria-label="Enlarge {esc(name)}">'
-                        f'<img loading="lazy" src="{src}" alt="{esc(name)}"></button><figcaption>{esc(name)}</figcaption></figure>')
+            imgs.append(f'<figure{wide}><button class="zoom" data-src="{src}" data-cap="{esc(cap)}" aria-label="Enlarge {esc(cap)}">'
+                        f'<img loading="lazy" src="{src}" alt="{esc(cap)}"></button><figcaption>{esc(cap)}</figcaption></figure>')
     m = e.get("metrics", {})
     mt = ""
     if m:
@@ -240,6 +450,8 @@ for i, e in enumerate(exps):
     <div class="card learned"><h3>What we learned</h3><p>{esc(e.get('learned',''))}</p></div>
     {credit_card(e)}
   </div>
+  {table_html(e.get('table'))}
+  {depth_chart(e.get('chart'))}
   {f'<div class="gallery">{"".join(imgs)}</div>' if imgs else ''}
   {pager}
 </section>""")
@@ -278,7 +490,7 @@ aside{background:var(--surface);border-right:1px solid var(--border);display:fle
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);white-space:nowrap}
 .sidefoot{border-top:1px solid var(--border);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
 .sidefoot button{font:inherit;font-size:12px;background:none;border:1px solid var(--border);color:var(--ink2);border-radius:6px;padding:4px 8px;cursor:pointer}
-main{overflow-y:auto;min-height:0}
+main{overflow-y:auto;min-height:0;min-width:0}aside{min-width:0}
 .view{max-width:980px;margin:0 auto;padding:28px 32px 48px}
 .js .view{display:none}.js .view.shown{display:block}
 h1{font-size:26px;line-height:1.25;margin:4px 0 8px}h2{font-size:19px;margin:32px 0 12px}h3{font-size:13px;margin:0 0 6px;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em}
@@ -322,6 +534,57 @@ ul.plain,ol.plain{padding-left:18px;margin:0}ul.plain li,ol.plain li{margin:8px 
 .lightbox[hidden]{display:none}.lightbox img{max-width:96vw;max-height:86vh;object-fit:contain;background:#000}
 .lightbox .cap{color:#ddd;font-size:12px;margin-top:8px}.lightbox button{position:absolute;top:14px;right:16px;font-size:22px;background:none;border:none;color:#fff;cursor:pointer}
 .foot{max-width:980px;margin:0 auto;padding:0 32px 32px;color:var(--muted);font-size:12px}
+.gallery figure.wide{grid-column:1/-1}.gallery figure.wide img{height:auto;object-fit:contain}
+/* per-run table and depth chart */
+.runtable{margin-top:16px}.tscroll{overflow-x:auto}.runtable table.data{margin-top:4px}.tcap{margin:0 0 4px}
+.runchart{margin-top:18px}.runchart h3{margin-bottom:8px}.cnote{margin:8px 0 0}
+.chart .axt{fill:var(--ink2);font-size:12px}.chart .ref.dotted{stroke-dasharray:2 4}
+.chart .dotw{fill:var(--accent);fill-opacity:.55}.chart .meanline{fill:none;stroke:var(--ink);stroke-width:2}
+.chart .meanpt{fill:var(--ink);stroke:var(--surface);stroke-width:1.5}.chart .meanlbl{fill:var(--ink);font-size:11px;font-variant-numeric:tabular-nums}
+/* pipeline overview: one column by default, a 3-wide snake when there is room */
+:root{--g-geo:#2a78d6;--g-ink:#b7791f;--g-dec:#0c8a0c}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--g-geo:#3987e5;--g-ink:#e0a93a;--g-dec:#2fb12f}}
+:root[data-theme="dark"]{--g-geo:#3987e5;--g-ink:#e0a93a;--g-dec:#2fb12f}
+.pipe{container-type:inline-size;margin:2px 0 6px}
+.pipe-flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);row-gap:30px}
+.stage{position:relative;min-width:0;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--g,var(--accent));border-radius:10px;padding:10px 12px 12px}
+.stage.geo{--g:var(--g-geo)}.stage.ink{--g:var(--g-ink)}.stage.dec{--g:var(--g-dec)}
+.sthead{display:flex;align-items:center;gap:8px;margin-bottom:8px}.sthead b{flex:1;font-size:14px;line-height:1.25}
+.snum{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--g);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.stag{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);white-space:nowrap}
+.dot.geo{background:var(--g-geo)}.dot.ink{background:var(--g-ink)}.dot.dec{background:var(--g-dec)}
+.stbody{display:flex;gap:10px;align-items:flex-start}
+.thumb{flex:none;display:block;width:120px;height:80px;padding:0;margin:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:#000}
+button.thumb{cursor:zoom-in}.thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.thumb.icon{background:var(--page);display:flex;align-items:center;justify-content:center;padding:4px}.thumb.icon svg{width:100%;height:100%;display:block}
+.sttext{min-width:0}.sttext p{margin:0;font-size:13px;line-height:1.45;color:var(--ink2)}.sttext p.by{margin-top:6px;font-size:11.5px;color:var(--muted)}
+.arrow{position:absolute;left:50%;bottom:-29px;width:26px;height:26px;transform:translateX(-50%) rotate(90deg);color:var(--accent);pointer-events:none}
+.arrow svg,.chips .to svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.ic-line{fill:none;stroke:var(--ink2);stroke-width:2.2}.ic-thin{fill:none;stroke:var(--muted);stroke-width:1.2}
+.ic-acc{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round}.ic-dash{stroke-dasharray:6 4}
+.ic-head{fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ic-wash{fill:var(--accent-wash)}.ic-dot{fill:var(--ink2)}.ic-blob{fill:var(--accent)}.ic-panel{fill:var(--surface);stroke:var(--axis);stroke-width:1.2}
+.ic-txt{fill:var(--ink2);font-size:11px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.ic-txt.acc{fill:var(--accent)}
+.pipe-side{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:22px}
+.lane{background:var(--surface);border:1px dashed var(--axis);border-radius:10px;padding:12px 14px;min-width:0}
+.lanehead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}.lanehead b{font-size:14px}
+.lanebody{display:flex;gap:12px;align-items:flex-start}.lanebody p{margin:0;font-size:13px;color:var(--ink2);line-height:1.45}
+.thumb.wide{width:170px;height:80px}
+.chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 0}
+.chip{font-size:12px;line-height:1.3;border:1px solid var(--border);border-radius:999px;padding:3px 10px;background:var(--page);color:var(--ink2);white-space:nowrap}
+.chip.end{border-color:var(--good);color:var(--ink)}.chips .nw{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.chips .to{display:inline-block;width:16px;height:16px;color:var(--accent)}
+.lane.where ul{padding-left:0;list-style:none}.lane.where li{margin:0 0 10px}.lane.where li p{margin:2px 0 0;font-size:13px;color:var(--ink2)}
+@container (min-width:640px){
+ .pipe-flow{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:44px;row-gap:42px}
+ .stage{grid-row:var(--r);grid-column:var(--c)}
+ .stbody{flex-direction:column;gap:8px}.thumb{width:100%;height:96px}
+ .arrow.r{left:auto;right:-36px;top:50%;bottom:auto;transform:translateY(-50%)}
+ .arrow.l{left:-36px;top:50%;bottom:auto;transform:translateY(-50%) rotate(180deg)}
+ .arrow.d{bottom:-35px}
+ .pipe-side{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}.thumb.wide{width:200px;height:96px}
+}
+@container (max-width:519px){.stbody{flex-direction:column;gap:8px}.thumb{width:100%;height:100px}}
+@container (max-width:420px){.lanebody{flex-direction:column}.thumb.wide{width:100%;height:90px}}
 @media (max-width:860px){.layout{grid-template-columns:1fr;height:auto}aside{position:static;max-height:none}.navscroll{max-height:45vh}main{overflow:visible}.view{padding:20px 16px 40px}}
 """
 
@@ -403,7 +666,7 @@ page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name
   <div class="sidefoot"><span>← → step through runs</span><button id="theme" type="button">Light / dark</button></div>
 </aside>
 <main>{overview}{findings}{nextview}{creditsview}{''.join(run_views)}
-<footer class="foot">Scan data and derived images: Vesuvius Challenge, CC BY-NC 4.0. Tools, models and methods by others are credited on each run and on the <a href="#credits">Credits</a> page. Generated {now} from research/registry.json by scripts/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
+<footer class="foot">Scan data and derived images: Vesuvius Challenge / EduceLab, CC BY-NC 4.0. Tools, models and methods by others are credited on each run and on the <a href="#credits">Credits</a> page. Generated {now} from research/registry.json by scripts/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
 </main></div>
 <div class="lightbox" id="lightbox" hidden><button type="button" aria-label="Close">✕</button><img alt=""><div class="cap"></div></div>
 <script>{JS}</script></body></html>"""
