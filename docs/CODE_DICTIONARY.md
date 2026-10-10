@@ -4,14 +4,16 @@ This file lists every script in the repository and what it does. That covers the
 
 Date: 2026-10-10
 
-**The main path today** (PHerc. 0191, band z 9000–10000):
-1. Spiral fit (`fit_experiment.sh`, `fit_old_phase.sh`).
-2. Snap the windings onto the surface prediction (`snap_exp30k.sh` → `snap_meshes_nieuwlaar.py`).
-3. Flatten (`flatten_winding.sh`), then make a 66-layer render (`render66.sh`). `triage_windings.sh` runs both steps.
-4. Make ink maps (`ink343/run_ink.sh`), run by `depth_sweep.sh`, `ensemble_windings.sh`, `three_model_windings.sh` or the AWS fleet.
-5. Make ensemble images (`ink343/ensemble_maps.py`).
-6. Score and rank (`stroke_score.py`, `stroke_rank.sh`, `aws/fleet_rank.sh`).
+**The main path today** (updated 2026-10-10 midday; any scroll):
+1. Assemble the spiral dataset (`assemble_spiral_dataset.sh` with `smooth_umbilicus.py`, `ray_peaks.py`).
+2. Spiral fit (`fit_band.sh`; earlier PHerc. 0191 fits used `fit_experiment.sh`, `fit_old_phase.sh`).
+3. Snap the windings onto the surface prediction (`snap_band.sh` → `snap_meshes_nieuwlaar.py`).
+4. Flatten (`flatten_winding.sh`), then make a 66-layer render (`render66.sh`). `triage_band.sh` runs both and writes CT previews (`SCROLL=` for scrolls other than PHerc. 0191).
+5. Make ink maps (`ink343/run_ink.sh`), run by `deep_look.sh` (four models, depth tiers) or `band_three_model.sh` (three models, d 0/+1).
+6. Make ensemble images (`ink343/ensemble_maps.py`) and score and rank (`tools/stroke-score`), run by `deep_score.sh` / `band_score3.sh`.
 7. Look at the flagged areas by eye.
+
+The older path (PHerc. 0191, band z 9000–10000) used `snap_exp30k.sh`, `triage_windings.sh`, `depth_sweep.sh`, `ensemble_windings.sh`, `three_model_windings.sh`, `stroke_score.py`, `stroke_rank.sh` and the AWS fleet.
 
 ## Conventions
 
@@ -87,6 +89,26 @@ Downloads the public ink checkpoints and `hecate.py` listed in a `models.tsv`, c
 - **In → out:** `models.tsv` (not in this repo) → `CKPT_DIR/*` and `CKPT_DIR/SHA256SUMS.local`.
 - **Runs on:** not run here. **Log/marker:** stdout.
 - **Status:** unclear (unused here). On the box, `$S/checkpoints/ckpt343/` was laid out by hand. On AWS, `aws/remote/setup_models.sh` does the same job. **Origin:** Nieuwlaar (MIT).
+
+#### `box/bin/mirror_band_pherc0813.sh`
+Phase B1: mirrors one band of PHerc. 0813 (z 12000–13000) and the scroll-wide inputs a spiral fit needs into `data/PHerc0813/source/`.
+- **Usage:** `bin/mirror_band_pherc0813.sh`
+- **In → out:** S3 / dl.ash2txt.org → CT level 0 rows 93–101 (z 11904–13055) + levels 2–5, m7 surface prediction level 0 rows 62–67, normal grids, Lasagna nx/ny/grad_mag levels 2–4, the spiral tracks dataset. Resumable (size-verified). The top-level `.zgroup`/`.zattrs` of the CT are not copied; the B2 launcher fetches them.
+- **Runs on:** GPU box (network). **Log/marker:** `runs/2026-10-10_mirror-pherc0813-band/`; `MIRROR0813-EXIT: 0`.
+- **Status:** done 2026-10-10 (75 GB, 0 failed). **Origin:** ours (MIT).
+
+#### `box/bin/assemble_spiral_dataset.sh`
+Phase B2: assembles any scroll's spiral-fit dataset from its mirrored inputs (the generic successor of `assemble_pherc0191.sh`).
+- **Usage:** `bin/assemble_spiral_dataset.sh <scroll> <audit z> [left_handed=false] [z_top_to_bottom=false] [um=9.362]`
+- **In → out:** `data/<scroll>/source/` → `data/<scroll>/inputs/spiral-dataset/`: links to tracks and Lasagna stores, `spiral-scroll.json`, `umbilicus_raw.json` (vc_gen_umbilicus, every 16th slice, 5 seeded repeats) and the smoothed `umbilicus.json`, a ray audit on CT level 2 at the audit slice with a preview `qa/umbilicus_z<z>.png`, and resident-pool sidecars in `lasagna_inputs/`.
+- **Runs on:** GPU box (CPU). **Log/marker:** launcher log; `ASSEMBLE-EXIT: 0|1` (0 if the umbilicus and the resident pools exist).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/smooth_umbilicus.py`
+Smooths a vc_gen_umbilicus result the way PHerc. 0191's was smoothed: local-median outlier rejection (> 400 voxels from the median of ±8 neighbours), then a ±4-point moving average of the inliers.
+- **Usage:** `python3 bin/smooth_umbilicus.py <raw.json> <out.json> [--maxdev 400]`
+- **In → out:** raw control points → smoothed control points (the raw file is untouched); prints outlier count and median step before/after.
+- **Runs on:** anywhere (CPU). **Log/marker:** stdout. **Status:** current. **Origin:** ours (MIT).
 
 ### Older and one-off
 
@@ -235,6 +257,19 @@ Quick QA of one tifxyz mesh:
 - **Runs on:** GPU box (GPU). **Log/marker:** stdout; `PATCHQA-EXIT` is 1 if the render fails and 0 otherwise, even if inference failed.
 - **Status:** current for geometry checks. Its ink part is the older 28-layer route (`--flip-normals`). **Origin:** ours (MIT).
 
+#### `box/bin/fit_band.sh`
+Spiral fit of one z band of any scroll with our best recipe (exp-30k: tracks only, `grad_mag` spacing, no outer shell, 30k steps).
+- **Usage:** `bin/fit_band.sh <scroll> <fit-id> <GPU UUID> <z0> <z1> [steps=30000]`
+- **In → out:** `data/<scroll>/inputs/spiral-dataset/` → `data/<scroll>/geometry/<fit-id>/fit-runs/<run>/`, linked as `geometry/<fit-id>/fit`; full log `geometry/<fit-id>/fit-full.log`. Cache `cache/spiral-<scroll>`. Refuses GPU 1 by UUID and by index.
+- **Runs on:** GPU box (GPU). **Log/marker:** launcher log; `FIT-EXIT: <rc>` after the satisfied-track fractions.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/snap_band.sh`
+Snaps every fitted winding of one fit of any scroll onto its m7 surface prediction (`snap_meshes_nieuwlaar.py`, 3 processes, level 0).
+- **Usage:** `bin/snap_band.sh <scroll> <fit-id> <z0> <z1>`
+- **In → out:** `geometry/<fit-id>/fit/meshes/fitted_*/wNNN` + `data/<scroll>/source/surface-m7/*.zarr` → `geometry/<fit-id>/snapped/<winding>/`, `snap_report.tsv`, `snap.log`.
+- **Runs on:** GPU box (CPU). **Log/marker:** launcher log; `SNAP-EXIT: <rc>`. **Status:** current. **Origin:** ours (MIT).
+
 ### Older and one-off
 
 #### `box/bin/pilot_fit_pherc0191.sh`
@@ -380,8 +415,8 @@ Renders (28 slices, `--flip-normals`) and inks (seeds 42 and 43) selected windin
 Sampling the CT around each flattened winding into a 66-layer surface volume, the input for every ink model.
 
 #### `box/bin/render66.sh`
-Makes a 66-layer surface volume of a (flattened) tifxyz from the local PHerc. 0191 CT mirror.
-- **Usage:** `bin/render66.sh <segment.tifxyz> <out.zarr> [threads=4] [cache_gb=8]`
+Makes a 66-layer surface volume of a (flattened) tifxyz from a local CT mirror (PHerc. 0191 by default; `CT=<volume.zarr>` for another scroll, added 2026-10-10).
+- **Usage:** `[CT=<volume.zarr>] bin/render66.sh <segment.tifxyz> <out.zarr> [threads=4] [cache_gb=8]`
 - **In → out:** tifxyz → `<out.zarr>` (array `0`, 66 × H × W uint8). It reads only the local mirror; there is no S3 fallback.
 - **Runs on:** GPU box (CPU). **Log/marker:** stdout; `RENDER66-EXIT: <rc>`.
 - **Status:** current. **Origin:** ours (MIT).
@@ -392,6 +427,13 @@ For every snapped exp-30k winding, starting at w070 and working outwards: flatte
 - **In → out:** `$D/snapped/exp-30k/wNNN_exp-30k/` → `$D/flatten/exp-30k-snapped-wNNN/tifxyz/flatten.tifxyz`, `$D/render66/exp30k_snapped_wNNN_66.zarr` (+ `render66/render_wNNN.log`), and `$D/triage/previews/wNNN_ct_d0.png` (2× downsampled, render orientation).
 - **Runs on:** GPU box. **Log/marker:** launcher, `$S/triage-windings.log`; `TRIAGE-EXIT: 0` (always 0).
 - **Status:** current (finished its run on 2026-10-09). **Origin:** ours (MIT).
+
+#### `box/bin/triage_band.sh`
+Phase A1 geometry triage of one fit's snapped windings: Lasagna flatten → 66-layer render → CT preview of the surface layer, from w070 outwards. Several GPUs share the list through claims.
+- **Usage:** `bin/triage_band.sh <fit-id> <GPU UUID> [first=20] [last=119]`
+- **In → out:** `geometry/<fit-id>/snapped/` → `geometry/<fit-id>/flattened/wNNN`, `renders/<fit-id>/wNNN.zarr`, `geometry/<fit-id>/qa/triage/previews/wNNN_ct_d0.png`.
+- **Usage for another scroll:** `SCROLL=PHerc0813 bin/triage_band.sh <fit-id> <GPU UUID> <first> <last>` (paths under `data/<scroll>/`, CT from `data/<scroll>/source/volume/`).
+- **Runs on:** GPU box (GPU + CPU). **Log/marker:** launcher log; `TRIAGEBAND-EXIT: 0`. **Status:** current. **Origin:** ours (MIT).
 
 ### Older and one-off
 
@@ -480,6 +522,18 @@ The four-model ensemble at d = +1 on the PHerc. 343 control: adds seed 43, dense
 - **In → out:** `$S/data/PHerc0343/control/control343_66.zarr` → `control/maps/`, `control/ink_<model>_d1.log`, `control/images/` (+ `ensemble.log`).
 - **Runs on:** GPU box (GPU). **Log/marker:** stdout; `ENSEMBLE343-EXIT: 0` (always 0).
 - **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/deep_look.sh`
+Phase A3: four-model ink maps (seeds 42/43, dense_native, Hecate) for chosen windings, depth tier by tier (0, +1, then −1, +2, then −2, +3). Units (winding, model, depth) are shared by several GPUs through claims.
+- **Usage:** `bin/deep_look.sh <fit-id> <GPU UUID> <hecate-first|villa-first> <hec_batch> w073 …`
+- **In → out:** `renders/<fit-id>/wNNN.zarr` → `ink/<fit-id>/maps/`; claims `ink/<fit-id>/claims-a3/`; unit logs `runs/2026-10-10_deeplook-<fit-id>/units/`.
+- **Runs on:** GPU box (GPU). **Log/marker:** `runs/…/gpuN.log`; `DEEPLOOK-EXIT: 0` (always 0). **Status:** done for exp30k-z11200 (168/168 units). **Origin:** ours (MIT).
+
+#### `box/bin/band_three_model.sh`
+Phase A4: three-model ink maps (seeds 42/43 + dense_native) at d 0 and +1 on the rendered windings of one fit of any scroll. Units shared by several GPUs through claims.
+- **Usage:** `bin/band_three_model.sh <scroll> <fit-id> <GPU UUID> <run dir> w020 …`
+- **In → out:** `renders/<fit-id>/wNNN.zarr` → `ink/<fit-id>/maps/`; claims `ink/<fit-id>/claims-a4/`; unit logs `<run dir>/units/`. Refuses GPU 1 by UUID and by index.
+- **Runs on:** GPU box (GPU). **Log/marker:** `<run dir>/gpuN.log`; `A4INK-EXIT: 0`. **Status:** current. **Origin:** ours (MIT).
 
 ### Older, one-off and unused
 
@@ -581,6 +635,22 @@ Stacks one winding's fast-ink previews (all depths, one side) into a labelled sh
 - **Status:** unclear (its input, the `ink_triage.sh` previews, is no longer produced). **Origin:** ours (MIT).
 
 ---
+
+#### `tools/stroke-score/` (`stroke-score score|rank`)
+The packaged stroke score (v0.1): scores a 66-layer render plus any set of ink maps, ranks many results with the LOOK flag, writes review crops. See its README. The box runs it from source (`PYTHONPATH=tools/stroke-score/src python -m stroke_score.cli`).
+- **Status:** current (supersedes `box/bin/stroke_score.py` and `stroke_rank.sh` for new work). **Origin:** ours (MIT).
+
+#### `box/bin/deep_score.sh`
+Phase A3 scorer: when all four models exist for a (winding, depth), writes the ensemble images (`ensemble_maps.py`) and the stroke score with crops, then re-ranks.
+- **Usage:** `bin/deep_score.sh <fit-id> w073 …`
+- **In → out:** maps → `ink/<fit-id>/ens4/<w>/`, `scores/<fit-id>/ens4/<w>/`, `scores/<fit-id>/ens4/ranking.tsv`.
+- **Runs on:** GPU box (CPU). **Log/marker:** `runs/…/scorer.log`; `DEEPSCORE-EXIT: 0` after every DEEPLOOK-EXIT. **Status:** done for exp30k-z11200. **Origin:** ours (MIT).
+
+#### `box/bin/band_score3.sh`
+Phase A4 scorer: as `deep_score.sh` for the three-model set, plus render cleanup. When both depths of a winding are scored and no row is near the flag line (LOOK, area_R ≥ 0.012, R − B ≥ 0.008 or window ≥ 0.025), the winding's render is deleted.
+- **Usage:** `bin/band_score3.sh <scroll> <fit-id> <run dir> <workers> w020 …`
+- **In → out:** maps → `ink/<fit-id>/ens3/<w>/`, `scores/<fit-id>/ens3/<w>/`, `scores/<fit-id>/ens3/ranking.tsv`; `<run dir>/kept_renders.txt`, `deleted_renders.txt`.
+- **Runs on:** GPU box (CPU). **Log/marker:** `<run dir>/scorer.log`; `A4SCORE-EXIT: 0` after `<workers>` A4INK-EXIT lines. **Status:** current. **Origin:** ours (MIT).
 
 ## 6. Cloud (AWS) orchestration
 
