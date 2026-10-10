@@ -12,5 +12,5 @@ echo "[$(date -Is)] snap $(wc -l < $OUT/windings.txt) windings from $MESHES onto
 cd $S && $S/villa/vesuvius/.venv/bin/python -I bin/snap_meshes_nieuwlaar.py "$MESHES" $SC "$OUT" --windings $OUT/windings.txt \
    --z0 $Z0 --z1 $Z1 --level 0 --procs 3 > $OUT/snap.log 2>&1; rc=$?
 echo "[$(date -Is)] snap rc=$rc in $(( $(date +%s)-t0 ))s"; tail -2 $OUT/snap.log | cut -c1-160
-awk -F'\t' 'NR>1 {s+=$3; n++} END {if (n) printf "windings %d, mean frac_snapped %.3f\n", n, s/n}' $OUT/snap_report.tsv 2>/dev/null
+awk -F'\t' 'NR>1 {s+=$3; n++} END {if (n) printf "windings %d, mean frac_with_sheet %.3f\n", n, s/n}' $OUT/snap_report.tsv 2>/dev/null
 echo "SNAP-EXIT: $rc"
