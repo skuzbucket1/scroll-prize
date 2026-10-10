@@ -6,7 +6,9 @@
 #   surface.zarr  66-layer surface volume rendered from a submitted mesh (zarr group with array "0", Z,Y,X uint8),
 #                 as written by mesh/render_66_layers.sh (layer k samples the CT at k - 32.5 voxels along
 #                 the mesh normal; d = k - 33; + = away from the scroll axis; no --flip-normals)
-#   model         dnative | hybrid_3d2d-seed42 | hybrid_3d2d-seed43 | hecate
+#   model         dnative | hybrid_3d2d-seed42 | hybrid_3d2d-seed43 | hecate | readerv2 | d9v4c
+#                 (readerv2 = DomRusso2 Reader v2 step 40000, d9v4c = TAUIL-Abd-Elilah d9v4C ft-006000; both MIT, same villa
+#                 inference path and 17-layer window as ink_9um; added by Ted Bienapfl 2026-10-10)
 #   d             integer depth, -15..+15 for the 66-layer renders
 #   out_dir       output directory
 #
@@ -37,6 +39,8 @@ case $MODEL in
     [[ -s $CK ]] || CK=$CKPT_DIR/dense_native-016000.rebuilt.pth ;;
   hybrid_3d2d-seed42|hybrid_3d2d-seed43) CK=$CKPT_DIR/${MODEL}_step-075000.pth ;;
   hecate) CK=$CKPT_DIR/hecate_9.6um.pth ;;
+  readerv2) CK=$CKPT_DIR/reader-v2-step040000.pth ;;
+  d9v4c) CK=$CKPT_DIR/d9v4C_ft-006000.pth ;;
   *) echo "unknown model $MODEL"; exit 2 ;;
 esac
 [[ -s $CK ]] || { echo "checkpoint missing: $CK (run fetch_checkpoints.sh)"; exit 3; }

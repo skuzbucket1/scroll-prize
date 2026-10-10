@@ -10,5 +10,10 @@ if [ ! -s $C/dense_native-016000.pth ]; then
   cd /opt/scroll/villa/vesuvius && $HOME/.local/bin/uv run --no-sync python /opt/scroll/bin/ink343/rebuild_dense_native_pth.py \
     $H/ink9um-dense-native/weights/dense_native_016000.safetensors $H/ink9um-dense-native/training/configs/train_dense_native.json $C/dense_native-016000.pth
 fi
+# Extra 9 um ink models (MIT): Reader v2 (DomRusso2) and d9v4C (TAUIL-Abd-Elilah), same villa inference path as ink_9um.
+get() { [ -s "$C/$2" ] || curl -sfL --retry 3 "$1" -o "$C/$2.part" && mv -f "$C/$2.part" "$C/$2" 2>/dev/null || true
+        echo "$2 sha256 $(sha256sum "$C/$2" 2>/dev/null | cut -c1-8)…$(sha256sum "$C/$2" 2>/dev/null | cut -c61-64)"; }
+get https://huggingface.co/domenicor046/reader-v2/resolve/main/reader-v2-step040000.pth reader-v2-step040000.pth
+get https://github.com/TAUIL-Abd-Elilah/9um-reader-letter-shape/releases/download/v1.0/d9v4C_ft-006000.pth d9v4C_ft-006000.pth
 ls -la $C | awk '{print $5, $9, $10, $11}'
 echo "SETUP-MODELS-DONE"
