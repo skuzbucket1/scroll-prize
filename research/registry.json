@@ -808,6 +808,30 @@
     "dense-native",
     "ours"
    ]
+  },
+  {
+   "id": "aws-fleet-run2",
+   "date": "2026-10-10",
+   "phase": "P3",
+   "track": "Ink & render",
+   "short": "AWS: 59 windings, three models",
+   "title": "Ten cloud GPUs, 59 PHerc. 0191 windings: three-model ink pass with automatic stroke scoring",
+   "question": "Does any snapped + flattened exp-30k winding outside the central seven show ink, by the stroke score and by eye?",
+   "technique": "aws/fleet.sh on 10 on-demand g4dn.2xlarge (Tesla T4): windings w037–w067 and w075–w102, each rendered in 66 layers from the public S3 volume, ink_9um seeds 42/43 and dense_native at depths 0 and +1 (Erwin Nieuwlaar's scripts and ensemble images, Hecate left out for cost), the stroke score computed on each worker; flagged windings checked by eye at row scale and at full resolution against the blind side and the CT.",
+   "result": "No ink. All 59 windings done in 1 h 24 min of compute for about $10.70. Reading-side stroke area 0.0029–0.0110 (control 0.035), reading minus blind ≤ +0.0057 (control +0.030). Eight rows on six windings (w083, w090, w100, w101, w102) passed the 4 cm² window line (0.030–0.034, control 0.050); by eye all are diffuse bright mottling, mostly around CT voids or in a brighter zone that recurs at the same position on neighbouring windings, with no strokes and no rows. A shell bug sent each worker only part of its list at first (ssh swallowing the loop input); fixed and recovered on the live workers.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [],
+   "learned": "66 of the 99 flattened windings in band z 9000–10000 are now checked at depths 0 and +1 (7 with four models, 59 with three); the remaining 33 are running on the home GPUs. A recurring bright zone across windings is the main false-positive source for the window metric; a blind-side check (window ≥ 2× blind) now guards it. The cloud pass costs about $0.18 per winding with three models.",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "vc-predictions",
+    "villa",
+    "ink9um",
+    "dense-native",
+    "ours"
+   ]
   }
  ],
  "findings": [
@@ -888,9 +912,9 @@
   }
  ],
  "next": [
-  "Go/no-go on a 10-worker AWS three-model pass over the remaining 59 windings (~$10, ~1.4 h); Hecate only on windings the stroke score flags.",
-  "Box: four-model ensemble on w072 (running); old fitter (winner's version) at ~61%, ETA ~01:25 UTC, then snap + triage its windings.",
-  "Consider more depths (−1, +2) for the best windings: the 343 letters were at +1, but PHerc. 0191's layer offset is unknown.",
+  "Home GPUs 2 + 3: three-model pass on the last 33 windings (w020–w036, w103–w119); auto-scored.",
+  "Old fitter (winner's version) finishing ~01:25 UTC: compare metrics, snap + triage its windings (different geometry = new chances).",
+  "If the band stays null: more depths (−2..+3) on the best windings, Hecate on the top-ranked rows, or a second z band.",
   "Progress Prize write-ups for findings #6–#10 (three PRs staged for Ted)."
  ],
  "credits": [

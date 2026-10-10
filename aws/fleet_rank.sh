@@ -7,7 +7,8 @@
 # Calibration 2026-10-09 (PHerc. 343 control vs PHerc0191 w068-w074, depths 0/+1):
 #   three models: control area_R 0.0354, R-B +0.030, window 0.050;  PHerc0191 area_R <= 0.0064, R-B <= +0.0021, window <= 0.017
 #   four models:  control area_R 0.0335, R-B +0.031, window 0.048;  PHerc0191 area_R <= 0.0073, R-B <= +0.0057, window <= 0.023
-# LOOK if area_R >= 0.015, or R-B >= 0.010, or window >= 0.030 (three models) / 0.035 (four models).
+# LOOK if area_R >= 0.015, or R-B >= 0.010, or window >= 0.030 (three models) / 0.035 (four models) and >= 2x the
+# blind side's best window (run 2: w082 had 0.033 vs 0.029 blind = noise, not ink).
 HERE=$(cd "$(dirname "$0")" && pwd); ROOT=$(cd "$HERE/.." && pwd)
 R=${1:-$ROOT/data/aws-results/fleet}
 python3 - "$R" <<'PY'
@@ -18,7 +19,7 @@ for f in glob.glob(os.path.join(sys.argv[1], '*', '*', 'strokes', '*__strokes*_d
     aR, aB = r['stroke_frac'], b['stroke_frac']
     wR, wB = r.get('window', {}).get('max', 0.0), b.get('window', {}).get('max', 0.0)
     nm = len(j['models'])
-    look = aR >= 0.015 or aR - aB >= 0.010 or wR >= (0.035 if nm >= 4 else 0.030)
+    look = aR >= 0.015 or aR - aB >= 0.010 or (wR >= (0.035 if nm >= 4 else 0.030) and wR >= 2 * wB)
     top = (j.get('top_reading_tiles') or [{}])[0]
     rows.append((aR, j['name'].replace('exp30k_snapped_', '').replace('_66', ''), j['depth'], nm, aB, wR, wB,
                  top.get('read_y', ''), top.get('read_x', ''), top.get('damage', ''), 'LOOK' if look else '', os.path.dirname(f)))

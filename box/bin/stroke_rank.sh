@@ -23,7 +23,7 @@ j = json.load(open(sys.argv[1])); r, b = j['sides']['reading'], j['sides']['blin
 aR, aB = r['stroke_frac'], b['stroke_frac']
 wR, wB = r.get('window', {}).get('max', 0.0), b.get('window', {}).get('max', 0.0)
 nm = len(j['models'])
-look = aR >= 0.015 or aR - aB >= 0.010 or wR >= (0.035 if nm >= 4 else 0.030)
+look = aR >= 0.015 or aR - aB >= 0.010 or (wR >= (0.035 if nm >= 4 else 0.030) and wR >= 2 * wB)
 t = (j['top_reading_tiles'] or [{}])[0]
 print('\t'.join(str(x) for x in (j['name'], sys.argv[2], j['depth'], '%.4f' % aR, '%.4f' % aB, '%+.4f' % (aR - aB),
       '%.4f' % wR, '%.4f' % wB, '%.3f' % r['tiles'].get('max', 0), '%.3f' % b['tiles'].get('max', 0),
