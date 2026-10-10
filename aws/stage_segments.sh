@@ -21,7 +21,12 @@ if [ -n "$SD" ]; then
 else
   WS="$*"; [ -z "$WS" ] || [ "$WS" = all ] && WS=$(ssh -o BatchMode=yes $BOX "ls -d $D/flatten/$FP-w*/tifxyz/flatten.tifxyz" | sed -E 's|.*-(w[0-9]+)/tifxyz/.*|\1|' | sort)
 fi
-[ $SKIP -eq 1 ] && DONE=$(ssh -o BatchMode=yes $BOX "ls $D/ink-triage/ensemble 2>/dev/null" || true) || DONE=""
+# --skip-done refers to the box's exp-30k (band z 9000-10000) ensembles, so it only applies to that default set
+if [ $SKIP -eq 1 ] && [ -z "${SNAPPED_DIR:-}" ] && [ "$FP" = exp-30k-snapped ]; then
+  DONE=$(ssh -o BatchMode=yes $BOX "ls $D/ink-triage/ensemble 2>/dev/null" || true)
+else
+  DONE=""
+fi
 ST=$ROOT/data/aws-stage; mkdir -p $ST/segments; : > $ST/manifest.tsv
 n=0
 for w in $WS; do

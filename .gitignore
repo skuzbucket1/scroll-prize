@@ -13,3 +13,4 @@ docs/img/*.tif
 __pycache__/
 aws/spot.env
 aws/state/
+scratch/

@@ -1,7 +1,18 @@
 # Data layout (proposal, 2026-10-10)
 
-Status: **proposal for review, nothing has been moved yet.** The current-to-new path map at the end is filled in
-from the inventory in `notes/data-inventory-2026-10-10.md`.
+Status: **approved by Ted and MIGRATED on 2026-10-10 (02:40 UTC)**, while no job was running. Disk cleanup freed 186 G first
+(NVMe 91 % → 71 %). Every moved item left an absolute symlink at its old path, so old paths in scripts, notes and memory still
+work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on the box (dry-run output `scratch/migrate-dry.txt`).
+
+Deviations from the plan below, on purpose:
+- Folder names *inside* a stage keep the names the tools write (`snapped/wNNN_exp-30k/`, ink-map file names with
+  `exp30k_snapped_wNNN_66`), so no script had to change. Flattened windings and renders were renamed to `wNNN/` and `wNNN.zarr`.
+- The old stage folders (`spiral-output/`, `snapped/`, `flatten/`, `render66/`) are now folders of per-item symlinks;
+  new fits still write into `spiral-output/` until the scripts are updated.
+- The ~105 top-level job logs went to `runs/archive-2026-10-08_10/logs/` without symlinks (history only). New jobs still write
+  `~/scroll-prizes/<job>.log` until their scripts are updated to `runs/<date>_<run-id>/`.
+- Mac: AWS results are in `data/<SCROLL>/runs-aws/<date>_<run-id>/` (old `data/aws-results/runN` are symlinks), review crops in
+  `data/PHerc0191/reviews/2026-10-09_flagged-windings/`, staging in `scratch/aws-stage/`.
 
 ## Why
 

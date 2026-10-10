@@ -1,5 +1,7 @@
 # Data dictionary
 
+> **2026-10-10:** the data was migrated to the layout in `docs/DATA_LAYOUT.md` (`source/`, `inputs/`, `geometry/<fit-id>/`, `renders/`, `ink/`, `scores/`, `runs/`, `scratch/`, `cache/`). The paths below are the pre-migration names; they still work through symlinks, and the current-to-new table in DATA_LAYOUT.md gives each new location.
+
 2026-10-10
 
 This document describes the datasets the project keeps on the GPU box `llm` and on Ted's Mac: what each one is, where
