@@ -30,3 +30,18 @@
 - NVMe at 89 % (104 GB free).
 
 Images: `data/PHerc0191/reviews/2026-10-10_clearband-deeplook/` (Mac, not in git).
+
+## Phase A3 final (11:54 UTC)
+- All 168 units done, 0 failed; all 42 winding-depths scored. Depth +3 added no flags (w074 window 0.035, same crack-band cluster;
+  w089 at +3: area 0.0074, R − B −0.0009, window 0.013 vs 0.017 blind).
+- Mean reading-minus-blind over the seven windings by depth: −2 +0.0008, −1 +0.0022, 0 +0.0033, +1 +0.0045, +2 +0.0055,
+  +3 +0.0054. It rises smoothly and levels off, with no peak at one depth (the 343 control peaks at +1), so it reads as sheet
+  structure, not ink.
+- Verdict for A3: no letters in the seven best clear-band windings.
+
+## Decided with Ted (≈11:40 UTC)
+- PHerc0191 is not dropped yet: Phase A4 checks the other 93 clear-band windings (three models, depths 0 and +1) so that a
+  null covers the whole band. Started 11:56 on GPUs 0 and 2 (`runs/2026-10-10_a4-three-model-exp30k-z11200/`).
+- Phase B2/B3 on PHerc0813 started in parallel: spiral dataset assembly, then a fit of z 12,000–13,000 on GPU 3, then snap
+  (`runs/2026-10-10_b2-pherc0813-z12000/`). Triage (B4) waits for Ted after the fit.
+- AWS stays available for cost-effective jobs, above all a fast deep look at anything promising; not for sweeps.
