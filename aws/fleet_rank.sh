@@ -19,7 +19,7 @@ for f in glob.glob(os.path.join(sys.argv[1], '*', '*', 'strokes', '*__strokes*_d
     aR, aB = r['stroke_frac'], b['stroke_frac']
     wR, wB = r.get('window', {}).get('max', 0.0), b.get('window', {}).get('max', 0.0)
     nm = len(j['models'])
-    look = aR >= 0.015 or aR - aB >= 0.010 or (wR >= (0.035 if nm >= 4 else 0.030) and wR >= 2 * wB)
+    look = nm >= 3 and (aR >= 0.015 or aR - aB >= 0.010 or (wR >= (0.035 if nm >= 4 else 0.030) and wR >= 2 * wB))
     top = (j.get('top_reading_tiles') or [{}])[0]
     rows.append((aR, j['name'].replace('exp30k_snapped_', '').replace('_66', ''), j['depth'], nm, aB, wR, wB,
                  top.get('read_y', ''), top.get('read_x', ''), top.get('damage', ''), 'LOOK' if look else '', os.path.dirname(f)))

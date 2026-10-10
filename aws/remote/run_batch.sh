@@ -6,6 +6,23 @@ set -uo pipefail
 B=/opt/scroll/jobs/batch.tsv; OUT=/opt/scroll/results; mkdir -p $OUT
 N=$(grep -cv '^\s*$' $B); k=0
 PY=/opt/scroll/villa/vesuvius/.venv/bin/python
+# Scan-Quality-Map in the background (CPU, streams the volume from S3), one segment at a time, while the GPU does ink.
+SQMPID=""
+if [ -f /opt/scroll/jobs/sqm.on ] && [ -x /opt/scroll/sqm-venv/bin/sqm ]; then
+  ( export SQM_CACHE=/opt/scroll/cache/sqm SQM_CACHE_GB=20
+    while IFS=$'\t' read -r NAME SEG URL UM MODELS DEPTHS <&3; do
+      [ -n "$NAME" ] || continue; [ -f $OUT/$NAME/sqm/quality.png ] && continue; mkdir -p $OUT/$NAME
+      MESH="$SEG"
+      if [ "$(basename "${SEG%/}")" != flatten.tifxyz ]; then   # wait for run_segment.sh to flatten it (max 1 h)
+        MESH=$OUT/$NAME/flatten/tifxyz/flatten.tifxyz; for i in $(seq 1 240); do [ -d "$MESH" ] && break; sleep 15; done
+        [ -d "$MESH" ] || { echo "sqm $NAME skipped: no flattened mesh" >> $OUT/sqm-progress.txt; continue; }
+      fi
+      t0=$(date +%s); timeout ${SQM_TIMEOUT:-1500} nice -n 10 /opt/scroll/sqm-venv/bin/sqm segment --mesh "$MESH" --volume "$URL" \
+        --voxel-um "$UM" --level 0 --block 96 --patch 16 --overlay --out $OUT/$NAME/sqm > $OUT/$NAME/sqm.log 2>&1
+      echo "sqm $NAME rc=$? $(( $(date +%s)-t0 ))s" >> $OUT/sqm-progress.txt
+    done 3< $B ) &
+  SQMPID=$!
+fi
 while IFS=$'\t' read -r NAME SEG URL UM MODELS DEPTHS; do
   [ -n "$NAME" ] || continue; k=$((k + 1))
   echo "$k/$N $NAME start $(date -u +%FT%TZ)" > $OUT/progress.txt
@@ -25,4 +42,5 @@ while IFS=$'\t' read -r NAME SEG URL UM MODELS DEPTHS; do
   rm -rf /opt/scroll/work/${NAME}_66.zarr          # renders are ~1 GB each; keep the disk small
   echo "$k/$N $NAME done $(date -u +%FT%TZ)" > $OUT/progress.txt
 done < $B
+[ -n "$SQMPID" ] && { echo "waiting for sqm $(date -u +%FT%TZ)" >> $OUT/progress.txt; wait $SQMPID; }
 echo "BATCH-EXIT: 0 $(date -u +%FT%TZ)" >> $OUT/progress.txt

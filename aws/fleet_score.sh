@@ -5,7 +5,7 @@
 # Usage: aws/fleet_score.sh            (all segments under data/aws-results/fleet/*/)
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd); ROOT=$(cd "$HERE/.." && pwd)
-BOX=${BOX:-tbienapfl@100.74.214.106}; D=/mnt/nvme/scroll-prizes/data/PHerc0191; O=/mnt/nvme/scroll-prizes/data/strokes/aws
+[ -f "$(dirname "$0")/spot.env" ] && source "$(dirname "$0")/spot.env"; BOX=${BOX:?set BOX in aws/spot.env}; D=/mnt/nvme/scroll-prizes/data/PHerc0191; O=/mnt/nvme/scroll-prizes/data/strokes/aws
 for md in "$ROOT"/data/aws-results/fleet/*/exp30k_snapped_w*/maps; do
   [ -d "$md" ] || continue
   name=$(basename "$(dirname "$md")"); w=${name##*_}

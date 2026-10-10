@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Upload each worker's segments and batch list, start run_batch.sh detached on every worker.
-# Usage: aws/fleet_run.sh [--chain]   (--chain: do not start now; queue run_batch.sh behind the one already running)
+# Usage: [SQM=1] aws/fleet_run.sh [--chain]   (SQM=1: also run Scan-Quality-Map per segment on the worker)   (--chain: do not start now; queue run_batch.sh behind the one already running)
 # The plan is read on fd 3: ssh inside the loop would otherwise swallow the rest of the plan from stdin (2026-10-09 bug:
 # workers got 1-3 of their 6 segments).
 source "$(dirname "$0")/lib.sh"
@@ -15,6 +15,7 @@ for w in $(cut -f1 "$P" | sort -u); do
     printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$NAME" "/opt/scroll/jobs/$NAME/$(basename "${SEG%/}")" "$URL" "$UM" "$MODELS" "$DEPTHS" >> "$B"
   done 3< "$P"
   rsync_to "$B" /opt/scroll/jobs/batch.tsv < /dev/null
+  if [ "${SQM:-0}" = 1 ]; then rssh "touch /opt/scroll/jobs/sqm.on" < /dev/null; else rssh "rm -f /opt/scroll/jobs/sqm.on" < /dev/null; fi
   if [ $CHAIN -eq 1 ]; then
     rsync_to "$HERE/remote/chain_batch.sh" /opt/scroll/bin/ < /dev/null
     rssh "nohup bash /opt/scroll/bin/chain_batch.sh >> /opt/scroll/results/batch.log 2>&1 < /dev/null &" < /dev/null

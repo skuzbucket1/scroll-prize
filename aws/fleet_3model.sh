@@ -6,7 +6,7 @@
 # three models separate the PHerc. 343 control from PHerc0191 negatives almost as well (6.3x vs <= 1.5x stroke area).
 HERE=$(cd "$(dirname "$0")" && pwd)
 N=${1:?usage: fleet_3model.sh N --yes}; [ "${2:-}" = "--yes" ] || { echo "refusing to launch without --yes"; exit 2; }
-BOX=${BOX:-tbienapfl@100.74.214.106}
+[ -f "$(dirname "$0")/spot.env" ] && source "$(dirname "$0")/spot.env"; BOX=${BOX:?set BOX in aws/spot.env}
 EXCLUDE=${EXCLUDE:-w068 w069 w070 w071 w072 w073 w074}     # box four-model queue + the first AWS run
 WS=$(ssh -o BatchMode=yes $BOX 'ls -d /mnt/nvme/scroll-prizes/data/PHerc0191/flatten/exp-30k-snapped-w*/tifxyz/flatten.tifxyz' |
      sed -E 's|.*snapped-(w[0-9]+)/.*|\1|' | sort | grep -vxF -f <(tr ' ' '\n' <<< "$EXCLUDE") | tr '\n' ' ')

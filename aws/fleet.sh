@@ -20,8 +20,7 @@ fi
 while true; do
   sleep 300; S=$("$HERE/fleet_status.sh"); echo "$S" | tail -1
   "$HERE/fleet_fetch.sh" > /dev/null 2>&1 || true
-  echo "$S" | awk '/segments done:/ { split($3, a, "/"); exit !(a[1] == a[2] && a[2] > 0) }' && break
-  # every worker's batch has ended (even if a segment failed): stop paying
+  # every worker's batch has ended (all segments, plus the SQM step if on; even if a segment failed): stop paying
   NW=$(cut -f1 "$STATE/fleet/plan.tsv" | sort -u | wc -l | tr -d ' ')
   [ "$(echo "$S" | grep -c 'BATCH-EXIT')" -ge "$NW" ] && { log "all batches ended"; break; }
   [ -z "$(awsc ec2 describe-instances --filters "Name=tag:Project,Values=$PROJECT_TAG" "Name=instance-state-name,Values=running" --query 'Reservations[].Instances[].InstanceId' --output text)" ] && { log "no running workers left"; break; }

@@ -6,6 +6,19 @@ set -uo pipefail
 NAME=$1; SEG=$2; URL=$3; UM=$4; MODELS=${5//,/ }; DEPTHS=${6//,/ }
 R=/opt/scroll/results/$NAME; W=/opt/scroll/work; mkdir -p $R/maps $R/previews $W /opt/scroll/cache/$NAME
 TIM=$R/timings.tsv; [ -f $TIM ] || printf 'step\tseconds\trc\n' > $TIM
+# Snapped but not yet flattened (anything not named flatten.tifxyz): flatten here with Lasagna first.
+if [ "$(basename "${SEG%/}")" != flatten.tifxyz ]; then
+  F=$R/flatten
+  if [ ! -d $F/tifxyz/flatten.tifxyz ]; then
+    printf '{"external_surfaces": [{"path": "%s"}]}\n' "${SEG%/}" > $W/${NAME}_flatten_in.json
+    t0=$(date +%s)
+    (cd /opt/scroll/villa/lasagna && .venv/bin/python fit.py configs/flatten_fast_nofilter.json $W/${NAME}_flatten_in.json \
+       --out-dir $F --device cuda > $R/flatten.log 2>&1); rc=$?
+    printf 'flatten\t%s\t%s\n' $(( $(date +%s)-t0 )) $rc >> $TIM
+    [ -d $F/tifxyz/flatten.tifxyz ] || { tail -5 $R/flatten.log; echo "RUN-EXIT: 1"; exit 1; }
+  fi
+  SEG=$F/tifxyz/flatten.tifxyz
+fi
 Z=$W/${NAME}_66.zarr
 if [ ! -d $Z/0 ]; then
   t0=$(date +%s)
