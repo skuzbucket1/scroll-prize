@@ -4,6 +4,18 @@ Status: **approved by Ted and MIGRATED on 2026-10-10 (02:40 UTC)**, while no job
 (NVMe 91 % → 71 %). Every moved item left an absolute symlink at its old path, so old paths in scripts, notes and memory still
 work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on the box (dry-run output `scratch/migrate-dry.txt`).
 
+**Cleanup Tier 1 done 2026-10-10 11:18 UTC** (approved by Ted; script and log in `runs/2026-10-10_cleanup-tier1/` on the box):
+NVMe 825 G → 701 G (89 % → 76 %). Deleted: old-band renders `data/PHerc0191/renders/exp30k-z9000` (88 G; maps and scores
+kept, renders regenerable), fibre fields `inputs/fields/fiber` (11 G), tracer tests (`geometry/tracer-tests`,
+`renders/tracer-tests`, 8.7 G), `checkpoint_fitted.ckpt` of the 9 dropped fit experiments (pilot, expdirlow, expdirlow2,
+expdr32, expshell105, expshell105b, exptrack2x, expwm, expwm2; meshes and metrics kept, ~8.5 G), the old-fitter worktree
+`wt/spiral-0fb38c45` (6.9 G; its one local change is saved as `box/patches/old-fitter-0fb38c45-fit_spiral.diff`), old QA
+renders (`geometry/qa-legacy`, `geometry/pilot-z9000/qa`, 1.7 G), the day-1 smoke runs (1.1 G), idle scratch files; plus
+the compatibility symlinks that pointed at them (no dangling links left). Still to clear: `scratch/torchinductor_tbienapfl`
+(6.4 G) once Phase A3 ends. Tier 2 (PHerc0191 CT outside the clear band, Lasagna, tracks, ~400 G) waits for Gate A;
+Tier 3 (clear-band renders, 85 G) waits for the Phase A4 decision.
+
+
 Deviations from the plan below, on purpose:
 - Folder names *inside* a stage keep the names the tools write (`snapped/wNNN_exp-30k/`, ink-map file names with
   `exp30k_snapped_wNNN_66`), so no script had to change. Flattened windings and renders were renamed to `wNNN/` and `wNNN.zarr`.
