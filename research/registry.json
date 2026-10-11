@@ -48,13 +48,19 @@
    "id": "C",
    "title": "The stroke score as a tool",
    "status": "active",
-   "summary": "stroke-score 0.1 packaged (MIT). Run 7 showed its v0.1 flag rule misses known text on an unseen scroll. stroke-score 0.2 in progress: a row-structure score, an automatic neighbour-recurrence check, and a flag rule recalibrated on three known-text controls and about 350 null windings; release before the Oct 31 Progress Prize deadline."
+   "summary": "stroke-score 0.1 packaged (MIT). stroke-score 0.2 in progress: a row score calibrated at the height of our search bands, a stroke-shape score, an automatic neighbour-recurrence check, and a known-text control kit that scores known text the way a search band would see it; thresholds per model set. Release before the Oct 31 deadline."
   },
   {
    "id": "D",
    "title": "Housekeeping",
    "status": "active",
    "summary": "One data layout, data and code dictionaries, an artifact catalog with one results table, a backup of the critical results, disk cleanup in tiers that wait on the gates, script fixes."
+  },
+  {
+   "id": "E",
+   "title": "Brute force: more surface to search",
+   "status": "active",
+   "summary": "Inference is cheap; geometry is the bottleneck. Two ways to put horsepower on it: tile whole scrolls with taller bands (the proven pipeline), and an ink-first search that finds ink from the published surface predictions without meshes (prototype on known text)."
   },
   {
    "id": "P4",
@@ -1950,7 +1956,7 @@
    "verdict": "done",
    "metrics": {},
    "images": [],
-   "learned": "Lines of writing repeat down the sheet at a steady spacing; cracks, damage and blobs do not. On known text the row score is almost twice the highest value on any of our windings, and it puts the PHerc0841 letters, which the v0.1 flag lines missed, far above every winding we have searched. It goes into stroke-score 0.2. Two known-text segments are still few, so the new rule gets calibrated on all three controls and our null windings first.",
+   "learned": "Lines of writing repeat down the sheet at a steady spacing; cracks, damage and blobs do not. On known text the row score is almost twice the highest value on any of our windings, and it puts the PHerc0841 letters, which the v0.1 flag lines missed, far above every winding we have searched. It goes into stroke-score 0.2. Two known-text segments are still few, so the new rule gets calibrated on all three controls and our null windings first. Correction, same evening: this comparison was not like for like. Our search bands are only about 1 cm tall, so a winding shows at most two lines of text, while the known-text segments were scored over 4–5 lines. Scored the same way, known text comes out much closer to our windings; see \"Our bands are 1 cm tall\" and the row-score fixes below.",
    "table": {
     "caption": "Known text against the windings we searched. Row score: best 2 × 2.4 cm window of (autocorrelation of the across-row stroke-density profile at 3.5–8 mm) × (the profile's contrast). v0.1 look line, three models: stroke area ≥ 0.015, or reading − blind ≥ 0.010, or best window ≥ 0.030 and at least 2× the blind side.",
     "head": [
@@ -2208,15 +2214,15 @@
    "date": "2026-10-11",
    "phase": "B",
    "track": "Ink & render",
-   "short": "Overnight re-check (running)",
+   "short": "Overnight re-check (0191 tonight)",
    "title": "Re-check at home overnight: Reader v2 + d9v4C on 50 PHerc0813 windings and PHerc0191's whole clear band",
    "question": "Run 7 showed that the v0.1 flag rule can miss text on a scroll the models have not seen, so windings that stayed under the line were never looked at. With the two models that drew the PHerc0841 letters best, do any of them show rows of letter strokes?",
    "technique": "On the three home GPUs, no cloud: Reader v2 and d9v4C at depths 0 and +1, first on the 50 outer PHerc0813 windings w045–w112 that were not among the eight picks, then on all 100 windings of PHerc0191's clear band (the renders deleted during A4 are rebuilt on the CPU and inked in a second pass). Every winding-depth gets the stroke score and the row score, and the ranking is by row score. The top-ranked windings are then checked by eye at row scale (reading | blind | CT), each with the neighbour check.",
-   "result": "Running; results tomorrow. Phase A4 finished before it started: 186 winding-depths with three models, 60 rows over the v0.1 flag line, mostly on the stroke-area line from damaged inner windings; 25 checked by eye, none writing (A4 page). The rest are covered by this re-check with the new models.",
+   "result": "PHerc0813 done: the 50 outer windings were re-scored with the fixed row score; the high scorers are rows of crack blobs, not letters (\"PHerc0813 re-check\" below). PHerc0191's clear band: the three-model maps re-scored like for like stay at or under 1.22 (\"Our bands are 1 cm tall\"); its Reader v2 + d9v4C inking finishes tonight, then the final scoring pass with stroke-score 0.2 and the same look by eye.",
    "verdict": "running",
    "metrics": {},
    "images": [],
-   "learned": "Pending. Anything with a row score towards the known-text range and a reading side clearly above the blind side gets a deep look: Hecate added, a depth sweep, close-ups. A null from this run, with the row score and the neighbour check, will be a stronger null than the v0.1 ones.",
+   "learned": "The re-check found five problems in the row score before it found anything in the scrolls; all are fixed. A null with the band-height calibration, the shape check and the neighbour check is a stronger null than the v0.1 ones, but 1 cm bands limit how strong any null can be.",
    "credits": [
     "readerv2",
     "d9v4c",
@@ -2227,6 +2233,206 @@
     "lasagna",
     "vc-data",
     "vc-predictions",
+    "ours"
+   ]
+  },
+  {
+   "id": "row-score-fixes",
+   "date": "2026-10-11",
+   "phase": "C",
+   "track": "Tooling",
+   "short": "Row score: five fixes",
+   "title": "Five fixes to the row score, each found by looking at what it ranked highest",
+   "question": "Once the row score ranked whole bands, we looked at the top of every ranking by eye. What made non-text score high, and why did some windings get no score at all?",
+   "technique": "The top-ranked windows of PHerc0813 (Reader v2 + d9v4C) and PHerc0191 (three models) side by side with the CT, at row scale and at full resolution; each artefact class turned into a fix and a unit test in tools/stroke-score.",
+   "result": "(1) Short or gappy bands were never scored: our bands are shorter than the 2.4 cm window and a 0.7 window-coverage rule gave PHerc0813 w092–w094 a row score of 0 on both sides. Now rows less than half valid are left out and 8 mm of usable rows is enough. (2) Lone bright blobs at two heights read as rows: PHerc0813 w103 scored 3.39 (in the known-text range) from the edges of a delamination crack, w085's blind side 2.2, w091 1.4 from one bright cluster. The row profile is now the median of four strips along the window, so a line that runs across the window counts and a blob in one strip does not (w103: 0.62). (3) Ink models draw bright lines along mesh borders, and in a 1 cm band the two borders look like rows (PHerc0191 w087, 1.54). The score now uses the render's real mesh area, not the ink maps' footprint (which spills 2–3 mm past the mesh), minus a 0.5 mm margin. (4) The control kit's eval built its scored area from display-stretched maps, which zero every pixel under 0.25: the README's control numbers were wrong and are recomputed. (5) The CPU scorer on the box was replaced mid-run so that every result carries the along-winding profiles the neighbour check needs.",
+   "verdict": "done",
+   "metrics": {},
+   "images": [],
+   "learned": "Every artefact class that reached the top of a ranking became a test. Looking at the top of each ranking by eye, next to the CT, is part of the method, not an afterthought.",
+   "credits": [
+    "ours"
+   ]
+  },
+  {
+   "id": "band-height",
+   "date": "2026-10-11",
+   "phase": "C",
+   "track": "Tooling",
+   "short": "Bands are 1 cm tall",
+   "title": "Our bands are 1 cm tall: calibrating the row score like for like",
+   "question": "Our known-text controls are several centimetres tall, but every winding we search is a band of about 10.3 mm of mesh (1,100 slices). How would known text score if it sat in a band like ours?",
+   "technique": "stroke-score control eval --band-mm 10.3 cuts the known-text segment into horizontal strips as tall as our bands, every 2 mm, and scores each strip exactly like a search winding. The null windings are scored the same way, inside the render's mesh area.",
+   "result": "Known text in 1 cm strips scores much lower than over the whole segment (table below). With three models, the PHerc0191 clear band never goes above 1.22 (194 winding-depths), while 1 cm strips of PHerc0139 text have a median of 1.8 and strips of PHerc0841 text (a scroll the models never saw) 1.1–1.3. So a band carrying text would beat our highest null in roughly 60–75 % of cases: a real null, but a weaker one than the whole-segment comparison suggested. With Reader v2 + d9v4C, PHerc0813's nulls go as high as 2.6: its outer windings are full of cracks along the winding, and these models draw crack edges as rows.",
+   "verdict": "done",
+   "metrics": {},
+   "images": [],
+   "table": {
+    "caption": "Row score in strips as tall as our search bands (10.3 mm), reading side; the blind side in brackets. Strips every 2 mm across the known-text segments.",
+    "head": [
+     "Segment",
+     "Models",
+     "Row score: median (lower quartile)",
+     "Highest",
+     "Blind side highest"
+    ],
+    "rows": [
+     [
+      "PHerc0139 w047, known text, d −1 / +1",
+      "ink_9um ×2 + dense_native",
+      "1.80–1.86 (1.07)",
+      "3.90",
+      "0.53"
+     ],
+     [
+      "PHerc0139 w047, known text, d +1",
+      "Reader v2",
+      "2.20 (1.63)",
+      "4.74",
+      "1.23"
+     ],
+     [
+      "PHerc0841, known text, unseen scroll, d −1 / +1",
+      "ink_9um ×2 + dense_native",
+      "1.09–1.33 (0.57–0.83)",
+      "1.94",
+      "1.52"
+     ],
+     [
+      "PHerc0841, known text, d −1 / +1",
+      "Reader v2 + d9v4C",
+      "1.54–1.91 (0.75–1.16)",
+      "2.92",
+      "1.60"
+     ],
+     [
+      "PHerc0191 clear band, 194 winding-depths",
+      "ink_9um ×2 + dense_native",
+      "0.42",
+      "1.22",
+      "1.04"
+     ],
+     [
+      "PHerc0813 outer band, 100 winding-depths",
+      "Reader v2 + d9v4C",
+      "0.87",
+      "2.62",
+      "—"
+     ]
+    ]
+   },
+   "learned": "Calibrate on known text cut to your own band height. A score tuned on tall known-text segments overstates what a short band can show, and makes a null look stronger than it is. The control kit now does this for any band height (--band-mm). Taller bands would make every check more sensitive: 2–3 cm shows 4–5 lines instead of two.",
+   "credits": [
+    "vc-known-text",
+    "readerv2",
+    "d9v4c",
+    "ink9um",
+    "dense-native",
+    "ours"
+   ]
+  },
+  {
+   "id": "pherc0813-recheck-final",
+   "date": "2026-10-11",
+   "phase": "B",
+   "track": "Ink & render",
+   "short": "PHerc0813 re-check: crack rows",
+   "title": "PHerc0813 re-check with Reader v2 + d9v4C: the high scorers are rows of crack blobs, not letters",
+   "question": "All 50 outer PHerc0813 windings, re-scored with the fixed row score: what is at the top, and does it look like writing next to known text at the same scale?",
+   "technique": "Final scoring pass of the overnight maps (Reader v2 + d9v4C, depths 0 and +1) with the finished row score; the six windings over the provisional line viewed at full resolution in reading orientation, reading side next to the CT, beside the PHerc0841 known text rendered and inked the same way.",
+   "result": "Eight winding-depths on six windings passed the provisional row rule: w094 (row 2.63, blind 0.55), w102 (2.44 / 0.29), w076 (2.31 / 0.56), w093, w109 and w070 (w070–w072 repeat the same pattern turn after turn). At full resolution none of them looks like writing: known text shows crisp, elongated, curved strokes; these show soft round blobs, and the CT under every window has cracks or delamination running along the winding (image).",
+   "verdict": "null",
+   "metrics": {},
+   "images": [
+    {
+     "file": "PHerc0813-final-candidates-vs-known-text.jpg",
+     "wide": true,
+     "caption": "Top: known text (PHerc0841, Reader v2 + d9v4C, depth +1), reading and blind side, about 2 × 1.2 cm. Below: the three highest PHerc0813 windows at the same scale, reading side and the CT under it. Text gives crisp, elongated strokes; the PHerc0813 marks are round blobs over crack fields."
+    }
+   ],
+   "learned": "On a crack-rich scroll the row score alone cannot tell rows of letters from rows of crack blobs. What told them apart by eye was the shape of the marks, so stroke-score 0.2 gets a shape score.",
+   "credits": [
+    "readerv2",
+    "d9v4c",
+    "ink9um",
+    "dense-native",
+    "nieuwlaar-343",
+    "vc-known-text",
+    "villa",
+    "lasagna",
+    "vc-data",
+    "vc-predictions",
+    "ours"
+   ]
+  },
+  {
+   "id": "stroke-shape",
+   "date": "2026-10-11",
+   "phase": "C",
+   "track": "Tooling",
+   "short": "Stroke shape score (calibrating)",
+   "title": "A stroke-shape score: are the marks long thin strokes or round blobs?",
+   "question": "Letters are made of strokes; crack edges and damage give blobs. Can a number capture what the eye used to reject the PHerc0813 candidates?",
+   "technique": "For every above-background mark: area, length and width from its second moments, elongation, peak height and edge contrast, measured on known text (PHerc0139, PHerc0841), on their blind sides, on the PHerc0813 candidates and on null windings of both scrolls. The score is the share of the marks' area in marks at least 1 mm long and twice as long as wide, measured in the window where the row score found rows.",
+   "result": "Edge contrast and peak height do not separate text from crack blobs. Elongation does: on the reading side of known text 0.40–0.67 of the mark area is in long thin marks (median per 1 cm strip 0.42–0.63), against 0.16–0.35 for the PHerc0813 candidates and 0.06–0.20 for PHerc0191 nulls. Calibrating the combined rule (rows of strokes) on the band-height strips and all null windings now.",
+   "verdict": "running",
+   "metrics": {},
+   "images": [],
+   "learned": "Pending: thresholds per model set, then the rule goes into stroke-score 0.2.",
+   "credits": [
+    "vc-known-text",
+    "readerv2",
+    "d9v4c",
+    "ink9um",
+    "dense-native",
+    "ours"
+   ]
+  },
+  {
+   "id": "tallband-0813",
+   "date": "2026-10-11",
+   "phase": "E",
+   "track": "Geometry",
+   "short": "Tall band PHerc0813 (running)",
+   "title": "Brute force, option 1: tile the scroll with taller bands, starting with 2.3 cm on PHerc0813",
+   "question": "We have searched about 1 cm of PHerc0813's 15.9 cm. Does our fit recipe hold on a band 2.5 times taller, so that we can tile the whole scroll, and do taller windings make text easier to see?",
+   "technique": "The exp-30k spiral-fit recipe on z 10,500–13,000 (2,500 slices, 2.3 cm), which contains our best 1 cm band (z 12,000–13,000, satisfied tracks 0.557 / 0.182); then snap, flatten, render, ink with Reader v2 + d9v4C and score with stroke-score 0.2. Gate after the snap: fit metrics and QA before anything is inked. On the home GPUs.",
+   "result": "Running: inputs mirrored, fit queued for the first free 12 GB GPU.",
+   "verdict": "running",
+   "metrics": {},
+   "images": [],
+   "learned": "Pending. If the fit holds, the next bands tile outward from here.",
+   "credits": [
+    "spiral-fitter",
+    "vc-data",
+    "vc-predictions",
+    "nieuwlaar-343",
+    "lasagna",
+    "ours"
+   ]
+  },
+  {
+   "id": "inkfirst-proto",
+   "date": "2026-10-11",
+   "phase": "E",
+   "track": "Ink & render",
+   "short": "Ink first (prototype)",
+   "title": "Brute force, option 3: find ink first, build geometry only where it is",
+   "question": "Our search only covers surface where we have good meshes, and meshes are the slow, fragile part. Can the ink models find text from the published surface predictions alone, with no mesh, so that compute can sweep a whole scroll?",
+   "technique": "On a 1.2 × 1.2 cm block of PHerc0139 around the densest known text of w047: points on the published recto-surface prediction about every 0.9 mm; at each point the normal from the local shape of the prediction; a 66-layer patch cut along that normal like a tiny render; all patches tiled into one mosaic and inked with the same models and scripts as our renders; the results mapped back to 3D and onto w047, where the text is known.",
+   "result": "Running: block downloaded (CT and both surface predictions), patches being cut.",
+   "verdict": "running",
+   "metrics": {},
+   "images": [],
+   "learned": "Pending. If the known text appears without any mesh, the same method can sweep any eligible scroll on many GPUs, and careful geometry is only needed where ink shows up.",
+   "credits": [
+    "vc-known-text",
+    "vc-data",
+    "vc-predictions",
+    "readerv2",
+    "d9v4c",
+    "nieuwlaar-343",
+    "villa",
     "ours"
    ]
   }
@@ -2345,13 +2551,19 @@
   {
    "kind": "tooling",
    "title": "stroke-score 0.1: triage for ink searches (MIT)",
-   "text": "Ranks windings, depths and 4 cm² windows by stroke-shaped ink on the reading side against the blind side, with review crops. Calibrated on the PHerc. 343 control and 109 null windings; known false alarms documented. Run 7 showed its flag rule is too strict for unseen scrolls; stroke-score 0.2 (in progress) adds a row-structure score, a neighbour-recurrence check and a rule recalibrated on three known-text controls."
+   "text": "Ranks windings, depths and 4 cm² windows by stroke-shaped ink on the reading side against the blind side, with review crops. Calibrated on the PHerc. 343 control and 109 null windings. stroke-score 0.2 (in progress) adds a row score calibrated at search-band height, a stroke-shape score, a neighbour-recurrence check and a known-text control kit."
+  },
+  {
+   "kind": "scroll",
+   "title": "Calibrate on known text cut to your band height",
+   "text": "Our search bands are about 1 cm tall, so a winding shows at most two lines of text. Known text scored over a whole segment looks far stronger than it would in a band like ours; cut into 1 cm strips, it lands much closer to our null windings. stroke-score's control kit now scores known text at any band height (--band-mm)."
   }
  ],
  "next": [
-  "stroke-score 0.2: add the row score and an automatic neighbour-recurrence check, and recalibrate the flag rule on three known-text controls (PHerc. 0343 at 8.64 µm; PHerc0139 w047 and PHerc0841 at 9.36 µm) and about 350 null windings, for any set of ink models. Release with a write-up before the Oct 31 Progress Prize deadline.",
-  "Finish the overnight re-check (Reader v2 + d9v4C on 50 PHerc0813 windings and PHerc0191's clear band), rank by row score and look at the top-ranked windings by eye at row scale (reading | blind | CT), with the neighbour check. Anything that holds up gets a deep look: Hecate added, a depth sweep, close-ups.",
-  "Then decide on the rest of PHerc0813 and on PHerc0191's old band (z 9,000–10,000), which so far has only been judged with the v0.1 rule.",
+  "PHerc0191 clear band with Reader v2 + d9v4C (inking finishes tonight): final scoring pass with stroke-score 0.2, then the top windings by eye at full resolution next to known text.",
+  "stroke-score 0.2: finish calibrating the shape score and the combined rule (rows of strokes) per model set, then release with a write-up before the Oct 31 Progress Prize deadline.",
+  "Brute force, option 1: the 2.3 cm PHerc0813 band; if the fit holds, tile the rest of the scroll with tall bands (home GPUs; cloud only on approval).",
+  "Brute force, option 3: the ink-first prototype on known text (PHerc0139); if the text appears without a mesh, scale it to whole scrolls.",
   "Progress Prize write-ups for tooling findings #6–#10 (three PRs staged)."
  ],
  "credits": [
