@@ -6,6 +6,8 @@ rssh 'mkdir -p /opt/scroll/bin /opt/scroll/jobs /opt/scroll/results'
 rsync_to "$ROOT/box/bin/ink343" /opt/scroll/bin/
 rsync_to "$HERE/remote/" /opt/scroll/bin/
 rsync_to "$ROOT/box/bin/stroke_score.py" /opt/scroll/bin/
+rsync_to "$ROOT/box/bin/post_models.py" /opt/scroll/bin/; rsync_to "$ROOT/box/bin/rowness_lib.py" /opt/scroll/bin/
+rsync_to "$ROOT/tools/stroke-score/src/" /opt/scroll/bin/stroke-score-src/
 rssh 'bash /opt/scroll/bin/setup_models.sh'
 # Scan-Quality-Map (jcooperkai-sys/Scan-Quality-Map, MIT): per-segment scan-quality maps next to the ink maps. Non-fatal.
 rssh 'cd /opt/scroll && UV=$(command -v uv || echo ~/.local/bin/uv) && ($UV venv -q -p 3.12 sqm-venv && $UV pip install -q -p sqm-venv/bin/python git+https://github.com/jcooperkai-sys/Scan-Quality-Map) > /opt/scroll/sqm-install.log 2>&1 && /opt/scroll/sqm-venv/bin/sqm --help > /dev/null 2>&1 && echo SQM-OK || echo "SQM-INSTALL-FAILED (see /opt/scroll/sqm-install.log)"'

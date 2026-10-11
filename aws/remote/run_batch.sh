@@ -39,6 +39,9 @@ while IFS=$'\t' read -r NAME SEG URL UM MODELS DEPTHS; do
     (cd /opt/scroll/villa/vesuvius && $PY /opt/scroll/bin/stroke_score.py --surface /opt/scroll/work/${NAME}_66.zarr --maps $OUT/$NAME/maps \
         --name ${NAME}_66 --out $OUT/$NAME/strokes --um "$UM" --depth $d --models "$SM" --crops 3 >> $OUT/$NAME/strokes.log 2>&1) || true
   done
+  # any model set: mean-z ensemble, stroke score, row-structure score and small JPEG previews (box/bin/post_models.py)
+  (cd /opt/scroll/bin && $PY post_models.py $OUT/$NAME/maps ${NAME}_66 "$UM" "$MODELS" "$DEPTHS" $OUT/$NAME/post /opt/scroll/work/${NAME}_66.zarr \
+      >> $OUT/$NAME/post.log 2>&1) || true
   rm -rf /opt/scroll/work/${NAME}_66.zarr          # renders are ~1 GB each; keep the disk small
   echo "$k/$N $NAME done $(date -u +%FT%TZ)" > $OUT/progress.txt
 done < $B
