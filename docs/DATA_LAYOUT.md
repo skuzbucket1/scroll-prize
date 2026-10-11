@@ -211,3 +211,25 @@ Sizes are as of 2026-10-10 01:30 UTC. Retention class in the last column (S = SO
 About 190 G: winding-model cache 104 G, VC3D remote cache 29 G, uv cache 24 G (rebuilds on demand), unused sidecar copy
 17.6 G (after the old-fitter run ends), torch caches 6.4 G, smoke tests 3.7 G, `tmp/` 1.8 G, flatten snapshots 1.6 G,
 small duplicates. The NVMe would go from 840 G to about 650 G used (about 69 %). Nothing is deleted without Ted's go-ahead.
+
+## Tracking and backup (added 2026-10-11, agreed with Ted)
+
+**One rule.** Every run writes into `runs/<date>_<run-id>/` (with `run.json`). When it is done, its results are promoted into
+the canonical tree (`<scroll>/geometry`, `ink`, `scores`); AWS runs land in `data/<scroll>/runs-aws/<date>_<run-id>/` on the Mac
+and are synced to the box. Folders created since the migration that follow this pattern: `data/controls9um/` (known-text
+controls at 9 µm: PHerc0139 w047, PHerc0841 auto_grown; maps, references, evaluations), `runs/2026-10-11_tier23-newmodels/post/`
+(scores and previews for any model set, from `box/bin/post_models.py`).
+
+**Catalog and results table (generated, never hand-edited).**
+- `scripts/catalog.py <host> <root> <out.sqlite>` walks a host and writes one row per artifact (host, path, kind, scroll, fit,
+  winding, model, depth, side, run, size, mtime, sha1 for critical files, critical flag). Zarr stores and tifxyz meshes are one
+  artifact each; public scan inputs are listed per store without walking.
+- `scripts/results_db.py <host> <root> <out.sqlite>` collects every score (stroke-score JSONs, post_models JSONs, row scores,
+  control AUCs) into one `scores` table with provenance and the v0.1 LOOK flag recomputed; `--merge` combines hosts.
+- Merged copies on the Mac: `data/catalog/catalog.sqlite`, `data/catalog/results.sqlite`; summary `docs/DATA_CATALOG.md`
+  (`scripts/catalog_report.py`). Re-run all three after each run.
+
+**Backup.** `scripts/backup_r2.sh mac|box` syncs the critical set to Ted's Cloudflare R2 bucket (rclone, with dated
+`_archive/` copies of anything changed or deleted). Critical = memory, fits and meshes, umbilici, scores, run records, review
+images, controls, AWS results, and the ink maps of the windings in `backup/windings_of_interest.tsv`. Not backed up: scan data and
+other public inputs, renders, resident pools, caches (all re-creatable).
