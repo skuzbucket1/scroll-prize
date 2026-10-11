@@ -58,6 +58,10 @@ class Params:
     row_edge_mm: float = 0.5              # left out along the edge of the valid area (ink models light up mesh borders)
     row_strips: int = 4                   # per-row density = median over this many strips along the window (rows must run across it)
     profile_bins: int = 200
+    shape_amin_mm2: float = 0.05          # shape score: marks at least this big count ...
+    shape_len_mm: float = 1.0             # ... and are strokes when at least this long ...
+    shape_elong: float = 2.0              # ... and at least this many times as long as wide
+    shape_min_marks: int = 8              # fewer marks in the window: no shape score
 
 
 def read_map(path: str, shape: tuple[int, int]) -> np.ndarray:
@@ -213,6 +217,35 @@ def row_score(E: np.ndarray, valid: np.ndarray, p: Params) -> tuple[float, list 
     return float(best), where
 
 
+def shape_score(E: np.ndarray, valid: np.ndarray, p: Params, at: list | None) -> dict:
+    """Stroke shape in the row window at `at` ([y, x], render px): the share of the area of the above-background marks
+    (pixels more than `thr` above the masked background, components of at least `shape_amin_mm2`) that lies in marks at
+    least `shape_len_mm` long and `shape_elong` times as long as wide (ellipse axes from the second moments). Letter
+    strokes are long and thin; the bright marks crack edges and damage give are mostly round blobs. The valid area loses
+    `row_edge_mm` along its edge, as for the row score. Returns dict(score, marks); score None with too few marks."""
+    if at is None:
+        return dict(score=None, marks=0)
+    px = 1000.0 / p.um
+    y0, x0 = at; y1, x1 = y0 + int(p.row_window_mm[1] * px), x0 + int(p.row_window_mm[0] * px)
+    r = int(round(p.row_edge_mm * px))
+    v = valid if r <= 0 else cv2.erode(valid.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))) > 0
+    D = E - masked_blur(E, v, p.bg_mm * px)
+    m = ((D > p.thr) & v)[y0:y1, x0:x1]
+    n, lab, st, _ = cv2.connectedComponentsWithStats(m.astype(np.uint8), connectivity=8)
+    area = st[:, cv2.CC_STAT_AREA].astype(np.float64)
+    ys, xs = np.nonzero(lab); l = lab[ys, xs]
+    m00 = np.maximum(np.bincount(l, minlength=n).astype(np.float64), 1)
+    dx, dy = xs - (np.bincount(l, xs, n) / m00)[l], ys - (np.bincount(l, ys, n) / m00)[l]
+    sxx, syy, sxy = np.bincount(l, dx * dx, n) / m00, np.bincount(l, dy * dy, n) / m00, np.bincount(l, dx * dy, n) / m00
+    half, disc = (sxx + syy) / 2, np.sqrt(np.maximum(((sxx - syy) / 2) ** 2 + sxy ** 2, 0))
+    length, width = 4 * np.sqrt(half + disc) / px, 4 * np.sqrt(np.maximum(half - disc, 0)) / px + 1 / px
+    big = area * (p.um / 1000.) ** 2 >= p.shape_amin_mm2; big[0] = False
+    if big.sum() < p.shape_min_marks:
+        return dict(score=None, marks=int(big.sum()))
+    stroke = big & (length >= p.shape_len_mm) & (length >= p.shape_elong * width)
+    return dict(score=float(area[stroke].sum() / area[big].sum()), marks=int(big.sum()))
+
+
 def along_profile(S: np.ndarray, use: np.ndarray, p: Params) -> list:
     """Stroke density along the winding (render x) in `profile_bins` equal bins of the segment length, smoothed over 2 mm."""
     col_s, col_u = (S & use).sum(0).astype(np.float64), use.sum(0).astype(np.float64)
@@ -279,7 +312,8 @@ def score(E: dict[str, np.ndarray], valid: np.ndarray, use: np.ndarray, p: Param
         grids[label] = sc
         rs, rw = row_score(E[label], valid, p)
         sides[label] = dict(components_kept=nk, components_all=nc, stroke_frac=float(S[use].mean()) if use.any() else float('nan'),
-                            tiles=summary(sc), window=summary(w2), row=dict(score=rs, at=rw), profile=along_profile(S, use, p))
+                            tiles=summary(sc), window=summary(w2), row=dict(score=rs, at=rw), shape=shape_score(E[label], valid, p, rw),
+                            profile=along_profile(S, use, p))
     sc = grids['reading']
     order = np.argsort(np.where(np.isfinite(sc), -sc, np.inf), axis=None)
     top = []

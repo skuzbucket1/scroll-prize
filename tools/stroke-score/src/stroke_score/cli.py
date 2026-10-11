@@ -79,12 +79,33 @@ def flag(nm: int, aR: float, aB: float, wR: float, wB: float, a) -> bool:
     return aR >= a.area_thr or aR - aB >= a.diff_thr or (wR >= wt and wR >= a.window_ratio * wB)
 
 
-def flag_v02(nm: int, rR, rB, a) -> bool:
-    """v0.2 LOOK: the reading side shows rows (row_R >= row_thr) and clearly more than the blind side (>= row_ratio x).
-    Calibrated on three known-text segments (row_R 2.7-4.2) and the null windings (<= 1.5); see the README."""
-    if nm < 2 or rR is None or rB is None:
+# v0.2 LOOK thresholds per model set (the row score's scale depends on the models), set from known text cut into strips as
+# tall as our ~1 cm search bands and from the null windings; see the README. Other model sets use V02_DEFAULT.
+V02_THRESHOLDS = {
+    frozenset({'dnative', 'ink9-42', 'ink9-43'}): dict(row=1.3, shape=0.38),
+    frozenset({'readerv2', 'd9v4c'}): dict(row=1.5, shape=0.38),
+}
+V02_DEFAULT = dict(row=1.5, shape=0.38)
+_SHORT = {v: k for k, v in MODELS.items()}
+
+
+def v02_thresholds(models, a=None) -> dict:
+    t = dict(V02_THRESHOLDS.get(frozenset(_SHORT.get(m, m) for m in models), V02_DEFAULT))
+    if a is not None and getattr(a, 'row_thr', None) is not None:
+        t['row'] = a.row_thr
+    if a is not None and getattr(a, 'shape_thr', None) is not None:
+        t['shape'] = a.shape_thr
+    return t
+
+
+def flag_v02(models, rR, rB, sR, a) -> bool:
+    """v0.2 LOOK: the reading side shows rows (row_R at least the model set's row threshold and at least row_ratio x the
+    blind side) and those rows are made of strokes (shape_R, the share of mark area in long thin marks, at least the
+    shape threshold). Needs two or more models."""
+    if len(models) < 2 or rR is None or rB is None or sR is None:
         return False
-    return rR >= a.row_thr and rR >= a.row_ratio * rB
+    t = v02_thresholds(models, a)
+    return rR >= t['row'] and rR >= a.row_ratio * rB and sR >= t['shape']
 
 
 def recurrence(rows: list) -> None:
@@ -135,21 +156,23 @@ def cmd_rank(a) -> int:
         nm = len(j['models'])
         top = (j.get('top_reading_tiles') or [{}])[0]
         rR, rB = (r.get('row') or {}).get('score'), (b.get('row') or {}).get('score')
+        sR, sB = (r.get('shape') or {}).get('score'), (b.get('shape') or {}).get('score')
         rows.append(dict(name=j['name'], depth=j['depth'], models=nm, area_R=aR, area_B=aB, diff=aR - aB, window_R=wR,
                          window_B=wB, top_read_y=top.get('read_y', ''), top_read_x=top.get('read_x', ''),
                          top_damage=top.get('damage', ''), flag='LOOK' if flag(nm, aR, aB, wR, wB, a) else '',
                          file=f, row_R=rR if rR is not None else '', row_B=rB if rB is not None else '',
-                         recur='', flag_v02='LOOK' if flag_v02(nm, rR, rB, a) else '', _prof=r.get('profile')))
+                         shape_R=sR if sR is not None else '', shape_B=sB if sB is not None else '',
+                         recur='', flag_v02='LOOK' if flag_v02(j['models'], rR, rB, sR, a) else '', _prof=r.get('profile')))
     recurrence(rows)
     rows.sort(key=lambda x: -(x['area_R'] if not math.isnan(x['area_R']) else -1))
     cols = ['name', 'depth', 'models', 'area_R', 'area_B', 'diff', 'window_R', 'window_B', 'top_read_y', 'top_read_x',
-            'top_damage', 'flag', 'file', 'row_R', 'row_B', 'recur', 'flag_v02']
+            'top_damage', 'flag', 'file', 'row_R', 'row_B', 'recur', 'flag_v02', 'shape_R', 'shape_B']
     out = open(a.out, 'w') if a.out else sys.stdout
     print('\t'.join(cols), file=out)
     for x in rows:
         print('\t'.join(f'{x[c]:.4f}' if isinstance(x[c], float) else str(x[c]) for c in cols), file=out)
     print(f'# {len(rows)} rows, {sum(1 for x in rows if x["flag"])} flagged LOOK (v0.1 rule), '
-          f'{sum(1 for x in rows if x["flag_v02"])} LOOK by the v0.2 row rule', file=sys.stderr)
+          f'{sum(1 for x in rows if x["flag_v02"])} LOOK by the v0.2 rule (rows of strokes)', file=sys.stderr)
     return 0
 
 
@@ -192,8 +215,9 @@ def main(argv=None) -> int:
     r.add_argument('--window-thr', type=float, default=0.030, help='window line for three models')
     r.add_argument('--window-thr4', type=float, default=0.035, help='window line for four or more models')
     r.add_argument('--window-ratio', type=float, default=2.0)
-    r.add_argument('--row-thr', type=float, default=2.0, help='v0.2 rule: reading-side row score at least this')
+    r.add_argument('--row-thr', type=float, help='v0.2 rule: reading-side row score at least this (default: per model set)')
     r.add_argument('--row-ratio', type=float, default=1.8, help='v0.2 rule: and at least this times the blind side')
+    r.add_argument('--shape-thr', type=float, help='v0.2 rule: shape score at least this (default: per model set)')
     r.set_defaults(fn=cmd_rank)
     from . import control
     control.add_parser(sub)

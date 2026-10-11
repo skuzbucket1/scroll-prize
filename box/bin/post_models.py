@@ -31,7 +31,8 @@ for d in depths:
     rr, rw, rb = R['row']['score'], R['row']['at'], B['row']['score']
     res_all['depths'][d] = {'area_R': R['stroke_frac'], 'area_B': B['stroke_frac'], 'window_R': R['window']['max'], 'window_B': B['window']['max'],
                             'row_R': rr, 'row_B': rb, 'row_at': rw, 'row_at_B': B['row']['at'], 'top_tiles': sc['top_reading_tiles'][:5],
-                            'profile_R': R['profile'], 'profile_B': B['profile'], 'row_strips': p.row_strips}
+                            'profile_R': R['profile'], 'profile_B': B['profile'], 'row_strips': p.row_strips,
+                            'shape_R': R['shape']['score'], 'shape_B': B['shape']['score'], 'shape_marks': R['shape']['marks']}
     lo, hi = np.percentile(E['reading'][valid], [1, 99.7])
     for side in ('reading', 'blind'):
         im = np.clip((E[side] - lo) / (hi - lo) * 255, 0, 255).astype(np.uint8); im[~valid] = 0
@@ -42,5 +43,6 @@ for d in depths:
         im = np.clip((ct.astype(np.float32) - clo) / max(chi - clo, 1) * 255, 0, 255).astype(np.uint8)
         im = cv2.resize(im, (im.shape[1] // 2, im.shape[0] // 2), interpolation=cv2.INTER_AREA)
         cv2.imwrite(f'{out}/{name}__ct__d{d:+03d}.jpg', im, [cv2.IMWRITE_JPEG_QUALITY, 85])
-    print(f"{name} d{d:+d} area_R {R['stroke_frac']:.4f} area_B {B['stroke_frac']:.4f} win_R {R['window']['max']:.4f} win_B {B['window']['max']:.4f} row_R {rr:.3f} row_B {rb:.3f}")
+    fs = lambda x: 'nan' if x is None else f'{x:.3f}'
+    print(f"{name} d{d:+d} area_R {R['stroke_frac']:.4f} area_B {B['stroke_frac']:.4f} win_R {R['window']['max']:.4f} win_B {B['window']['max']:.4f} row_R {rr:.3f} row_B {rb:.3f} shape_R {fs(R['shape']['score'])} shape_B {fs(B['shape']['score'])}")
 json.dump(res_all, open(f'{out}/{name}__post.json', 'w'), indent=1, default=float)

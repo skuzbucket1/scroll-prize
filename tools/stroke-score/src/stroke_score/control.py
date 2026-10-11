@@ -104,7 +104,7 @@ def _shift(a: np.ndarray, dy: int, dx: int) -> np.ndarray:
 
 def evaluate(a) -> dict:
     from .cli import MODELS, nieuwlaar_paths
-    from .core import Params, ensemble, map_footprint, read_map, row_score, score, usable_area, valid_mask
+    from .core import Params, ensemble, map_footprint, read_map, row_score, score, shape_score, usable_area, valid_mask
     c = CONTROLS[a.control]; d = os.path.join(a.fetched, a.control); name = a.name or c['name']
     models = [m for m in MODELS if nieuwlaar_paths(a.maps, name, m, a.depth)] if a.models == 'auto' else a.models.split(',')
     maps = {m: nieuwlaar_paths(a.maps, name, m, a.depth) for m in models}
@@ -159,13 +159,18 @@ def evaluate(a) -> dict:
         for y0 in range(0, H - h + 1, st):
             vb = np.zeros_like(valid); vb[y0:y0 + h] = valid[y0:y0 + h]
             if vb[y0:y0 + h].mean() >= 0.3:
-                rs.append((row_score(E['reading'], vb, p)[0], row_score(E['blind'], vb, p)[0]))
+                (rr, ra), (rb, rba) = row_score(E['reading'], vb, p), row_score(E['blind'], vb, p)
+                sr, sb = shape_score(E['reading'], vb, p, ra)['score'], shape_score(E['blind'], vb, p, rba)['score']
+                rs.append((rr, rb, sr if sr is not None else float('nan'), sb if sb is not None else float('nan')))
         if rs:
-            R_, B_ = np.array(rs).T
+            R_, B_, SR, SB = np.array(rs).T
             out['band'] = dict(mm=a.band_mm, strips=len(rs), reading=dict(median=float(np.median(R_)), p25=float(np.percentile(R_, 25)),
-                               max=float(R_.max())), blind=dict(median=float(np.median(B_)), max=float(B_.max())), rows=[list(x) for x in rs])
+                               max=float(R_.max())), blind=dict(median=float(np.median(B_)), max=float(B_.max())),
+                               shape=dict(reading_median=float(np.nanmedian(SR)), blind_median=float(np.nanmedian(SB))),
+                               rows=[list(x) for x in rs])
             print(f"  row score in {a.band_mm:g} mm bands ({len(rs)} strips): reading median {np.median(R_):.2f}, p25 "
-                  f"{np.percentile(R_, 25):.2f}, max {R_.max():.2f}; blind median {np.median(B_):.2f}, max {B_.max():.2f}")
+                  f"{np.percentile(R_, 25):.2f}, max {R_.max():.2f}; blind median {np.median(B_):.2f}, max {B_.max():.2f}; "
+                  f"shape median {np.nanmedian(SR):.2f} / {np.nanmedian(SB):.2f}")
     for k, v in sorted(table.items()):
         print(f'  {k:28s} AUC {v[0]:.3f}  r {v[1]:.3f}')
     if a.out:

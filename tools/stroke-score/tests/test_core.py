@@ -140,6 +140,26 @@ def test_row_score_leaves_out_the_mesh_border():
     assert no_margin > 1.0 and margin < 0.5 * no_margin
 
 
+def test_shape_score_strokes_beat_blobs():
+    from stroke_score.core import shape_score
+    rng = np.random.default_rng(7)
+    shape = (2600, 2400)
+    bars = rng.normal(0, 0.3, shape).astype(np.float32)
+    dots = rng.normal(0, 0.3, shape).astype(np.float32)
+    for i in range(4):
+        for k in range(10):
+            y, x = 300 + 550 * i, 100 + 220 * k
+            if k % 2:
+                bars[y:y + 200, x:x + 30] += 5.0               # 2 x 0.3 mm upright strokes
+            else:
+                bars[y + 80:y + 110, x:x + 180] += 5.0         # 1.8 x 0.3 mm bars
+    dots[blobs(shape, [(300 + 550 * i, 150 + 220 * k) for i in range(4) for k in range(10)], 45)] += 5.0   # 0.9 mm round marks
+    valid = np.ones(shape, bool)
+    s_bars, s_dots = shape_score(bars, valid, P, [0, 0]), shape_score(dots, valid, P, [0, 0])
+    assert s_bars['score'] > 0.8 and s_dots['score'] < 0.1 and s_dots['marks'] >= 8
+    assert shape_score(dots, valid, P, None)['score'] is None
+
+
 def test_recurrence_and_v02_flag():
     from stroke_score.cli import flag_v02, recurrence
     base = list(np.sin(np.linspace(0, 6, 200)) + 1.5)
@@ -149,8 +169,11 @@ def test_recurrence_and_v02_flag():
     recurrence(rows)
     assert rows[0]['recur'] > 0.99 and rows[1]['recur'] > 0.99    # the same pattern on neighbouring windings
     assert rows[2]['recur'] < 0.5                                   # nothing in common
-    a = SimpleNamespace(row_thr=2.0, row_ratio=1.8)
-    assert flag_v02(3, 2.8, 0.6, a) and flag_v02(2, 4.2, 1.1, a)   # the known-text controls
-    assert not flag_v02(3, 1.45, 0.54, a)                           # best null so far
-    assert not flag_v02(3, 2.2, 1.5, a)                             # rows on both sides
-    assert not flag_v02(1, 5.0, 0.1, a)                             # single model
+    a = SimpleNamespace(row_thr=None, shape_thr=None, row_ratio=1.8)
+    three, rd = ['dnative', 'hybrid_3d2d-seed42', 'hybrid_3d2d-seed43'], ['readerv2', 'd9v4c']
+    assert flag_v02(three, 1.8, 0.4, 0.45, a) and flag_v02(rd, 2.2, 0.6, 0.5, a)    # rows of strokes
+    assert not flag_v02(rd, 2.6, 0.5, 0.21, a)                                     # rows of blobs (PHerc0813 w094)
+    assert not flag_v02(three, 1.2, 0.3, 0.5, a)                                   # weak rows
+    assert not flag_v02(three, 2.0, 1.5, 0.5, a)                                   # rows on both sides
+    assert not flag_v02(['readerv2'], 5.0, 0.1, 0.9, a)                            # single model
+    assert flag_v02(three, 1.8, 0.4, 0.3, SimpleNamespace(row_thr=None, shape_thr=0.25, row_ratio=1.8))   # override
