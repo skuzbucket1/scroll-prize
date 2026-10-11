@@ -53,8 +53,11 @@ the reading side with the blind side stay quiet, although the
 letters are plain by eye at row scale. Text at this resolution shows as **rows** of short strokes, not as isolated marks.
 
 **Row score.** In the best 2 × 2.4 cm window, the across-row profile of above-background pixel density is autocorrelated at
-line-spacing lags (3.5–8 mm); the score is max(autocorrelation) × profile SD × 100. Reported for both sides
-(`sides.<side>.row`).
+line-spacing lags (3.5–8 mm); the score is max(autocorrelation) × profile SD × 100. The profile is the median of four strips
+along the window: a line of writing runs across all four, a lone bright blob sits in one. (Without the median, two blobs at
+two heights scored like rows: on PHerc. 0813 w085 the blind side reached 2.2, and on w091 the reading side 1.4 from one
+bright cluster plus a band along the mesh edge; with it, 0.8 and 0.4.) Rows with less than half their width valid are left
+out, so short bands and meshes with gaps are still scored. Reported for both sides (`sides.<side>.row`).
 
 **Neighbour recurrence.** Each result now carries the stroke density along the winding (`sides.<side>.profile`, 200 bins of the
 segment length). `stroke-score rank` correlates a winding's reading-side profile with its neighbours (w−2..w+2, same depth and

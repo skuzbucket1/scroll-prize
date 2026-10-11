@@ -54,6 +54,7 @@ class Params:
     row_ds: int = 4                       # row score computed at 1/row_ds resolution
     row_min_cov: float = 0.5              # profile rows (across the window) with less valid area are left out
     row_min_mm: float = 12.0              # ... and a window needs this much of usable rows (two lines at 6 mm)
+    row_strips: int = 4                   # per-row density = median over this many strips along the window (rows must run across it)
     profile_bins: int = 200
 
 
@@ -166,9 +167,10 @@ def summary(sc: np.ndarray) -> dict:
 def row_score(E: np.ndarray, valid: np.ndarray, p: Params) -> tuple[float, list | None]:
     """Row structure of one ensemble side: best window of max autocorrelation (line-spacing lags) x SD x 100 of the
     across-row density profile of pixels more than `thr` above the masked background (no size filter), at 1/row_ds scale.
-    Profile rows less than `row_min_cov` valid are left out (zero after centring), so that gaps in the mesh and bands
-    shorter than the window do not disqualify a window; it needs `row_min_mm` of usable rows.
-    Returns (score, [y, x] of the window's top-left corner in render pixels)."""
+    The profile is the median over `row_strips` strips along the window, so a line of writing, which runs across the whole
+    window, counts and a lone bright blob (one strip) does not. Strip rows less than `row_min_cov` valid are left out; a
+    profile row needs all strips but one, and a window `row_min_mm` of usable rows, so gaps in the mesh and bands shorter
+    than the window do not disqualify it. Returns (score, [y, x] of the window's top-left corner in render pixels)."""
     ds = max(1, int(p.row_ds)); H, W = E.shape
     e = cv2.resize(np.where(valid, E, 0).astype(np.float32), (max(1, W // ds), max(1, H // ds)), interpolation=cv2.INTER_AREA)
     v = cv2.resize(valid.astype(np.float32), (max(1, W // ds), max(1, H // ds)), interpolation=cv2.INTER_AREA) > 0.99
@@ -177,14 +179,20 @@ def row_score(E: np.ndarray, valid: np.ndarray, p: Params) -> tuple[float, list 
     S = (np.where(v, e - num / den, 0) > p.thr) & v
     ww, wh = int(p.row_window_mm[0] * px), int(p.row_window_mm[1] * px)
     lags = np.arange(int(p.row_lag_mm[0] * px), int(p.row_lag_mm[1] * px) + 1)
+    k = max(1, int(p.row_strips))
     best, where = 0.0, None
     for y0 in range(0, max(1, S.shape[0] - wh + 1), max(1, wh // 4)):
         for x0 in range(0, max(1, S.shape[1] - ww + 1), max(1, ww // 4)):
-            vv = v[y0:y0 + wh, x0:x0 + ww]
-            good = vv.mean(1) >= p.row_min_cov
+            Sw, vv = S[y0:y0 + wh, x0:x0 + ww], v[y0:y0 + wh, x0:x0 + ww]
+            b = np.linspace(0, Sw.shape[1], k + 1).astype(int)
+            n = np.stack([vv[:, a:c].sum(1) for a, c in zip(b[:-1], b[1:])]).astype(np.float64)
+            dens = np.stack([Sw[:, a:c].sum(1) for a, c in zip(b[:-1], b[1:])]) / np.maximum(n, 1)
+            ok = n >= p.row_min_cov * np.diff(b)[:, None]
+            good = ok.sum(0) >= max(1, k - 1)
             if good.sum() < p.row_min_mm * px:
                 continue
-            prof = S[y0:y0 + wh, x0:x0 + ww].sum(1) / np.maximum(vv.sum(1), 1)
+            prof = np.zeros(Sw.shape[0])
+            prof[good] = np.nanmedian(np.where(ok, dens, np.nan)[:, good], axis=0)
             q = np.where(good, prof - prof[good].mean(), 0.0); d2 = float((q * q).sum())
             if d2 <= 0:
                 continue

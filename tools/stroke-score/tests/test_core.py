@@ -112,6 +112,19 @@ def test_row_score_short_gappy_band_still_scored():
     assert row_score(img, valid, P) == (0.0, None)
 
 
+def test_row_score_ignores_lone_blobs():
+    from dataclasses import replace
+    from stroke_score.core import row_score
+    rng = np.random.default_rng(5)
+    shape = (2600, 2400)
+    img = rng.normal(0, 0.3, shape).astype(np.float32)
+    img[blobs(shape, [(800, 600), (1350, 650)], 120)] += 5.0   # two big bright blobs 5.5 mm apart, one strip
+    valid = np.ones(shape, bool)
+    one_strip, _ = row_score(img, valid, replace(P, row_strips=1))
+    four, _ = row_score(img, valid, P)
+    assert one_strip > 1.0 and four < 0.3 * one_strip
+
+
 def test_recurrence_and_v02_flag():
     from stroke_score.cli import flag_v02, recurrence
     base = list(np.sin(np.linspace(0, 6, 200)) + 1.5)
