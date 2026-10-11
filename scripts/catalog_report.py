@@ -9,7 +9,7 @@ c, r = sqlite3.connect(cat), sqlite3.connect(res); G = 1073741824.0
 L = ['# Data catalog (generated)', '',
      f'Generated {time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())} by `scripts/catalog.py` (one scan per host) and `scripts/results_db.py`, '
      'merged on the Mac into `data/catalog/catalog.sqlite` and `data/catalog/results.sqlite`. Do not edit by hand: re-run the scans. '
-     'Layout and rules: `docs/DATA_LAYOUT.md`. Backup set: `scripts/backup_r2.sh` (Cloudflare R2).', '',
+     'Layout and rules: `docs/DATA_LAYOUT.md`. Backup set: `scripts/backup_r2.sh` (private object storage).', '',
      '## Artifacts by host and kind', '', '| host | kind | items | GiB | critical items |', '|---|---|---:|---:|---:|']
 for h, k, n, s, cr in c.execute('select host, kind, count(*), sum(coalesce(size,0)), sum(critical) from artifacts group by 1,2 order by 1, 4 desc'):
     L.append(f'| {h} | {k} | {n} | {s / G:.2f} | {cr} |')

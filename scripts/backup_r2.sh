@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Back up the critical set to Ted's Cloudflare R2 bucket with rclone. Usage: scripts/backup_r2.sh mac|box [--dry-run]
+# Back up the critical set to Ted's private S3-compatible backup bucket with rclone. Usage: scripts/backup_r2.sh mac|box [--dry-run]
 #   mac (run on the Mac, repo root): memory/, data/<scroll>/reviews, data/<scroll>/runs-aws, data/aws-results, data/controls9um,
 #       data/catalog, data/results, data/ref. Credentials from .secrets via scripts/r2_env.sh (never printed).
 #   box (run on the GPU box, from /mnt/nvme/scroll-prizes): data/<scroll>/geometry (fits, snapped and flattened meshes),
 #       the spiral-dataset umbilicus/scroll files, data/<scroll>/scores, runs/, and the ink maps + ensemble images of the windings
-#       listed in backup/windings_of_interest.tsv. Credentials from ~/.config/rclone/rclone.conf (remote "r2"), bucket $R2_BUCKET.
+#       listed in backup/windings_of_interest.tsv. Credentials from ~/.config/rclone/rclone.conf (remote "r2"); bucket name from $R2_BUCKET or ~/.config/rclone/r2_bucket.
 # Never backed up: .secrets, scan data and other public inputs, renders, resident pools, caches (all re-creatable).
 # rclone sync with --backup-dir r2:<bucket>/_archive/<UTC stamp>/<host>/: files changed or deleted locally are kept in R2.
 set -euo pipefail
@@ -27,7 +27,7 @@ if [ "$HOST" = mac ]; then
 - **
 X
 else
-  ROOT=/mnt/nvme/scroll-prizes; R2_BUCKET=${R2_BUCKET:-scroll-prize-tbienapfl}; cd $ROOT
+  ROOT=/mnt/nvme/scroll-prizes; R2_BUCKET=${R2_BUCKET:-$(cat ~/.config/rclone/r2_bucket 2>/dev/null)}; [ -n "$R2_BUCKET" ] || { echo 'no bucket name'; exit 2; }; cd $ROOT
   { echo "- /data/*/geometry/*/flattened/*/model*/**"
     echo "+ /data/*/geometry/**"
     echo "+ /data/*/inputs/spiral-dataset/umbilicus*"; echo "+ /data/*/inputs/spiral-dataset/spiral-scroll.json"; echo "+ /data/*/inputs/spiral-dataset/qa/**"

@@ -229,7 +229,7 @@ controls at 9 µm: PHerc0139 w047, PHerc0841 auto_grown; maps, references, evalu
 - Merged copies on the Mac: `data/catalog/catalog.sqlite`, `data/catalog/results.sqlite`; summary `docs/DATA_CATALOG.md`
   (`scripts/catalog_report.py`). Re-run all three after each run.
 
-**Backup.** `scripts/backup_r2.sh mac|box` syncs the critical set to Ted's Cloudflare R2 bucket (rclone, with dated
+**Backup.** `scripts/backup_r2.sh mac|box` syncs the critical set to Ted's private object-storage bucket (rclone, with dated
 `_archive/` copies of anything changed or deleted). Critical = memory, fits and meshes, umbilici, scores, run records, review
 images, controls, AWS results, and the ink maps of the windings in `backup/windings_of_interest.tsv`. Not backed up: scan data and
 other public inputs, renders, resident pools, caches (all re-creatable).

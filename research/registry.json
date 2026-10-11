@@ -3,7 +3,7 @@
   "title": "Vesuvius Challenge — PHerc0191 First Letters campaign",
   "subtitle": "Research log: every run, what it asked, what it showed, what changed",
   "goal": "Find 10 legible letters in a 4 cm² area of an unopened Herculaneum scroll (First Letters, $50k/scroll), and surface evidence-backed tooling fixes along the way (Progress Prizes).",
-  "scroll": "PHerc0191 — 9.362 µm / 113 keV scan 20250821151635, crushed cross-section, full public data (CT, Lasagna normals, tracks, surface predictions). Its clearest band is getting a last check (A4). PHerc0813 is next: its band z 12,000–13,000 passes the geometry gate and its first picks are inked.",
+  "scroll": "PHerc0191 — 9.362 µm / 113 keV scan 20250821151635, crushed cross-section, full public data (CT, Lasagna normals, tracks, surface predictions). Its clearest band has had the three-model check (A3/A4). PHerc0813 is the second scroll: its band z 12,000–13,000 passes the geometry gate. After the 9 µm known-text control, both are being re-checked with two newer ink models.",
   "hardware": "Home: 4-GPU Linux box (2× RTX 3060 12 GB, RTX 3060 Ti 8 GB; GTX 1660 SUPER unusable), i3-9100 4 cores, 1 TB NVMe, 300 Mbps WAN. This is the default. Cloud GPUs (AWS) only when it is cost-effective.",
   "fit_chart_note": "All fits are PHerc0191 band z 9,000–10,000 except the last: PHerc0191's clear band z 11,200–12,200 (different tracks, so compare with care). The PHerc0813 fit (0.557 / 0.182) is described in its own run and kept off this chart because it is a different scroll."
  },
@@ -30,31 +30,31 @@
    "id": "P3",
    "title": "Render + ink at scale",
    "status": "done",
-   "summary": "Flatten → render → ink → stroke score → eyes. All 99 flattened windings of band z 9,000–10,000 checked at depths 0 and +1 (7 with four models, 92 with three) plus the community's 10 windings: no ink. Four AWS fleet runs, $22.80 in total, all null; the cloud is now kept for cost-effective jobs and fast deep looks at anything promising."
+   "summary": "Flatten → render → ink → stroke score → eyes. All 99 flattened windings of band z 9,000–10,000 checked at depths 0 and +1 (7 with four models, 92 with three) plus the community's 10 windings: no ink found (judged with the v0.1 flag rule, re-checked in Phase B). Four AWS fleet runs, $22.80 in total, all null; the cloud is now kept for cost-effective jobs and fast deep looks at anything promising."
   },
   {
    "id": "A",
    "title": "PHerc0191's clearest band",
-   "status": "active",
-   "summary": "Band z 11,200–12,200, chosen with Scan-Quality-Map: fitted, snapped, 100 windings flattened, rendered and triaged; 7 picked together; A3 four-model deep look at depths −2..+3: no letters. A4 running: three models at depths 0/+1 on the other 93; 25 flags checked by eye so far, none writing. Gate A: if the whole band is null, PHerc0191 is set aside (meshes kept)."
+   "status": "done",
+   "summary": "Band z 11,200–12,200, chosen with Scan-Quality-Map: fitted, snapped, 100 windings flattened, rendered and triaged; 7 picked together; A3 four-model deep look at depths −2..+3: no letters. A4 finished: three models at depths 0/+1 on the other 93 (186 winding-depths); 60 rows over the v0.1 flag line, 25 checked by eye, none writing. Because the 9 µm control showed the flag rule can miss text, the whole band is being re-checked overnight with Reader v2 + d9v4C (Phase B page); meshes and scores are kept."
   },
   {
    "id": "B",
    "title": "Next scroll: PHerc0813",
    "status": "active",
-   "summary": "B2–B3: spiral dataset assembled from published inputs, band z 12,000–13,000 fitted (0.557 on-sheet, the best of the campaign) and snapped. B4: 78 windings flattened and checked in the CT; w085–w112 are the cleanest, and the geometry passes the Gate B bar. Eight picks inked on AWS (run 6): null. Instrument checks: writing side verified; the 9 µm known-text control (run 7) is running."
+   "summary": "B2–B3: spiral dataset assembled from published inputs, band z 12,000–13,000 fitted (0.557 on-sheet, the best of the campaign) and snapped. B4: 78 windings flattened and checked in the CT; w085–w112 are the cleanest. Eight picks inked: null with three models (run 6); with Reader v2 + d9v4C one strong score on w088, from a zone that recurs on the neighbouring turns, not writing. Instrument checks: writing side verified; the 9 µm known-text controls (run 7) reproduce the published AUCs. Running overnight: Reader v2 + d9v4C on 50 more PHerc0813 windings and PHerc0191's whole clear band."
   },
   {
    "id": "C",
    "title": "The stroke score as a tool",
    "status": "active",
-   "summary": "stroke-score 0.1 packaged (MIT). Next: more known-text segments as positives, a measured false-alarm rate on our null windings, release before the Oct 31 Progress Prize deadline."
+   "summary": "stroke-score 0.1 packaged (MIT). Run 7 showed its v0.1 flag rule misses known text on an unseen scroll. stroke-score 0.2 in progress: a row-structure score, an automatic neighbour-recurrence check, and a flag rule recalibrated on three known-text controls and about 350 null windings; release before the Oct 31 Progress Prize deadline."
   },
   {
    "id": "D",
    "title": "Housekeeping",
    "status": "active",
-   "summary": "One data layout, data and code dictionaries, disk cleanup in tiers that wait on the gates, script fixes."
+   "summary": "One data layout, data and code dictionaries, an artifact catalog with one results table, a backup of the critical results, disk cleanup in tiers that wait on the gates, script fixes."
   },
   {
    "id": "P4",
@@ -1031,15 +1031,15 @@
       "2026-10-10",
       "1",
       "9 µm known-text controls; Reader v2 and d9v4C on the 8 PHerc0813 picks",
-      "≈ $2.6 (estimate)",
-      "Running"
+      "≈ $2.80",
+      "Controls: published AUCs reproduced; picks: no writing"
      ],
      [
       "Total",
       "",
       "",
       "",
-      "≈ $25.05 + run 7",
+      "≈ $27.85",
       ""
      ]
     ]
@@ -1426,17 +1426,17 @@
    "date": "2026-10-10",
    "phase": "A",
    "track": "Ink & render",
-   "short": "A4: other 93 windings (running)",
-   "title": "Phase A4 (running): three-model ink check of the other 93 clear-band windings",
+   "short": "A4: other 93 windings",
+   "title": "Phase A4: three-model ink check of the other 93 clear-band windings",
    "question": "Is the whole clear band of PHerc0191 null, not just the seven windings we picked?",
    "technique": "ink_9um seeds 42/43 and dense_native (Erwin Nieuwlaar's run_ink and ensemble scripts) at depths 0 and +1 on w020–w119 minus the seven A3 picks, on the three home GPUs since 11:56 UTC. Every winding-depth is scored with stroke-score as it lands, and every flag is checked by eye at row scale: reading side, blind side, CT. To save disk, a winding's render is deleted once it is scored, unless it scored near the flag line.",
-   "result": "Running overnight. 25 flags so far, none writing (table below). Four kinds: damaged inner windings (w025–w043) that trip only the stroke-area line, with the blind side as high or higher; a recurring bright zone on consecutive windings (w073–w079, the zone behind the A3 false alarm) that lines up turn after turn, which text does not; mesh edges (w051, w092); and cracks and folds (w054, w061). Every window score is marginal: at most 0.042, against 0.050 on the control.",
-   "verdict": "running",
+   "result": "Finished: 186 winding-depths (93 windings at depths 0 and +1). 60 rows crossed the v0.1 flag line, mostly the stroke-area line alone, on damaged inner windings. We checked 25 of them by eye, none writing (table below). Four kinds: damaged inner windings (w025–w043) that trip only the stroke-area line, with the blind side as high or higher; a recurring bright zone on consecutive windings (w073–w079, the zone behind the A3 false alarm) that lines up turn after turn, which text does not; mesh edges (w051, w092); and cracks and folds (w054, w061). Among these 25, every window score is marginal: at most 0.042, against 0.050 on the control. The other flagged rows, and every winding under the line, go into the overnight re-check with Reader v2 + d9v4C, because run 7 showed that the v0.1 rule can miss known text on an unseen scroll.",
+   "verdict": "done",
    "metrics": {},
    "images": [],
-   "learned": "So far the clear band behaves like the old band: the flags come from damage, mesh edges and one recurring zone, never from rows of strokes. Gate A waits for the last windings. The 9 µm instrument check (AWS run 7) will show whether known text at this resolution looks different from these soft blobs.",
+   "learned": "The flags we looked at come from damage, mesh edges and one recurring zone, never from rows of strokes. But the flag rule only decides where we look, and run 7 showed it can miss text, so the band is not closed: it is being re-checked with the two models that drew the PHerc0841 letters best, ranked by a row score.",
    "table": {
-    "caption": "Flags so far, each checked by eye (three models). Look line: stroke area ≥ 0.015, or reading − blind ≥ 0.010, or best 4 cm² window ≥ 0.030 and at least 2× the blind side.",
+    "caption": "The 25 flags checked by eye (three models). v0.1 look line: stroke area ≥ 0.015, or reading − blind ≥ 0.010, or best 4 cm² window ≥ 0.030 and at least 2× the blind side.",
     "head": [
      "Winding, depth",
      "Stroke area (reading)",
@@ -1827,15 +1827,26 @@
    "date": "2026-10-10",
    "phase": "B",
    "track": "Ink & render",
-   "short": "AWS run 7: 9 µm controls (running)",
+   "short": "AWS run 7: 9 µm controls",
    "title": "Instrument check at 9 µm (AWS run 7): what does known text look like at the resolution we search?",
    "question": "Both scrolls we search were scanned at 9.362 µm. Public benchmarks show that at this resolution (9.362 µm / 113 keV) known text is not legible with any public ink model: on PHerc0139 it comes out as 'letter-shaped strokes, not transcribable lines' (Erwin Nieuwlaar's dense_native model card); on PHerc0841 the letters render as blobs (ScrollPrize/villa issue #1907); a blind letter test named 3 of 8 letters from a 9 µm map against 6 of 8 at 2.4 µm (SirColton's pherc0841-9um-letter-test). Our only positive control so far, PHerc. 0343, was scanned at 8.64 µm. Does our pipeline reproduce the published results at 9 µm, and what does text look like there?",
-   "technique": "One on-demand g4dn.2xlarge running our render and ink steps on two known-text segments. PHerc0139 w047, which is not in the training data of ink_9um, dense_native or Reader v2 (published AUCs against a 78 keV reference map: ink_9um 0.778, Hecate 0.777, dense_native 0.898, Reader v2 0.893). PHerc0841 auto_grown 20260221022814, from a scroll none of these models trained on, with human ink labels. Models: ink_9um 42/43, dense_native and Reader v2 on both, plus d9v4C on PHerc0841, at depths −1, +1, +3 and +5. The same run puts the two models new to us, Reader v2 (DomRusso2) and d9v4C (TAUIL-Abd-Elilah), on the eight PHerc0813 picks at depths 0 and +1. Afterwards box/bin/control_eval.py scores our maps against the references (AUC, correlation, best shift) and we look at how the known rows appear.",
-   "result": "Running since 23:31 UTC. Estimate about $2.6, hard limit 4 hours. Results pending; they will be added here.",
-   "verdict": "running",
+   "technique": "One on-demand g4dn.2xlarge running our render and ink steps on two known-text segments. PHerc0139 w047, which is not in the training data of ink_9um, dense_native or Reader v2 (published AUCs against a 78 keV reference map: ink_9um 0.778, Hecate 0.777, dense_native 0.898, Reader v2 0.893). PHerc0841 auto_grown 20260221022814, from a scroll none of these models trained on, with human ink labels. Models: ink_9um 42/43, dense_native and Reader v2 on both, plus d9v4C on PHerc0841, at depths −1, +1, +3 and +5. The same run puts the two models new to us, Reader v2 (DomRusso2) and d9v4C (TAUIL-Abd-Elilah), on the eight PHerc0813 picks at depths 0 and +1. Afterwards box/bin/control_eval.py scores our maps against the references (AUC, correlation, best shift) and we look at how the known rows appear. The stroke score (three models) runs on both controls exactly as on any of our windings.",
+   "result": "Ran 23:27–03:13 UTC on one g4dn.2xlarge, about $2.80 (including a first launch that we stopped after about a minute). Our render and ink steps reproduce the published AUCs (table below). PHerc0139 w047 against the published 78 keV reference map, reading side at the best depth: dense_native 0.859, Reader v2 0.860, ink_9um 0.744 and 0.757 (published 0.898, 0.893 and 0.778); our three-model ensemble 0.838, three models + Reader v2 0.854. The blind side sits at chance (0.53–0.56). PHerc0841 against the human ink labels: three-model ensemble 0.78, dense_native 0.77, ink_9um 0.75–0.76, Reader v2 0.82, d9v4C 0.82, Reader v2 + d9v4C 0.83 (published: dense_native 0.800, ink_9um 0.733, Reader v2 0.824, d9v4C 0.830). Best depths −1 to +1. The stroke score sees the PHerc0139 text the way it saw the PHerc. 0343 letters: stroke area 0.028–0.031, reading − blind +0.019 to +0.024, best 4 cm² window 0.054–0.067 against 0.016–0.019 on the blind side (control: 0.034, +0.031, 0.048). On PHerc0841, a scroll none of the models trained on, it does not: stroke area 0.026–0.029, but reading − blind only +0.001 to +0.009 and the best window 1.0–1.4× the blind side, because the text covers a small part of the segment and this scroll's blind side is noisy. On the two lines meant to tell ink from damage (reading − blind ≥ 0.010; a window at least 2× the blind side) the v0.1 rule would not have flagged this known-text segment; it crosses only the stroke-area line, which damaged inner windings cross too. By eye at row scale it is plain, though: the reading side shows rows of letter-shaped strokes where the human labels are (ΗΚΑ… and a second row), the blind side only mottling (first image). Reader v2 + d9v4C draw the letters noticeably crisper than our three models. The same run's Reader v2 + d9v4C maps of the eight PHerc0813 picks have their own page.",
+   "verdict": "pass",
    "metrics": {},
-   "images": [],
-   "learned": "Pending. If our pipeline reproduces the published AUCs, the render and ink steps are sound at 9 µm and the controls show what text looks like here; our 'soft blobs, not writing' calls get re-checked against that. If it does not, the model or render step gets fixed before any more inking.",
+   "images": [
+    {
+     "file": "PHerc0841-9um-control-rows-labels-vs-models.jpg",
+     "caption": "PHerc0841 known text (auto_grown 20260221022814, public data with human ink labels), the same stretch five times, top to bottom: the human ink labels (shifted onto our grid; ΗΚΑ… and a second row below); our three-model ensemble, reading side, depth −1; the same, blind side; Reader v2 + d9v4C, reading side, depth +1; the same, blind side. Rows of letter-shaped strokes on the reading side where the labels are, only mottling on the blind side; Reader v2 + d9v4C draw the letters crisper.",
+     "wide": true
+    },
+    {
+     "file": "PHerc0139-w047-9um-reference-vs-ensemble.jpg",
+     "caption": "PHerc0139 w047, the whole segment, top to bottom: the published reference ink map from the 78 keV scan; our three-model ensemble (ink_9um 42/43, dense_native), reading side, depth +1; the same, blind side. Rows of short, soft strokes on the reading side where the reference has its lines; uniform speckle on the blind side.",
+     "wide": true
+    }
+   ],
+   "learned": "The render and ink steps are sound at 9.36 µm, and the method sees ink there. But the v0.1 flag rule is too strict for a scroll the models have not seen: the PHerc0841 letters are visible by eye and slip under it. Windings we never looked at, because they stayed under the line, could hold text, so we are re-checking everything. Known text at this resolution shows as rows of elongated letter strokes, not isolated soft blobs; that is what we look for now, with Reader v2 + d9v4C, the two models that drew the PHerc0841 letters best.",
    "credits": [
     "vc-known-text",
     "readerv2",
@@ -1849,6 +1860,374 @@
     "villa",
     "vc-data",
     "ours"
+   ],
+   "table": {
+    "caption": "AUC of our maps against the published references, reading side, best depth (−1 or +1). PHerc0139 w047: against the published 78 keV reference map. PHerc0841 auto_grown 20260221022814: against the human ink labels on this one segment. Published figures from Reader v2's benchmark table (DomRusso2) and, for d9v4C, its repository (TAUIL-Abd-Elilah); the published ink_9um figure is the best released checkpoint, and Reader v2's PHerc0841 figures cover three segments, ours one.",
+    "head": [
+     "Model",
+     "PHerc0139 w047: ours",
+     "published",
+     "PHerc0841: ours",
+     "published"
+    ],
+    "rows": [
+     [
+      "ink_9um seed 42",
+      "0.744",
+      "0.778",
+      "0.753",
+      "0.733"
+     ],
+     [
+      "ink_9um seed 43",
+      "0.757",
+      "—",
+      "0.761",
+      "—"
+     ],
+     [
+      "dense_native",
+      "0.859",
+      "0.898",
+      "0.767",
+      "0.800"
+     ],
+     [
+      "Reader v2",
+      "0.860",
+      "0.893",
+      "0.821",
+      "0.824"
+     ],
+     [
+      "d9v4C",
+      "not run",
+      "—",
+      "0.822",
+      "0.830"
+     ],
+     [
+      "Our three-model ensemble (ink_9um 42/43, dense_native)",
+      "0.838",
+      "—",
+      "0.783",
+      "—"
+     ],
+     [
+      "Three models + Reader v2",
+      "0.854",
+      "—",
+      "0.806",
+      "—"
+     ],
+     [
+      "Reader v2 + d9v4C",
+      "not run",
+      "—",
+      "0.828",
+      "—"
+     ],
+     [
+      "Blind side, any model or ensemble",
+      "0.53–0.56",
+      "",
+      "0.53–0.62",
+      ""
+     ]
+    ]
+   }
+  },
+  {
+   "id": "row-score",
+   "date": "2026-10-11",
+   "phase": "C",
+   "track": "Tooling",
+   "short": "Row score",
+   "title": "A row-structure score: do the strokes line up in rows, the way lines of text do?",
+   "question": "On PHerc0841 the letters were plain to the eye as rows of strokes, yet the stroke score's flag lines missed them. Can one number capture 'rows of strokes', so that windows like that rise to the top of the ranking?",
+   "technique": "box/bin/rowness_lib.py, on the same background-subtracted ensemble the stroke score uses. In every 2 × 2.4 cm window, take the share of stroke pixels in each row of the window (a profile running down the sheet, across the lines of writing), measure how strongly that profile repeats at line-spacing distances (its autocorrelation at lags of 3.5–8 mm), and multiply by the profile's contrast. The best window is the score; the same is done on the blind side. Calibrated on the two 9 µm known-text controls from run 7, then run on PHerc0191's clear band (the A3/A4 three-model maps) and on the eight PHerc0813 picks with Reader v2 + d9v4C.",
+   "result": "It separates known text from everything we have searched so far (table below). Known text: PHerc0139 2.7–2.8 with three models (blind 0.5–0.6); PHerc0841 3.0–3.2 with three models (blind 1.2) and 4.0–4.2 with Reader v2 + d9v4C (blind 1.1–1.2). PHerc0191's clear band, 197 winding-depths with the old three-model maps: mean 0.63, highest 1.45 (w049 at depth 0). We looked at that window: soft blobs at the end of the winding next to a crack, not writing. The eight PHerc0813 picks with Reader v2 + d9v4C: at most 1.47.",
+   "verdict": "done",
+   "metrics": {},
+   "images": [],
+   "learned": "Lines of writing repeat down the sheet at a steady spacing; cracks, damage and blobs do not. On known text the row score is almost twice the highest value on any of our windings, and it puts the PHerc0841 letters, which the v0.1 flag lines missed, far above every winding we have searched. It goes into stroke-score 0.2. Two known-text segments are still few, so the new rule gets calibrated on all three controls and our null windings first.",
+   "table": {
+    "caption": "Known text against the windings we searched. Row score: best 2 × 2.4 cm window of (autocorrelation of the across-row stroke-density profile at 3.5–8 mm) × (the profile's contrast). v0.1 look line, three models: stroke area ≥ 0.015, or reading − blind ≥ 0.010, or best window ≥ 0.030 and at least 2× the blind side.",
+    "head": [
+     "Segment",
+     "Models",
+     "Stroke area (reading)",
+     "Reading − blind",
+     "Best 4 cm² window (blind)",
+     "Row score (blind)"
+    ],
+    "rows": [
+     [
+      "PHerc. 0343 control (known letters, 8.64 µm), depth +1",
+      "four",
+      "0.0335",
+      "+0.031",
+      "0.048",
+      "—"
+     ],
+     [
+      "PHerc0139 w047 (known text, 9.36 µm), depths −1 to +5",
+      "three",
+      "0.028–0.031",
+      "+0.019 to +0.024",
+      "0.054–0.067 (0.016–0.019)",
+      "2.7–2.8 (0.5–0.6)"
+     ],
+     [
+      "PHerc0841 auto_grown (known text, 9.36 µm, a scroll no model trained on)",
+      "three",
+      "0.026–0.029",
+      "+0.001 to +0.009",
+      "1.0–1.4× the blind side",
+      "3.0–3.2 (1.2)"
+     ],
+     [
+      "same, depth +1",
+      "Reader v2 + d9v4C",
+      "0.0368",
+      "+0.0095",
+      "0.054 (0.048)",
+      "4.2 (1.2)"
+     ],
+     [
+      "PHerc0191 clear band, 197 winding-depths (A3/A4 maps)",
+      "three",
+      "see the A3 and A4 pages",
+      "",
+      "",
+      "mean 0.63, highest 1.45"
+     ],
+     [
+      "PHerc0813, eight picks at depths 0 and +1",
+      "Reader v2 + d9v4C",
+      "0.027–0.034",
+      "−0.006 to +0.021",
+      "up to 0.067 (0.023)",
+      "at most 1.47"
+     ]
+    ]
+   },
+   "credits": [
+    "vc-known-text",
+    "readerv2",
+    "d9v4c",
+    "ink9um",
+    "dense-native",
+    "nieuwlaar-343",
+    "vc-data",
+    "ours"
+   ]
+  },
+  {
+   "id": "pherc0813-picks-newmodels",
+   "date": "2026-10-11",
+   "phase": "B",
+   "track": "Ink & render",
+   "short": "PHerc0813 picks: Reader v2 + d9v4C",
+   "title": "Reader v2 + d9v4C on the eight PHerc0813 picks: one strong score, from a zone that recurs turn after turn",
+   "question": "Run 7 also put the two newer models, the ones that drew the PHerc0841 letters best, on the eight PHerc0813 picks at depths 0 and +1. Do they see anything the three-model pass (run 6) missed?",
+   "technique": "Reader v2 (DomRusso2) and d9v4C (TAUIL-Abd-Elilah) maps from run 7, scored on the Mac with the stroke score and the row score (without the CT void mask); the top scorer viewed at row scale, reading side next to blind side next to CT. To see whether its pattern belongs to that winding alone, we compared it with its neighbours w086, w087, w089 and w090, inked with the same models in the first part of the overnight home re-check.",
+   "result": "w088 scores strongest (table below): reading − blind +0.021 and a best 4 cm² window of 0.064–0.067 against 0.023 on the blind side, scored without the CT void mask. Its row score is 0.5–0.8 (known text: 2.7–4.2). By eye: bright blobs and short horizontal bars in the upper half of the winding, where the CT has a crack and void zone; no rows of letter strokes. On w086, w087, w089 and w090 the reading side shows the same bright zone at about the same place (image): structure repeating from one turn to the next, which text does not do. w095 comes second (reading − blind +0.015 to +0.017, window 0.053–0.057 against 0.025–0.031) with a row score of 0.3–0.5; it gets the same neighbour check once w094 and w096 come in from the overnight run. Row scores of all eight picks: at most 1.47.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [
+    {
+     "file": "PHerc0813-w088-neighbours-w086-w090-rv2-d9v4c-d0.jpg",
+     "caption": "False alarm. w088's neighbours w086, w087, w089 and w090, top to bottom, each as reading side then blind side (Reader v2 + d9v4C, depth 0, full winding width 10.8–11.4 cm). The reading side shows the same bright zone at about the same place on every turn, as on w088: structure that repeats turn after turn, not writing.",
+     "wide": true
+    }
+   ],
+   "learned": "A strong stroke score can come from structure that lines up on consecutive turns; writing would not sit at the same place turn after turn. We saw the same on PHerc0191 (w073–w079). stroke-score 0.2 gets an automatic neighbour-recurrence check: every high-scoring window is compared with the same place on the neighbouring windings.",
+   "table": {
+    "caption": "All sixteen rows with Reader v2 + d9v4C, next to the PHerc0841 known text in the same two models. These models give higher stroke areas everywhere than the three-model maps the v0.1 lines were set on, so compare with the known-text row, not with the v0.1 lines. Scored without the CT void mask.",
+    "head": [
+     "Winding, depth",
+     "Stroke area (reading)",
+     "Reading − blind",
+     "Best 4 cm² window (blind)",
+     "Row score (blind)"
+    ],
+    "rows": [
+     [
+      "w085, 0",
+      "0.0314",
+      "+0.0076",
+      "0.043 (0.040)",
+      "0.43 (1.69)"
+     ],
+     [
+      "w085, +1",
+      "0.0311",
+      "+0.0086",
+      "0.043 (0.035)",
+      "0.56 (1.72)"
+     ],
+     [
+      "w088, 0",
+      "0.0332",
+      "+0.0208",
+      "0.064 (0.023)",
+      "0.79 (0.22)"
+     ],
+     [
+      "w088, +1",
+      "0.0342",
+      "+0.0213",
+      "0.067 (0.023)",
+      "0.50 (0.12)"
+     ],
+     [
+      "w091, 0",
+      "0.0291",
+      "+0.0082",
+      "0.048 (0.045)",
+      "0.00 (0.00)"
+     ],
+     [
+      "w091, +1",
+      "0.0271",
+      "+0.0066",
+      "0.041 (0.046)",
+      "0.00 (0.00)"
+     ],
+     [
+      "w095, 0",
+      "0.0334",
+      "+0.0174",
+      "0.057 (0.025)",
+      "0.47 (0.17)"
+     ],
+     [
+      "w095, +1",
+      "0.0314",
+      "+0.0152",
+      "0.053 (0.031)",
+      "0.35 (0.17)"
+     ],
+     [
+      "w100, 0",
+      "0.0316",
+      "+0.0012",
+      "0.065 (0.069)",
+      "0.69 (0.68)"
+     ],
+     [
+      "w100, +1",
+      "0.0312",
+      "+0.0028",
+      "0.057 (0.068)",
+      "0.62 (0.73)"
+     ],
+     [
+      "w105, 0",
+      "0.0293",
+      "−0.0029",
+      "0.057 (0.060)",
+      "0.92 (0.13)"
+     ],
+     [
+      "w105, +1",
+      "0.0286",
+      "−0.0059",
+      "0.054 (0.073)",
+      "0.69 (0.12)"
+     ],
+     [
+      "w108, 0",
+      "0.0306",
+      "+0.0072",
+      "0.049 (0.056)",
+      "1.46 (0.53)"
+     ],
+     [
+      "w108, +1",
+      "0.0301",
+      "+0.0081",
+      "0.048 (0.050)",
+      "1.47 (0.42)"
+     ],
+     [
+      "w111, 0",
+      "0.0293",
+      "+0.0013",
+      "0.052 (0.057)",
+      "0.64 (0.85)"
+     ],
+     [
+      "w111, +1",
+      "0.0314",
+      "+0.0009",
+      "0.052 (0.066)",
+      "0.67 (0.81)"
+     ],
+     [
+      "PHerc0841 known text, +1",
+      "0.0368",
+      "+0.0095",
+      "0.054 (0.048)",
+      "4.24 (1.17)"
+     ]
+    ]
+   },
+   "credits": [
+    "readerv2",
+    "d9v4c",
+    "nieuwlaar-343",
+    "vc-data",
+    "vc-predictions",
+    "villa",
+    "lasagna",
+    "ours"
+   ]
+  },
+  {
+   "id": "tracking-backup",
+   "date": "2026-10-11",
+   "phase": "D",
+   "track": "Setup",
+   "short": "Artifact catalog + backup",
+   "title": "Housekeeping: one catalog of every artifact, one results table, and an off-site backup",
+   "question": "Results now sit on two machines, the home box and the Mac, plus the cloud run folders. Can we find any result again, and would we lose anything if a disk failed?",
+   "technique": "A generated artifact catalog and one results table, both in SQLite: every file on both machines with its scroll, pipeline stage, run and winding; every score row and every control AUC in one table. docs/DATA_CATALOG.md is generated from them. Then the critical set is copied to private cloud storage: the working notes, meshes, scores, control results, cloud-run results, reviews, and the ink maps of the windings of interest.",
+   "result": "31.5k artifacts catalogued on the two machines; 792 score rows and 120 control AUC rows in the results table. About 19 GB backed up.",
+   "verdict": "done",
+   "metrics": {},
+   "images": [],
+   "learned": "Any result can now be found by scroll, run and winding, and the part we could not regenerate (decisions, meshes, scores, reviews) no longer lives on a single disk. Public inputs and renders can be downloaded or rebuilt, so they stay out of the backup.",
+   "credits": [
+    "ours"
+   ]
+  },
+  {
+   "id": "recheck-overnight",
+   "date": "2026-10-11",
+   "phase": "B",
+   "track": "Ink & render",
+   "short": "Overnight re-check (running)",
+   "title": "Re-check at home overnight: Reader v2 + d9v4C on 50 PHerc0813 windings and PHerc0191's whole clear band",
+   "question": "Run 7 showed that the v0.1 flag rule can miss text on a scroll the models have not seen, so windings that stayed under the line were never looked at. With the two models that drew the PHerc0841 letters best, do any of them show rows of letter strokes?",
+   "technique": "On the three home GPUs, no cloud: Reader v2 and d9v4C at depths 0 and +1, first on the 50 outer PHerc0813 windings w045–w112 that were not among the eight picks, then on all 100 windings of PHerc0191's clear band (the renders deleted during A4 are rebuilt on the CPU and inked in a second pass). Every winding-depth gets the stroke score and the row score, and the ranking is by row score. The top-ranked windings are then checked by eye at row scale (reading | blind | CT), each with the neighbour check.",
+   "result": "Running; results tomorrow. Phase A4 finished before it started: 186 winding-depths with three models, 60 rows over the v0.1 flag line, mostly on the stroke-area line from damaged inner windings; 25 checked by eye, none writing (A4 page). The rest are covered by this re-check with the new models.",
+   "verdict": "running",
+   "metrics": {},
+   "images": [],
+   "learned": "Pending. Anything with a row score towards the known-text range and a reading side clearly above the blind side gets a deep look: Hecate added, a depth sweep, close-ups. A null from this run, with the row score and the neighbour check, will be a stronger null than the v0.1 ones.",
+   "credits": [
+    "readerv2",
+    "d9v4c",
+    "ink9um",
+    "dense-native",
+    "nieuwlaar-343",
+    "villa",
+    "lasagna",
+    "vc-data",
+    "vc-predictions",
+    "ours"
    ]
   }
  ],
@@ -1856,7 +2235,7 @@
   {
    "kind": "scroll",
    "title": "The ink detector is not the problem",
-   "text": "Calibrated on known text: three legible Greek lines, and the PHerc. 343 control passes with the ensemble. The early PHerc0191 nulls were geometry; since the snap + flatten, the windings have clean papyrus weave, so the nulls after that are real nulls for the windings and depths checked. Open question: what text looks like at 9.362 µm, the resolution of the scrolls we search (see below)."
+   "text": "Calibrated on known text: three legible Greek lines, the PHerc. 343 control passes with the ensemble, and at 9.36 µm our render and ink steps reproduce the published AUCs on PHerc0139 and PHerc0841 (run 7). The early PHerc0191 nulls were geometry; since the snap + flatten the windings have clean papyrus weave. What limits our nulls now is the triage rule that decides where we look, not the detector (see below)."
   },
   {
    "kind": "scroll",
@@ -1915,8 +2294,8 @@
   },
   {
    "kind": "scroll",
-   "title": "PHerc0191: no ink in any winding checked",
-   "text": "Band z 9,000–10,000: all 99 flattened windings at depths 0 and +1 (7 four-model, 92 three-model). The community's 10 windings. The seven best clear-band windings at depths −2..+3 with four models. No letters anywhere. Phase A4 (running): 25 flags on the other clear-band windings so far, none writing."
+   "title": "PHerc0191: no letters where we looked",
+   "text": "Band z 9,000–10,000: all 99 flattened windings at depths 0 and +1 (7 four-model, 92 three-model). The community's 10 windings. The seven best clear-band windings at depths −2..+3 with four models. Phase A4 on the other 93: 60 rows over the v0.1 flag line, 25 checked by eye, none writing. But we looked closely only where the v0.1 rule flagged, and that rule misses text on an unseen scroll, so these nulls are weaker than we thought. The clear band is being re-checked with Reader v2 + d9v4C and a row score."
   },
   {
    "kind": "scroll",
@@ -1925,8 +2304,8 @@
   },
   {
    "kind": "scroll",
-   "title": "A crack band can look like a signal",
-   "text": "The strongest PHerc0191 scores (w073 and w074 at depth +2) came from soft blobs along a CT crack band, present at several depths and faintly on the blind side. Not writing."
+   "title": "Cracks and recurring zones can look like a signal",
+   "text": "The strongest PHerc0191 scores (w073 and w074 at depth +2) came from soft blobs along a CT crack band, present at several depths and faintly on the blind side. The strongest PHerc0813 score (w088 with Reader v2 + d9v4C) comes from a bright zone that sits at about the same place on the neighbouring turns w086–w090, as w073–w079 do on PHerc0191; writing does not repeat turn after turn. Neither is writing."
   },
   {
    "kind": "scroll",
@@ -1936,7 +2315,7 @@
   {
    "kind": "scroll",
    "title": "PHerc0813's geometry passes the Gate B bar",
-   "text": "Band z 12,000–13,000 with the same recipe as PHerc0191: 0.557 of track points on the sheet and 0.182 of tracks satisfied (0191's clear band: 0.519 / 0.138), the best fit numbers of the campaign. In the CT, w085–w112 (10.5–14.8 cm) show weave over most of their length: more clean papyrus per winding than 0191's best picks, which share a crushed zone. The first eight picks, inked with three models at depths 0 and +1, show no ink."
+   "text": "Band z 12,000–13,000 with the same recipe as PHerc0191: 0.557 of track points on the sheet and 0.182 of tracks satisfied (0191's clear band: 0.519 / 0.138), the best fit numbers of the campaign. In the CT, w085–w112 (10.5–14.8 cm) show weave over most of their length: more clean papyrus per winding than 0191's best picks, which share a crushed zone. The first eight picks, inked at depths 0 and +1 with three models and with Reader v2 + d9v4C, show no writing; w088's strong score comes from a zone that recurs on the neighbouring turns."
   },
   {
    "kind": "scroll",
@@ -1945,8 +2324,8 @@
   },
   {
    "kind": "scroll",
-   "title": "At 9 µm, known text may not look like letters",
-   "text": "From public benchmarks at 9.362 µm / 113 keV: known text on PHerc0139 comes out as 'letter-shaped strokes, not transcribable lines' (dense_native model card); PHerc0841's letters render as blobs (villa issue #1907); a blind test named 3 of 8 letters from a 9 µm map against 6 of 8 at 2.4 µm. Our positive control (PHerc. 0343) was scanned at 8.64 µm, so we need to recalibrate what text looks like at 9 µm before leaning on 'soft blobs, not writing'. Our own 9 µm control (AWS run 7) is pending."
+   "title": "The method sees ink at 9.36 µm, but the v0.1 flag rule misses text on an unseen scroll",
+   "text": "AWS run 7, on two known-text segments scanned at the resolution we search. Our render + ink reproduces the published AUCs (PHerc0139 w047: dense_native 0.859, Reader v2 0.860; PHerc0841: Reader v2 + d9v4C 0.83). On PHerc0139 the stroke score sees the text as it saw the PHerc. 0343 letters (reading − blind +0.019 to +0.024, best 4 cm² window 0.054–0.067 against 0.016–0.019 on the blind side). On PHerc0841, a scroll none of the models trained on, the letters show by eye as rows of letter-shaped strokes, yet reading − blind is only +0.001 to +0.009 and the window 1.0–1.4× the blind side: the v0.1 rule would not have singled it out. So windings that stayed under the line could hold text. Known text here shows as rows of elongated strokes; a row score (2.7–4.2 on known text, at most 1.47 on our windings so far) and Reader v2 + d9v4C are now part of the search."
   },
   {
    "kind": "tooling",
@@ -1966,23 +2345,20 @@
   {
    "kind": "tooling",
    "title": "stroke-score 0.1: triage for ink searches (MIT)",
-   "text": "Ranks windings, depths and 4 cm² windows by stroke-shaped ink on the reading side against the blind side, with review crops. Calibrated on the PHerc. 343 control and 109 null windings; known false alarms documented."
+   "text": "Ranks windings, depths and 4 cm² windows by stroke-shaped ink on the reading side against the blind side, with review crops. Calibrated on the PHerc. 343 control and 109 null windings; known false alarms documented. Run 7 showed its flag rule is too strict for unseen scrolls; stroke-score 0.2 (in progress) adds a row-structure score, a neighbour-recurrence check and a rule recalibrated on three known-text controls."
   }
  ],
  "next": [
-  "Phase A4 (running overnight on the home GPUs): finish the three-model check of the other 93 clear-band windings, every flag checked by eye. Then Gate A: if the whole band is null, PHerc0191 is set aside with its meshes kept; it comes back if a better ink or surface model passes the controls.",
-  "AWS run 7 (running): score our maps on the two 9 µm known-text segments against their references (AUC), look at how the known rows appear, and re-check our 'soft blobs, not writing' calls against them.",
-  "If our pipeline reproduces the published AUCs: ink the rest of PHerc0813's clean stretch (w061–w112, about 44 windings) on AWS, about $9 on its own go-ahead, and add Hecate on the best windings.",
-  "If it does not: fix the model or render step first, before any more inking.",
-  "Reader v2 and d9v4C: keep them in the ensemble only if they do well on the known-text controls (run 7 and PHerc. 0343).",
-  "Phase C: test stroke-score on more known-text segments, measure its false-alarm rate on our null windings, release before the Oct 31 Progress Prize deadline.",
+  "stroke-score 0.2: add the row score and an automatic neighbour-recurrence check, and recalibrate the flag rule on three known-text controls (PHerc. 0343 at 8.64 µm; PHerc0139 w047 and PHerc0841 at 9.36 µm) and about 350 null windings, for any set of ink models. Release with a write-up before the Oct 31 Progress Prize deadline.",
+  "Finish the overnight re-check (Reader v2 + d9v4C on 50 PHerc0813 windings and PHerc0191's clear band), rank by row score and look at the top-ranked windings by eye at row scale (reading | blind | CT), with the neighbour check. Anything that holds up gets a deep look: Hecate added, a depth sweep, close-ups.",
+  "Then decide on the rest of PHerc0813 and on PHerc0191's old band (z 9,000–10,000), which so far has only been judged with the v0.1 rule.",
   "Progress Prize write-ups for tooling findings #6–#10 (three PRs staged)."
  ],
  "credits": [
   {
    "id": "vc-data",
    "who": "Vesuvius Challenge / EduceLab",
-   "what": "CT scans and open data for PHerc. 0191, PHerc. 0343, PHerc. 0800, PHerc. 0813 and PHerc. Paris 4 (CC BY-NC 4.0); all images on this site are derived from it.",
+   "what": "CT scans and open data for PHerc. 0139, PHerc. 0191, PHerc. 0343, PHerc. 0800, PHerc. 0813, PHerc. 0841 and PHerc. Paris 4 (CC BY-NC 4.0); all images on this site are derived from it.",
    "link": "https://scrollprize.org/data"
   },
   {
@@ -2084,19 +2460,19 @@
   {
    "id": "readerv2",
    "who": "DomRusso2",
-   "what": "Reader v2, a 9 µm ink model (MIT; weights published on Hugging Face as domenicor046/reader-v2, step 40,000), and its published benchmark results. Run in AWS run 7 on the 9 µm controls and the PHerc0813 picks.",
+   "what": "Reader v2, a 9 µm ink model (MIT; weights published on Hugging Face as domenicor046/reader-v2, step 40,000), and its published benchmark table, which we compare our control AUCs with. Run in AWS run 7 on the 9 µm controls and the PHerc0813 picks, and in the overnight re-check.",
    "link": "https://github.com/DomRusso2/reader-v2"
   },
   {
    "id": "d9v4c",
    "who": "TAUIL-Abd-Elilah",
-   "what": "d9v4C, a 9 µm ink model (9um-reader-letter-shape, release v1.0, MIT). Run in AWS run 7 on the PHerc. 0841 control and the PHerc0813 picks.",
+   "what": "d9v4C, a 9 µm ink model (9um-reader-letter-shape, release v1.0, MIT), and its published PHerc. 0841 benchmark. Run in AWS run 7 on the PHerc. 0841 control and the PHerc0813 picks, and in the overnight re-check.",
    "link": "https://github.com/TAUIL-Abd-Elilah/9um-reader-letter-shape"
   },
   {
    "id": "vc-known-text",
    "who": "Vesuvius Challenge / EduceLab",
-   "what": "The known-text segments we use as 9 µm positive controls: PHerc. 0139 w047 with its reference ink map, and PHerc. 0841 auto_grown 20260221022814 with its human ink labels (CC BY-NC 4.0).",
+   "what": "The known-text segments we use as 9 µm positive controls: PHerc. 0139 w047 with its published reference ink map (78 keV scan), and PHerc. 0841 auto_grown 20260221022814 with its human ink labels (CC BY-NC 4.0).",
    "link": "https://scrollprize.org/data"
   },
   {
@@ -2120,7 +2496,7 @@
   {
    "id": "ours",
    "who": "This project (Ted Bienapfl)",
-   "what": "Experiment design and analysis; our scripts in box/bin (mirroring, outer-shell builder, mesh audits, triage, direction-field converter, fast ink pass, deep-look scheduler, writing-side check, control scorer, site generator); the stroke-score tool (tools/stroke-score, MIT); the tooling findings and fixes.",
+   "what": "Experiment design and analysis; our scripts in box/bin (mirroring, outer-shell builder, mesh audits, triage, direction-field converter, fast ink pass, deep-look scheduler, writing-side check, control scorer, row-structure score) and scripts/ (artifact catalog, results table, backup, site generator); the stroke-score tool (tools/stroke-score, MIT); the tooling findings and fixes.",
    "link": "https://github.com/skuzbucket1/scroll-prize"
   }
  ],
@@ -2172,14 +2548,14 @@
     "title": "Detect ink",
     "group": "Ink",
     "text": "Several public ink models each mark where ink might be. Their maps are combined into one ensemble, for the writing side and for the back.",
-    "by": "ink_9um, dense_native, Hecate; ensemble after Erwin Nieuwlaar",
+    "by": "ink_9um, dense_native, Hecate, Reader v2, d9v4C; ensemble after Erwin Nieuwlaar",
     "img": "PHerc0191-w070-snapflat-ensemble-d0-mid.jpg",
     "alt": "Ensemble ink map of one flattened winding: mottled, no writing"
    },
    {
     "title": "Rank",
     "group": "Ink",
-    "text": "The stroke score points to places where stroke-shaped marks show on the writing side but not on the back.",
+    "text": "The stroke score points to places where stroke-shaped marks show on the writing side but not on the back; a row score asks whether they line up in rows, as lines of text do.",
     "by": "stroke-score (this project)",
     "img": "PHerc0191-w070-strokes-top-tile-d+1.jpg",
     "alt": "Review crop: writing side, back and CT side by side"
@@ -2187,7 +2563,7 @@
    {
     "title": "Look",
     "group": "Decision",
-    "text": "We check every flag by eye against the CT and the back of the sheet. Cracks, voids and folds cause most false alarms.",
+    "text": "We check flags and the top-ranked windings by eye against the CT and the back of the sheet, looking for rows of letter strokes. Cracks, voids, folds and zones that recur on neighbouring turns cause most false alarms.",
     "by": "",
     "icon": "look",
     "alt": "Diagram: three panels labelled writing side, back and CT"
@@ -2203,7 +2579,7 @@
   ],
   "control": {
    "title": "Positive control",
-   "text": "Known letters from PHerc. 0343 (Erwin Nieuwlaar's First Letters segment) go through the same render, ink, rank and look steps. The letter rows have to light up there; if they did not, a blank result on our scroll would mean nothing. They do.",
+   "text": "Known letters go through the same render, ink, rank and look steps: PHerc. 0343 (Erwin Nieuwlaar's First Letters segment, 8.64 µm), and PHerc0139 and PHerc0841 at 9.36 µm, the resolution we search. The letter rows have to light up there; if they did not, a blank result on our scroll would mean nothing. They do, as rows of strokes.",
    "img": "PHerc0343-control-ensemble-rows.jpg",
    "alt": "Ensemble ink map of the PHerc. 0343 control: two rows of bright letter strokes",
    "steps": [

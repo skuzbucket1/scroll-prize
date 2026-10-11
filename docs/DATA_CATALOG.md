@@ -1,6 +1,6 @@
 # Data catalog (generated)
 
-Generated 2026-10-11 03:20 UTC by `scripts/catalog.py` (one scan per host) and `scripts/results_db.py`, merged on the Mac into `data/catalog/catalog.sqlite` and `data/catalog/results.sqlite`. Do not edit by hand: re-run the scans. Layout and rules: `docs/DATA_LAYOUT.md`. Backup set: `scripts/backup_r2.sh` (Cloudflare R2).
+Generated 2026-10-11 03:44 UTC by `scripts/catalog.py` (one scan per host) and `scripts/results_db.py`, merged on the Mac into `data/catalog/catalog.sqlite` and `data/catalog/results.sqlite`. Do not edit by hand: re-run the scans. Layout and rules: `docs/DATA_LAYOUT.md`. Backup set: `scripts/backup_r2.sh` (private object storage).
 
 ## Artifacts by host and kind
 
