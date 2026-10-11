@@ -41,5 +41,8 @@ fi
 OPTS=(--filter-from "$F" --backup-dir "r2:$R2_BUCKET/_archive/$STAMP/$HOST" --fast-list --transfers 8 --checkers 16 --stats 60s --stats-one-line)
 [ "$DRY" = --dry-run ] && { $RC size "$ROOT" --filter-from "$F" 2>/dev/null; exit 0; }
 echo "[$(date -u +%FT%TZ)] backup $HOST -> r2:$R2_BUCKET/$HOST"
-$RC sync "$ROOT" "r2:$R2_BUCKET/$HOST" "${OPTS[@]}" -v 2>&1 | grep -vE "NOTICE: Config file" | grep -E "Transferred|Errors|ERROR|Checks|Elapsed" | tail -5
-echo "[$(date -u +%FT%TZ)] BACKUP-EXIT: ${PIPESTATUS[0]}"
+set +e +o pipefail
+$RC sync "$ROOT" "r2:$R2_BUCKET/$HOST" "${OPTS[@]}" --stats-log-level NOTICE 2>&1 | grep -vE "NOTICE: Config file" | tail -8
+rc=${PIPESTATUS[0]}
+echo "[$(date -u +%FT%TZ)] r2 now: $($RC size "r2:$R2_BUCKET/$HOST" 2>/dev/null | tr '\n' ' ')"
+echo "[$(date -u +%FT%TZ)] BACKUP-EXIT: $rc"
