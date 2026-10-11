@@ -7,19 +7,22 @@ import json, os, sys, numpy as np, tifffile, cv2
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, 'stroke-score-src'))
 # (HERE itself is NOT put on sys.path: bin/ also holds the older research script stroke_score.py, which would shadow the package)
 import stroke_score
-from stroke_score.core import Params, ensemble, usable_area, score
+from stroke_score.core import Params, ensemble, usable_area, score, valid_mask
 mdir, name, um, models, depths, out = sys.argv[1], sys.argv[2], float(sys.argv[3]), sys.argv[4].split(','), [int(x) for x in sys.argv[5].split(',')], sys.argv[6]
 Z = sys.argv[7] if len(sys.argv) > 7 else None
 os.makedirs(out, exist_ok=True); p = Params(um=um); res_all = {'name': name, 'models': models, 'um': um, 'tool': stroke_score.__version__, 'depths': {}}
 zarr_a = None
 if Z and os.path.isdir(os.path.join(Z, '0')):
     import zarr; zarr_a = zarr.open(Z, mode='r')['0']
+rv = valid_mask(Z) if zarr_a is not None else None   # the render's mesh area: the maps' footprint spills 2-3 mm past the mesh
 for d in depths:
     s = 25 + d; paths = {m: (f'{mdir}/{name}__{m}__L66s{s}_reverse.tif', f'{mdir}/{name}__{m}__L66s{s}.tif') for m in models}
     if not all(os.path.exists(a) and os.path.exists(b) for a, b in paths.values()): continue
     valid = None
     for a, b in paths.values():
         v = (tifffile.imread(a) > 0) | (tifffile.imread(b) > 0); valid = v if valid is None else valid & v
+    if rv is not None:
+        valid &= rv
     E, _ = ensemble(paths, valid)
     ct = np.asarray(zarr_a[33 + d]) if zarr_a is not None else None
     use, _ = usable_area(valid, p, ct) if ct is not None else usable_area(valid, p)

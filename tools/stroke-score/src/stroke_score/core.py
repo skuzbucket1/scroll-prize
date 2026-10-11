@@ -54,7 +54,8 @@ class Params:
     row_lag_mm: tuple = (3.5, 8.0)        # Herculaneum line spacing is about 4.5-6 mm
     row_ds: int = 4                       # row score computed at 1/row_ds resolution
     row_min_cov: float = 0.5              # profile rows (across the window) with less valid area are left out
-    row_min_mm: float = 12.0              # ... and a window needs this much of usable rows (two lines at 6 mm)
+    row_min_mm: float = 8.0               # ... and a window needs this much of usable rows (search bands are ~10 mm tall)
+    row_edge_mm: float = 0.5              # left out along the edge of the valid area (ink models light up mesh borders)
     row_strips: int = 4                   # per-row density = median over this many strips along the window (rows must run across it)
     profile_bins: int = 200
 
@@ -171,11 +172,17 @@ def row_score(E: np.ndarray, valid: np.ndarray, p: Params) -> tuple[float, list 
     The profile is the median over `row_strips` strips along the window, so a line of writing, which runs across the whole
     window, counts and a lone bright blob (one strip) does not. Strip rows less than `row_min_cov` valid are left out; a
     profile row needs all strips but one, and a window `row_min_mm` of usable rows, so gaps in the mesh and bands shorter
-    than the window do not disqualify it. Returns (score, [y, x] of the window's top-left corner in render pixels)."""
+    than the window do not disqualify it. A margin of `row_edge_mm` along the edge of the valid area is left out: ink
+    models draw bright lines along mesh borders, and in a 1 cm band the two borders look like rows. Pass the render's
+    valid area (`valid_mask`), not the ink maps' footprint, which spills past the mesh.
+    Returns (score, [y, x] of the window's top-left corner in render pixels)."""
     ds = max(1, int(p.row_ds)); H, W = E.shape
     e = cv2.resize(np.where(valid, E, 0).astype(np.float32), (max(1, W // ds), max(1, H // ds)), interpolation=cv2.INTER_AREA)
     v = cv2.resize(valid.astype(np.float32), (max(1, W // ds), max(1, H // ds)), interpolation=cv2.INTER_AREA) > 0.99
     px = 1000.0 / p.um / ds; sig = p.bg_mm * px
+    r = int(round(p.row_edge_mm * px))
+    if r > 0:
+        v = cv2.erode(v.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))) > 0
     num = cv2.GaussianBlur(np.where(v, e, 0), (0, 0), sig); den = cv2.GaussianBlur(v.astype(np.float32), (0, 0), sig) + 1e-6
     S = (np.where(v, e - num / den, 0) > p.thr) & v
     ww, wh = int(p.row_window_mm[0] * px), int(p.row_window_mm[1] * px)

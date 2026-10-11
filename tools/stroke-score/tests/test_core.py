@@ -125,6 +125,21 @@ def test_row_score_ignores_lone_blobs():
     assert one_strip > 1.0 and four < 0.3 * one_strip
 
 
+def test_row_score_leaves_out_the_mesh_border():
+    from dataclasses import replace
+    from stroke_score.core import row_score
+    rng = np.random.default_rng(6)
+    shape = (1400, 2400)
+    img = rng.normal(0, 0.3, shape).astype(np.float32)
+    valid = np.zeros(shape, bool)
+    valid[200:1230] = True                                # a 1 cm band
+    img[200:230] += 5.0                                   # bright line along the border (within 0.5 mm)
+    img[720:750] += 5.0                                   # one line inside, 5.2 mm away
+    no_margin, _ = row_score(img, valid, replace(P, row_edge_mm=0.0))
+    margin, _ = row_score(img, valid, P)
+    assert no_margin > 1.0 and margin < 0.5 * no_margin
+
+
 def test_recurrence_and_v02_flag():
     from stroke_score.cli import flag_v02, recurrence
     base = list(np.sin(np.linspace(0, 6, 200)) + 1.5)

@@ -104,7 +104,7 @@ def _shift(a: np.ndarray, dy: int, dx: int) -> np.ndarray:
 
 def evaluate(a) -> dict:
     from .cli import MODELS, nieuwlaar_paths
-    from .core import Params, ensemble, map_footprint, read_map, score, usable_area, valid_mask
+    from .core import Params, ensemble, map_footprint, read_map, row_score, score, usable_area, valid_mask
     c = CONTROLS[a.control]; d = os.path.join(a.fetched, a.control); name = a.name or c['name']
     models = [m for m in MODELS if nieuwlaar_paths(a.maps, name, m, a.depth)] if a.models == 'auto' else a.models.split(',')
     maps = {m: nieuwlaar_paths(a.maps, name, m, a.depth) for m in models}
@@ -153,6 +153,19 @@ def evaluate(a) -> dict:
     s = out['stroke']
     print(f"  stroke score: area {s['area_R']:.4f} / {s['area_B']:.4f}  window {s['window_R']:.4f} / {s['window_B']:.4f}  "
           f"row {s['row_R']:.2f} / {s['row_B']:.2f}   (reading / blind)")
+    if a.band_mm:
+        # the row score as a search band of this height would see it: horizontal strips every 2 mm
+        h, st, rs = int(a.band_mm * 1000 / c['um']), int(2000 / c['um']), []
+        for y0 in range(0, H - h + 1, st):
+            vb = np.zeros_like(valid); vb[y0:y0 + h] = valid[y0:y0 + h]
+            if vb[y0:y0 + h].mean() >= 0.3:
+                rs.append((row_score(E['reading'], vb, p)[0], row_score(E['blind'], vb, p)[0]))
+        if rs:
+            R_, B_ = np.array(rs).T
+            out['band'] = dict(mm=a.band_mm, strips=len(rs), reading=dict(median=float(np.median(R_)), p25=float(np.percentile(R_, 25)),
+                               max=float(R_.max())), blind=dict(median=float(np.median(B_)), max=float(B_.max())), rows=[list(x) for x in rs])
+            print(f"  row score in {a.band_mm:g} mm bands ({len(rs)} strips): reading median {np.median(R_):.2f}, p25 "
+                  f"{np.percentile(R_, 25):.2f}, max {R_.max():.2f}; blind median {np.median(B_):.2f}, max {B_.max():.2f}")
     for k, v in sorted(table.items()):
         print(f'  {k:28s} AUC {v[0]:.3f}  r {v[1]:.3f}')
     if a.out:
@@ -170,5 +183,6 @@ def add_parser(sub) -> None:
     e.add_argument('--control', required=True, choices=sorted(CONTROLS)); e.add_argument('--fetched', required=True)
     e.add_argument('--maps', required=True); e.add_argument('--name'); e.add_argument('--depth', type=int, default=1)
     e.add_argument('--models', default='auto'); e.add_argument('--surface', help='the 66-layer render (for the valid mask)')
+    e.add_argument('--band-mm', type=float, help='also score the rows in horizontal strips this tall (your search band height, e.g. 10.3)')
     e.add_argument('--out', help='write the result JSON here')
     e.set_defaults(fn=lambda a: evaluate(a) and 0)
