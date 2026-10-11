@@ -6,8 +6,9 @@ sheet, compared with the **blind side of the same sheet**. It is a triage tool: 
 
 Status: version 0.2 (draft), October 2026. Tested on three known-text segments at two scan types (PHerc. 0343 at 8.64 µm;
 PHerc. 0139 and PHerc. 0841 at 9.36 µm) and several hundred windings of PHerc. 0191 and PHerc. 0813 with no text found.
-New in 0.2: a row score, a neighbour-recurrence check, any set of ink models, and a known-text control kit. The thresholds
-of the 0.2 rule are being set from the null windings; see Validation.
+New in 0.2: a row score, a stroke-shape score, a neighbour-recurrence check, any set of ink models, and a known-text control
+kit that scores known text the way a search band of your height would see it. The 0.2 rule's thresholds are set per model set
+from known text cut to band height and 294 null winding-depths; see "The 0.2 rule".
 
 ## Why
 
@@ -59,6 +60,19 @@ two heights scored like rows: on PHerc. 0813 w085 the blind side reached 2.2, an
 bright cluster plus a band along the mesh edge; with it, 0.8 and 0.4.) Rows with less than half their width valid are left
 out, so short bands and meshes with gaps are still scored. Reported for both sides (`sides.<side>.row`).
 
+**Stroke shape.** In the row window, the share of the marks' area (above-background components of at least 0.05 mm²) that
+lies in marks at least 1 mm long and twice as long as wide (`sides.<side>.shape`). Letters are made of strokes; crack edges and
+damage give round blobs. Known text in 1 cm strips: median 0.42–0.63 on the reading side, 0.00–0.40 on the blind side. On
+PHerc. 0813 the windows with the highest row scores (rows of soft blobs over crack fields, checked by eye at full resolution)
+score 0.15–0.21. Edge contrast and peak height of the marks did not separate text from blobs; elongation did. Also reported:
+`horiz`, the share of the long marks lying within 30° of the winding direction (see Known false alarms).
+
+**Search bands are short: calibrate on known text cut to your band height.** Our search windings are bands of about 10.3 mm
+of mesh, so a winding shows at most two lines of text, while known-text segments are several centimetres tall. Scored over
+the whole segment, known text looks far stronger than it could in a band like ours (row score 2.6–4.1 against 1.1–1.9 in
+1 cm strips). `stroke-score control eval --band-mm 10.3` cuts the known text into strips as tall as your band, every 2 mm, and
+scores each like a search winding. Compare your nulls with those numbers, not with the whole-segment ones.
+
 **Neighbour recurrence.** Each result now carries the stroke density along the winding (`sides.<side>.profile`, 200 bins of the
 segment length). `stroke-score rank` correlates a winding's reading-side profile with its neighbours (w−2..w+2, same depth and
 model set) and reports the best correlation (`recur`). A bright zone that repeats turn after turn is sheet structure (a crack
@@ -68,9 +82,20 @@ zone, a fold); text columns do not line up turn after turn. Example: on PHerc. 0
 **Any model set.** `--models auto` (the default) uses every model whose maps are present (ink_9um seeds 42/43, dense_native,
 Hecate, Reader v2, d9v4C, in run_ink.sh naming); `--map-list` takes any naming.
 
-**The 0.2 rule** (`flag_v02` in `stroke-score rank`): LOOK when the reading-side row score is at least `--row-thr` and at least
-`--row-ratio` times the blind side's. The 0.1 rule is still reported (`flag`). The row score's scale depends on the model set,
-so the thresholds are set per model set from the known-text controls and the null windings (table below).
+**The 0.2 rule** (`flag_v02` in `stroke-score rank`): LOOK when the reading side shows rows of strokes: row score at least the
+model set's row threshold and at least 1.8 × the blind side's (`--row-ratio`), and shape score at least the model set's shape
+threshold. The 0.1 rule is still reported (`flag`). The row score's scale depends on the model set, so the thresholds are set per
+model set (`V02_THRESHOLDS` in cli.py; `--row-thr` and `--shape-thr` override):
+
+| model set | row ≥ | shape ≥ | null winding-depths passing | known-text 1 cm strips passing |
+|---|---|---|---|---|
+| ink_9um ×2 + dense_native | 1.2 | 0.35 | 0 of 194 (PHerc. 0191 clear band) | PHerc. 0139: 39–57 %; PHerc. 0841: 38 % |
+| Reader v2 + d9v4C | 1.5 | 0.42 | 1 of 100 (PHerc. 0813 outer band) | PHerc. 0841: 31–46 % |
+| any other set | 1.5 | 0.42 | not calibrated | not calibrated |
+
+Read the last column as the chance that one 1 cm band through text, at one depth, gets flagged: the rule is a triage line set so
+that our null windings almost never cross it, not a detector. The one PHerc. 0813 null that passes (w079, depth 0) is a crack
+streak (Known false alarms).
 
 ## Known-text control kit
 
@@ -97,7 +122,18 @@ or a new render setting, on known text at the scan type the eligible scrolls wer
 | same, d +1 | same | 0.82 | 0.037 / 0.027 | 0.054 / 0.048 | 4.11 / 0.78 |
 
 Computed with `stroke-score control eval` without `--surface` (scored area = where every model's map has data); AUC is the
-ensemble's, reading side.
+ensemble's, reading side. The same segments in 10.3 mm strips (`--band-mm 10.3`, strips every 2 mm), reading side:
+
+| control | models | row score: median (lower quartile) / highest | blind highest | shape: median reading / blind |
+|---|---|---|---|---|
+| PHerc. 0139 w047, d −1 / +1 | ink_9um ×2 + dense_native | 1.80–1.86 (1.07) / 3.90 | 0.53 | 0.45–0.47 / 0.00–0.19 |
+| same, d +1 | Reader v2 | 2.20 (1.63) / 4.74 | 1.23 | 0.42 / 0.06 |
+| PHerc. 0841 auto_grown, d −1 / +1 | ink_9um ×2 + dense_native | 1.09–1.33 (0.57–0.83) / 1.94 | 1.52 | 0.46–0.49 / 0.13–0.22 |
+| same, d −1 / +1 | Reader v2 + d9v4C | 1.54–1.91 (0.75–1.16) / 2.92 | 1.60 | 0.51–0.63 / 0.29–0.40 |
+
+Null windings scored the same way (inside the render's mesh area): PHerc. 0191 clear band, 194 winding-depths with the three
+models, row score median 0.42, highest 1.22; PHerc. 0813 outer band, 100 winding-depths with Reader v2 + d9v4C, median 0.87,
+highest 2.62 (rows of crack blobs; their shape scores 0.15–0.21).
 
 Published AUCs for comparison: PHerc. 0139 w047 dense_native 0.898, Reader v2 0.893, ink_9um 0.778 (78 keV reference);
 PHerc. 0841 dense_native 0.800, Reader v2 0.824, d9v4C 0.830, ink_9um 0.733 (human labels).
@@ -154,8 +190,9 @@ The render is a zarr group whose array `0` has shape (layers, H, W) with depth 0
 
 The packaged tool reproduces the original research script exactly on these data (identical scores and top tiles).
 
-In progress: more known-text segments as positives (the other published PHerc. 0343 text segments and any other text
-shown on 8–9.4 µm scans), and a measured false-alarm rate per threshold on the null windings.
+For 0.2 see "The 0.2 rule" and the control kit above: three known-text segments (PHerc. 0343 at 8.64 µm; PHerc. 0139 w047
+and PHerc. 0841 at 9.36 µm), 294 null winding-depths from two scrolls and two model sets. Still wanted: more known text at
+8–9.4 µm, especially in short bands, and nulls from other scrolls.
 
 ## Known false alarms
 
@@ -173,13 +210,25 @@ Every flag so far on PHerc. 0191 was one of these, found by looking at the revie
 - **Zones that repeat turn after turn** (0.2): a crack zone or fold that crosses several windings lights up the same place on
   neighbouring windings, sometimes strongly on the reading side only (PHerc. 0813 w088: reading − blind +0.021). The `recur`
   column catches it; look at the neighbours before believing a single winding.
+- **Rows of crack blobs** (0.2): on a crack-rich sheet the models draw the edges of cracks running along the winding, and two
+  crack edges a few mm apart look like lines of text to the row score (PHerc. 0813 w094 2.6, w102 2.4, w076 2.3 with Reader
+  v2 + d9v4C). The marks are round blobs, so the shape score stays low (0.15–0.21) and the 0.2 rule does not flag them.
+- **Crack-edge streaks** (0.2): a crack edge drawn as long horizontal streaks passes both the row and the shape score (PHerc.
+  0813 w079, row 1.8, shape 0.55). Nearly all of its long marks run along the winding (`horiz` 0.92); in our known text at most
+  0.61 do. Check `horiz` and the CT under the window.
+- **Lone blobs and mesh borders** (0.2, fixed): two bright blobs at two heights, or the bright lines ink models draw along mesh
+  borders, used to read as rows. The row profile is now the median of four strips along the window, and a 0.5 mm margin along
+  the mesh edge is left out.
 
 ## Limits
 
 - It ranks; it does not prove. A high score means "look here".
 - Calibrated on a small number of known-text segments so far; thresholds will move as more are tested.
 - It inherits the ink models' blind spots: if the models cannot see the ink, neither can the score.
-- The row score's scale depends on the model set and on how much of the segment holds text; compare like with like.
+- The row score's scale depends on the model set, on how much of the segment holds text and on the band height; compare
+  like with like (`--band-mm`).
+- In 1 cm bands even known text is flagged only in about a third to a half of the strips at one depth; a null from short bands
+  is weaker evidence than one from tall bands.
 - At 9.36 µm no public model makes the letters of these scrolls legible; the score points at rows of strokes worth a closer
   look (more depths, more models, Hecate), not at readable text.
 

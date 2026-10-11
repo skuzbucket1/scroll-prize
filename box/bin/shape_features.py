@@ -1,6 +1,6 @@
 """Component shape features of the above-background marks of a mean-z ensemble, reading and blind side, for designing a
 stroke-shape score: area (mm2), length and width (ellipse axes from second moments, mm), elongation (length / width),
-peak and mean height above the local background (z), and edge contrast (mean inside minus mean in a 2-pixel ring outside).
+peak and mean height above the local background (z), edge contrast (mean inside minus mean in a 2-pixel ring outside), and orientation of the long axis (degrees from render x).
 Usage: shape_features.py <cases.json> <out.npz>
 cases.json: [{"label": .., "maps": dir, "name": .., "models": "a,b", "depth": d, "um": 9.362, "render": zarr or null,
               "crop": [y0, y1, x0, x1] or null}, ...]"""
@@ -14,7 +14,7 @@ def features(D, valid, um, thr):
     m = (D > thr) & valid
     n, lab, st, _ = cv2.connectedComponentsWithStats(m.astype(np.uint8), connectivity=8)
     if n <= 1:
-        return np.zeros((0, 8), np.float32)
+        return np.zeros((0, 9), np.float32)
     ys, xs = np.nonzero(lab); l = lab[ys, xs]; d = D[ys, xs].astype(np.float64)
     m00 = np.bincount(l, minlength=n).astype(np.float64); m00[0] = 1
     cx, cy = np.bincount(l, xs, n) / m00, np.bincount(l, ys, n) / m00
@@ -30,7 +30,8 @@ def features(D, valid, um, thr):
     rl = cv2.dilate(lab.astype(np.float32), np.ones((5, 5), np.uint8)).astype(np.int64)[ring]
     rmean = np.bincount(rl, D[ring].astype(np.float64), n) / np.maximum(np.bincount(rl, minlength=n), 1)
     area = st[:, cv2.CC_STAT_AREA] * (um / 1000) ** 2
-    f = np.stack([area, length, width, length / width, peak, mean, mean - rmean, st[:, cv2.CC_STAT_AREA]], 1)[1:]
+    angle = np.degrees(0.5 * np.arctan2(2 * sxy, sxx - syy))          # major axis vs render x (along the winding, along text lines)
+    f = np.stack([area, length, width, length / width, peak, mean, mean - rmean, st[:, cv2.CC_STAT_AREA], angle], 1)[1:]
     return f.astype(np.float32)
 
 

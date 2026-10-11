@@ -82,10 +82,10 @@ def flag(nm: int, aR: float, aB: float, wR: float, wB: float, a) -> bool:
 # v0.2 LOOK thresholds per model set (the row score's scale depends on the models), set from known text cut into strips as
 # tall as our ~1 cm search bands and from the null windings; see the README. Other model sets use V02_DEFAULT.
 V02_THRESHOLDS = {
-    frozenset({'dnative', 'ink9-42', 'ink9-43'}): dict(row=1.3, shape=0.38),
-    frozenset({'readerv2', 'd9v4c'}): dict(row=1.5, shape=0.38),
+    frozenset({'dnative', 'ink9-42', 'ink9-43'}): dict(row=1.2, shape=0.35),   # 0 of 194 PHerc0191 null winding-depths pass
+    frozenset({'readerv2', 'd9v4c'}): dict(row=1.5, shape=0.42),               # 1 of 100 PHerc0813 null winding-depths passes
 }
-V02_DEFAULT = dict(row=1.5, shape=0.38)
+V02_DEFAULT = dict(row=1.5, shape=0.42)
 _SHORT = {v: k for k, v in MODELS.items()}
 
 
@@ -157,16 +157,17 @@ def cmd_rank(a) -> int:
         top = (j.get('top_reading_tiles') or [{}])[0]
         rR, rB = (r.get('row') or {}).get('score'), (b.get('row') or {}).get('score')
         sR, sB = (r.get('shape') or {}).get('score'), (b.get('shape') or {}).get('score')
+        hz = (r.get('shape') or {}).get('horiz')
         rows.append(dict(name=j['name'], depth=j['depth'], models=nm, area_R=aR, area_B=aB, diff=aR - aB, window_R=wR,
                          window_B=wB, top_read_y=top.get('read_y', ''), top_read_x=top.get('read_x', ''),
                          top_damage=top.get('damage', ''), flag='LOOK' if flag(nm, aR, aB, wR, wB, a) else '',
                          file=f, row_R=rR if rR is not None else '', row_B=rB if rB is not None else '',
-                         shape_R=sR if sR is not None else '', shape_B=sB if sB is not None else '',
+                         shape_R=sR if sR is not None else '', shape_B=sB if sB is not None else '', streak=hz if hz is not None else '',
                          recur='', flag_v02='LOOK' if flag_v02(j['models'], rR, rB, sR, a) else '', _prof=r.get('profile')))
     recurrence(rows)
     rows.sort(key=lambda x: -(x['area_R'] if not math.isnan(x['area_R']) else -1))
     cols = ['name', 'depth', 'models', 'area_R', 'area_B', 'diff', 'window_R', 'window_B', 'top_read_y', 'top_read_x',
-            'top_damage', 'flag', 'file', 'row_R', 'row_B', 'recur', 'flag_v02', 'shape_R', 'shape_B']
+            'top_damage', 'flag', 'file', 'row_R', 'row_B', 'recur', 'flag_v02', 'shape_R', 'shape_B', 'streak']
     out = open(a.out, 'w') if a.out else sys.stdout
     print('\t'.join(cols), file=out)
     for x in rows:

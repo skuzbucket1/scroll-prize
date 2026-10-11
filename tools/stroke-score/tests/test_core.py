@@ -157,6 +157,7 @@ def test_shape_score_strokes_beat_blobs():
     valid = np.ones(shape, bool)
     s_bars, s_dots = shape_score(bars, valid, P, [0, 0]), shape_score(dots, valid, P, [0, 0])
     assert s_bars['score'] > 0.8 and s_dots['score'] < 0.1 and s_dots['marks'] >= 8
+    assert 0.3 < s_bars['horiz'] < 0.7                                    # half upright strokes, half bars
     assert shape_score(dots, valid, P, None)['score'] is None
 
 
@@ -173,7 +174,7 @@ def test_recurrence_and_v02_flag():
     three, rd = ['dnative', 'hybrid_3d2d-seed42', 'hybrid_3d2d-seed43'], ['readerv2', 'd9v4c']
     assert flag_v02(three, 1.8, 0.4, 0.45, a) and flag_v02(rd, 2.2, 0.6, 0.5, a)    # rows of strokes
     assert not flag_v02(rd, 2.6, 0.5, 0.21, a)                                     # rows of blobs (PHerc0813 w094)
-    assert not flag_v02(three, 1.2, 0.3, 0.5, a)                                   # weak rows
+    assert not flag_v02(three, 1.1, 0.3, 0.5, a)                                   # weak rows
     assert not flag_v02(three, 2.0, 1.5, 0.5, a)                                   # rows on both sides
     assert not flag_v02(['readerv2'], 5.0, 0.1, 0.9, a)                            # single model
     assert flag_v02(three, 1.8, 0.4, 0.3, SimpleNamespace(row_thr=None, shape_thr=0.25, row_ratio=1.8))   # override

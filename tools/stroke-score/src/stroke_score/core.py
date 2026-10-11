@@ -18,6 +18,8 @@ Added in 0.2:
               profile of above-background pixel density (median of `row_strips` strips along the window, so lone blobs do
               not count) is autocorrelated at line-spacing lags `row_lag_mm`; the score is max(autocorrelation) x profile
               SD x 100. Known text scores 2.0-4.5 on the reading side, depending on the model set; see the README.
+  shape       in the row window, the share of the marks' area in long thin marks (>= `shape_len_mm`, >= `shape_elong` x as
+              long as wide): letters are strokes, crack edges and damage are blobs.
   profile     the reading/blind stroke density along the winding in `profile_bins` bins of the segment length, so that
               `stroke-score rank` can tell a pattern that repeats on neighbouring windings (sheet structure) from one
               that does not (text columns do not line up turn after turn).
@@ -222,9 +224,11 @@ def shape_score(E: np.ndarray, valid: np.ndarray, p: Params, at: list | None) ->
     (pixels more than `thr` above the masked background, components of at least `shape_amin_mm2`) that lies in marks at
     least `shape_len_mm` long and `shape_elong` times as long as wide (ellipse axes from the second moments). Letter
     strokes are long and thin; the bright marks crack edges and damage give are mostly round blobs. The valid area loses
-    `row_edge_mm` along its edge, as for the row score. Returns dict(score, marks); score None with too few marks."""
+    `row_edge_mm` along its edge, as for the row score. Also reports `horiz`, the share of the long marks' area lying within
+    30 degrees of the winding direction (render x): streaks along a crack edge are long but nearly all horizontal (PHerc0813
+    false alarms 0.80-1.00; known text at most 0.61). Returns dict(score, marks, horiz); score None with too few marks."""
     if at is None:
-        return dict(score=None, marks=0)
+        return dict(score=None, marks=0, horiz=None)
     px = 1000.0 / p.um
     y0, x0 = at; y1, x1 = y0 + int(p.row_window_mm[1] * px), x0 + int(p.row_window_mm[0] * px)
     r = int(round(p.row_edge_mm * px))
@@ -241,9 +245,11 @@ def shape_score(E: np.ndarray, valid: np.ndarray, p: Params, at: list | None) ->
     length, width = 4 * np.sqrt(half + disc) / px, 4 * np.sqrt(np.maximum(half - disc, 0)) / px + 1 / px
     big = area * (p.um / 1000.) ** 2 >= p.shape_amin_mm2; big[0] = False
     if big.sum() < p.shape_min_marks:
-        return dict(score=None, marks=int(big.sum()))
+        return dict(score=None, marks=int(big.sum()), horiz=None)
     stroke = big & (length >= p.shape_len_mm) & (length >= p.shape_elong * width)
-    return dict(score=float(area[stroke].sum() / area[big].sum()), marks=int(big.sum()))
+    angle = np.abs(np.degrees(0.5 * np.arctan2(2 * sxy, sxx - syy)))
+    horiz = float(area[stroke & (angle < 30)].sum() / area[stroke].sum()) if stroke.any() else None
+    return dict(score=float(area[stroke].sum() / area[big].sum()), marks=int(big.sum()), horiz=horiz)
 
 
 def along_profile(S: np.ndarray, use: np.ndarray, p: Params) -> list:

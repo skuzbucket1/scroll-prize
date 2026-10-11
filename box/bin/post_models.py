@@ -32,7 +32,8 @@ for d in depths:
     res_all['depths'][d] = {'area_R': R['stroke_frac'], 'area_B': B['stroke_frac'], 'window_R': R['window']['max'], 'window_B': B['window']['max'],
                             'row_R': rr, 'row_B': rb, 'row_at': rw, 'row_at_B': B['row']['at'], 'top_tiles': sc['top_reading_tiles'][:5],
                             'profile_R': R['profile'], 'profile_B': B['profile'], 'row_strips': p.row_strips,
-                            'shape_R': R['shape']['score'], 'shape_B': B['shape']['score'], 'shape_marks': R['shape']['marks']}
+                            'shape_R': R['shape']['score'], 'shape_B': B['shape']['score'], 'shape_marks': R['shape']['marks'],
+                            'streak_R': R['shape']['horiz']}
     lo, hi = np.percentile(E['reading'][valid], [1, 99.7])
     for side in ('reading', 'blind'):
         im = np.clip((E[side] - lo) / (hi - lo) * 255, 0, 255).astype(np.uint8); im[~valid] = 0

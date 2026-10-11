@@ -12,14 +12,14 @@ for f in sorted(glob.glob(os.path.join(a.post, '**', '*__post.json'), recursive=
     j = json.load(open(f))
     for d, r in j['depths'].items():
         rows.append(dict(name=j['name'], depth=int(d), models=len(j['models']), mlist=j['models'], set=','.join(j['models']), tool=j.get('tool', '0.1'),
-                         shape_R=r.get('shape_R'), shape_B=r.get('shape_B'),
+                         shape_R=r.get('shape_R'), shape_B=r.get('shape_B'), streak=r.get('streak_R'),
                          row_R=r['row_R'], row_B=r['row_B'], area_R=r['area_R'], area_B=r['area_B'], window_R=r['window_R'],
                          window_B=r['window_B'], row_at=r.get('row_at'), recur='', _prof=r.get('profile_R')))
 recurrence(rows)
 for x in rows:
     x['flag_v02'] = 'LOOK' if flag_v02(x['mlist'], x['row_R'], x['row_B'], x['shape_R'], a) else ''
 rows.sort(key=lambda x: -x['row_R'])
-cols = ['name', 'depth', 'set', 'row_R', 'row_B', 'shape_R', 'shape_B', 'recur', 'flag_v02', 'area_R', 'area_B', 'window_R', 'window_B', 'row_at', 'tool']
+cols = ['name', 'depth', 'set', 'row_R', 'row_B', 'shape_R', 'shape_B', 'streak', 'recur', 'flag_v02', 'area_R', 'area_B', 'window_R', 'window_B', 'row_at', 'tool']
 print('\t'.join(cols))
 for x in rows:
     print('\t'.join(f'{x[c]:.4f}' if isinstance(x[c], float) else ('' if x[c] is None else str(x[c])) for c in cols))
