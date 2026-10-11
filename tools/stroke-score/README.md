@@ -4,8 +4,10 @@ Ranks Herculaneum-scroll segments by how much **stroke-shaped ink** an ink-model
 sheet, compared with the **blind side of the same sheet**. It is a triage tool: it tells you which windings, depths and
 4 cm² windows deserve a human look, and it writes review crops so that look is quick. It does not decide what is text.
 
-Status: version 0.1, October 2026. Calibrated on one known-text segment (the PHerc. 0343 First Letters winner) and 109
-windings of PHerc. 0191 with no text found. More known-text segments are being tested; see Validation.
+Status: version 0.2 (draft), October 2026. Tested on three known-text segments at two scan types (PHerc. 0343 at 8.64 µm;
+PHerc. 0139 and PHerc. 0841 at 9.36 µm) and several hundred windings of PHerc. 0191 and PHerc. 0813 with no text found.
+New in 0.2: a row score, a neighbour-recurrence check, any set of ink models, and a known-text control kit. The thresholds
+of the 0.2 rule are being set from the null windings; see Validation.
 
 ## Why
 
@@ -35,6 +37,62 @@ For one 66-layer render at one depth:
 `stroke-score rank` puts many results in one table and flags rows with three or more models as **LOOK** when any of:
 `area_R ≥ 0.015`, `R - B ≥ 0.010`, or `window ≥ 0.030` (three models; `0.035` for four) and at least twice the blind
 side's best window. All thresholds are options.
+
+
+## New in 0.2: why, and what changed
+
+**What we learned from known text at 9.36 µm.** We ran our full render-and-ink path on two public segments with known
+text scanned like our target scrolls (9.36 µm, 113 keV): PHerc. 0139 w047, which none of ink_9um, dense_native or
+Reader v2 trained on, and PHerc. 0841 auto_grown 20260221022814, from a scroll none of them trained on, with human ink labels.
+Our maps reproduce the published AUCs on both, so the render and ink steps are sound. The 0.1 score sees the PHerc. 0139 text
+the way it saw the PHerc. 0343 letters. On PHerc. 0841 it does not: the text covers a small part of the segment and that
+scroll's blind side is noisy, so reading − blind stays at +0.001 to +0.009 and the best window at 1.0–1.4× the blind side.
+The 0.1 rule would not have flagged it, although the letters are plain by eye at row scale. Text at this resolution shows as
+**rows** of short strokes, not as isolated marks.
+
+**Row score.** In the best 2 × 2.4 cm window, the across-row profile of above-background pixel density is autocorrelated at
+line-spacing lags (3.5–8 mm); the score is max(autocorrelation) × profile SD × 100. Reported for both sides
+(`sides.<side>.row`).
+
+**Neighbour recurrence.** Each result now carries the stroke density along the winding (`sides.<side>.profile`, 200 bins of the
+segment length). `stroke-score rank` correlates a winding's reading-side profile with its neighbours (w−2..w+2, same depth and
+model set) and reports the best correlation (`recur`). A bright zone that repeats turn after turn is sheet structure (a crack
+zone, a fold); text columns do not line up turn after turn. Example: on PHerc. 0813, w088 scored strongest of eight windings
+(reading − blind +0.021, window 2.9× the blind side), and w086, w087, w089 and w090 show the same reading-side zone.
+
+**Any model set.** `--models auto` (the default) uses every model whose maps are present (ink_9um seeds 42/43, dense_native,
+Hecate, Reader v2, d9v4C, in run_ink.sh naming); `--map-list` takes any naming.
+
+**The 0.2 rule** (`flag_v02` in `stroke-score rank`): LOOK when the reading-side row score is at least `--row-thr` and at least
+`--row-ratio` times the blind side's. The 0.1 rule is still reported (`flag`). The row score's scale depends on the model set,
+so the thresholds are set per model set from the known-text controls and the null windings (table below).
+
+## Known-text control kit
+
+```
+stroke-score control list                              # the controls, their CT volume and mesh URLs, who trained on what
+stroke-score control fetch 0841-ag2814 controls/       # mesh + reference map + human labels (no CT; < 70 MB)
+# render the mesh as a 66-layer surface volume from the public CT, run your model(s) on it (see `stroke-score control -h`)
+stroke-score control eval --control 0841-ag2814 --fetched controls/ --maps maps/ --depth 1 --models auto
+```
+
+`eval` prints AUC and correlation against the reference (human labels inside the supervision mask for PHerc. 0841; a
+2.4 µm / 78 keV ink prediction for PHerc. 0139), after finding the few-pixel shift between the 2.4 µm and 9 µm meshes, plus
+the stroke and row scores, for each model and the ensemble, reading and blind side. It is a quick way to check a new ink model,
+or a new render setting, on known text at the scan type the eligible scrolls were scanned at, scored exactly as a search winding.
+
+| control | models | AUC (reading) | stroke area R / B | window R / B | row R / B |
+|---|---|---|---|---|---|
+| PHerc. 0139 w047, d −1 | ink_9um ×2 + dense_native | 0.84 | 0.039 / 0.006 | 0.077 / 0.018 | 1.66 / 0.58 |
+| same, d +1 | same | 0.83 | 0.040 / 0.008 | 0.071 / 0.019 | 1.86 / 0.51 |
+| same, d +1 | Reader v2 | 0.85 | 0.034 / 0.009 | 0.068 / 0.028 | 2.80 / 1.11 |
+| PHerc. 0841 auto_grown, d −1 | ink_9um ×2 + dense_native | 0.78 | 0.031 / 0.022 | 0.050 / 0.035 | 3.12 / 1.25 |
+| same, d +1 | same | 0.78 | 0.027 / 0.022 | 0.044 / 0.039 | 3.27 / 1.12 |
+| same, d −1 | Reader v2 + d9v4C | 0.83 | 0.035 / 0.028 | 0.056 / 0.044 | 4.06 / 1.00 |
+| same, d +1 | same | 0.82 | 0.038 / 0.029 | 0.055 / 0.049 | 4.23 / 1.16 |
+
+Published AUCs for comparison: PHerc. 0139 w047 dense_native 0.898, Reader v2 0.893, ink_9um 0.778 (78 keV reference);
+PHerc. 0841 dense_native 0.800, Reader v2 0.824, d9v4C 0.830, ink_9um 0.733 (human labels).
 
 ## Install
 
@@ -104,18 +162,28 @@ Every flag so far on PHerc. 0191 was one of these, found by looking at the revie
 - **Tiny meshes** (under about 1 cm²): too small for stable statistics; no window fits.
 - **Quiet blind sides**: the old reading/blind *ratio* exploded when the blind side was unusually quiet; this is why
   the tool ranks by absolute measures.
+- **Zones that repeat turn after turn** (0.2): a crack zone or fold that crosses several windings lights up the same place on
+  neighbouring windings, sometimes strongly on the reading side only (PHerc. 0813 w088: reading − blind +0.021). The `recur`
+  column catches it; look at the neighbours before believing a single winding.
 
 ## Limits
 
 - It ranks; it does not prove. A high score means "look here".
 - Calibrated on a small number of known-text segments so far; thresholds will move as more are tested.
 - It inherits the ink models' blind spots: if the models cannot see the ink, neither can the score.
+- The row score's scale depends on the model set and on how much of the segment holds text; compare like with like.
+- At 9.36 µm no public model makes the letters of these scrolls legible; the score points at rows of strokes worth a closer
+  look (more depths, more models, Hecate), not at readable text.
 
 ## Credits
 
 - Erwin Nieuwlaar, PHerc. 0343 First Letters (github.com/Nieuwlaar/pherc343-first-letters, MIT): the four-model
   ensemble, its normalisation, the 66-layer render convention and `run_ink.sh` naming.
-- Ink models: `ink_9um` (ScrollPrize/villa), `dense_native`, `scrollprize/hecate`.
+- Ink models: `ink_9um` (ScrollPrize/villa), `dense_native` (Erwin Nieuwlaar), `scrollprize/hecate`, Reader v2 (Domenico Russo,
+  DomRusso2/reader-v2, MIT), d9v4C (TAUIL-Abd-Elilah, 9um-reader-letter-shape, MIT).
+- Known-text controls: PHerc. 0139 w047 and its 78 keV reference map, PHerc. 0841 auto_grown 20260221022814 and its human ink
+  labels (Vesuvius Challenge / EduceLab, CC BY-NC 4.0). Which models trained on which segments: the Reader v2 and dense_native
+  model cards and the ink_9um dataset README.
 - Scan data: Vesuvius Challenge / EduceLab (CC BY-NC 4.0).
 
 ## Licence

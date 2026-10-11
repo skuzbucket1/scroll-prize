@@ -3,6 +3,7 @@
   stroke-score score --surface <name>.zarr --maps <dir> --um 9.362 --depth 1 --out <dir> [--models ...] [--crops 3]
   stroke-score score --surface <name>.zarr --map-list maps.json --um 8.64 --depth 1 --out <dir>
   stroke-score rank <result dirs or json files...> [--out ranking.tsv]
+  stroke-score control list | fetch <control> <dir> | eval --control <id> --fetched <dir> --maps <dir> --name <n> --depth d
 """
 from __future__ import annotations
 
@@ -11,14 +12,18 @@ import glob
 import json
 import math
 import os
+import re
 import sys
+
+import numpy as np
 
 from .core import Params, run
 
 # Short model names and the file names Erwin Nieuwlaar's run_ink.sh writes for them (66-layer render, depth d):
 #   villa models  <name>__<model>__L66s<25+d>[_reverse].tif      Hecate  <name>__hecate__L66zc<32.5+d>[_reverse].png
 # `_reverse` is the READING side (the text face), the plain file the BLIND side.
-MODELS = {'dnative': 'dnative', 'hecate': 'hecate', 'ink9-42': 'hybrid_3d2d-seed42', 'ink9-43': 'hybrid_3d2d-seed43'}
+MODELS = {'dnative': 'dnative', 'hecate': 'hecate', 'ink9-42': 'hybrid_3d2d-seed42', 'ink9-43': 'hybrid_3d2d-seed43',
+          'readerv2': 'readerv2', 'd9v4c': 'd9v4c'}
 
 
 def nieuwlaar_paths(maps_dir: str, name: str, model: str, d: int) -> tuple[str, str] | None:
@@ -34,7 +39,12 @@ def nieuwlaar_paths(maps_dir: str, name: str, model: str, d: int) -> tuple[str, 
 
 def cmd_score(a) -> int:
     name = a.name or os.path.basename(a.surface.rstrip('/'))[:-5]
-    want = [m for m in a.models.split(',') if m]
+    want = [m for m in a.models.split(',') if m and m != 'auto']
+    if a.models == 'auto' and not a.map_list:
+        want = [m for m in MODELS if nieuwlaar_paths(a.maps, name, m, a.depth)]
+        if not want:
+            print(f'no maps for {name} at d{a.depth:+d} in {a.maps}', file=sys.stderr)
+            return 2
     if a.map_list:
         spec = json.load(open(a.map_list))
         maps = {m: (spec[m]['reading'], spec[m]['blind']) for m in spec if not want or m in want}
@@ -56,7 +66,7 @@ def cmd_score(a) -> int:
     print(json.dumps(dict(name=name, depth=a.depth, models=r['models'],
                           area_R=s['reading']['stroke_frac'], area_B=s['blind']['stroke_frac'],
                           window_R=s['reading']['window'].get('max'), window_B=s['blind']['window'].get('max'),
-                          seconds=r['seconds'])))
+                          row_R=s['reading']['row']['score'], row_B=s['blind']['row']['score'], seconds=r['seconds'])))
     return 0
 
 
@@ -67,6 +77,46 @@ def flag(nm: int, aR: float, aB: float, wR: float, wB: float, a) -> bool:
         return False
     wt = a.window_thr4 if nm >= 4 else a.window_thr
     return aR >= a.area_thr or aR - aB >= a.diff_thr or (wR >= wt and wR >= a.window_ratio * wB)
+
+
+def flag_v02(nm: int, rR, rB, a) -> bool:
+    """v0.2 LOOK: the reading side shows rows (row_R >= row_thr) and clearly more than the blind side (>= row_ratio x).
+    Calibrated on three known-text segments (row_R 2.7-4.2) and the null windings (<= 1.5); see the README."""
+    if nm < 2 or rR is None or rB is None:
+        return False
+    return rR >= a.row_thr and rR >= a.row_ratio * rB
+
+
+def recurrence(rows: list) -> None:
+    """For each row with a profile, the best correlation of its reading-side profile with the same depth and model set on
+    neighbouring windings (w-2..w+2 of the same series, shifts of up to 3 bins). High values mean the pattern repeats turn
+    after turn: sheet structure, not text."""
+    series = {}
+    for x in rows:
+        m = re.search(r'(?<![A-Za-z0-9])w(\d{3})(?![0-9])', x['name'])
+        if not m or not x.get('_prof'):
+            continue
+        key = (x['name'][:m.start()] + 'w###' + x['name'][m.end():], x['depth'], x['models'])
+        series.setdefault(key, {})[int(m.group(1))] = x
+    for key, by_w in series.items():
+        for w, x in by_w.items():
+            p0 = np.array([np.nan if v is None else v for v in x['_prof']], float)
+            best = None
+            for dw in (-2, -1, 1, 2):
+                y = by_w.get(w + dw)
+                if not y:
+                    continue
+                p1 = np.array([np.nan if v is None else v for v in y['_prof']], float)
+                for sh in range(-3, 4):
+                    a_, b_ = (p0[sh:], p1[:len(p1) - sh]) if sh >= 0 else (p0[:sh], p1[-sh:])
+                    ok = np.isfinite(a_) & np.isfinite(b_)
+                    if ok.sum() < 20 or np.std(a_[ok]) == 0 or np.std(b_[ok]) == 0:
+                        continue
+                    r = float(np.corrcoef(a_[ok], b_[ok])[0, 1])
+                    best = r if best is None or r > best else best
+            x['recur'] = round(best, 3) if best is not None else ''
+    for x in rows:
+        x.pop('_prof', None)
 
 
 def cmd_rank(a) -> int:
@@ -84,18 +134,22 @@ def cmd_rank(a) -> int:
         wR, wB = r.get('window', {}).get('max', 0.0), b.get('window', {}).get('max', 0.0)
         nm = len(j['models'])
         top = (j.get('top_reading_tiles') or [{}])[0]
+        rR, rB = (r.get('row') or {}).get('score'), (b.get('row') or {}).get('score')
         rows.append(dict(name=j['name'], depth=j['depth'], models=nm, area_R=aR, area_B=aB, diff=aR - aB, window_R=wR,
                          window_B=wB, top_read_y=top.get('read_y', ''), top_read_x=top.get('read_x', ''),
                          top_damage=top.get('damage', ''), flag='LOOK' if flag(nm, aR, aB, wR, wB, a) else '',
-                         file=f))
+                         file=f, row_R=rR if rR is not None else '', row_B=rB if rB is not None else '',
+                         recur='', flag_v02='LOOK' if flag_v02(nm, rR, rB, a) else '', _prof=r.get('profile')))
+    recurrence(rows)
     rows.sort(key=lambda x: -(x['area_R'] if not math.isnan(x['area_R']) else -1))
     cols = ['name', 'depth', 'models', 'area_R', 'area_B', 'diff', 'window_R', 'window_B', 'top_read_y', 'top_read_x',
-            'top_damage', 'flag', 'file']
+            'top_damage', 'flag', 'file', 'row_R', 'row_B', 'recur', 'flag_v02']
     out = open(a.out, 'w') if a.out else sys.stdout
     print('\t'.join(cols), file=out)
     for x in rows:
         print('\t'.join(f'{x[c]:.4f}' if isinstance(x[c], float) else str(x[c]) for c in cols), file=out)
-    print(f'# {len(rows)} rows, {sum(1 for x in rows if x["flag"])} flagged LOOK', file=sys.stderr)
+    print(f'# {len(rows)} rows, {sum(1 for x in rows if x["flag"])} flagged LOOK (v0.1 rule), '
+          f'{sum(1 for x in rows if x["flag_v02"])} LOOK by the v0.2 row rule', file=sys.stderr)
     return 0
 
 
@@ -112,7 +166,7 @@ def main(argv=None) -> int:
     s.add_argument('--um', type=float, required=True, help='render pixel size in micrometres')
     s.add_argument('--depth', type=int, default=1)
     s.add_argument('--mid-layer', type=int, default=33, help='render layer of depth 0 (66-layer renders: 33)')
-    s.add_argument('--models', default='dnative,hecate,ink9-42,ink9-43')
+    s.add_argument('--models', default='auto', help='comma list (dnative,hecate,ink9-42,ink9-43,readerv2,d9v4c) or auto = every model found')
     s.add_argument('--tag', default='', help='suffix for the output names')
     s.add_argument('--thr', type=float, default=2.0)
     s.add_argument('--bg-mm', type=float, default=1.5)
@@ -138,7 +192,11 @@ def main(argv=None) -> int:
     r.add_argument('--window-thr', type=float, default=0.030, help='window line for three models')
     r.add_argument('--window-thr4', type=float, default=0.035, help='window line for four or more models')
     r.add_argument('--window-ratio', type=float, default=2.0)
+    r.add_argument('--row-thr', type=float, default=2.0, help='v0.2 rule: reading-side row score at least this')
+    r.add_argument('--row-ratio', type=float, default=1.8, help='v0.2 rule: and at least this times the blind side')
     r.set_defaults(fn=cmd_rank)
+    from . import control
+    control.add_parser(sub)
     a = ap.parse_args(argv)
     return a.fn(a)
 

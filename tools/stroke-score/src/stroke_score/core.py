@@ -12,6 +12,14 @@ Per side (reading and blind), at one depth:
   scores      area: share of the usable area covered by strokes; tiles: best `tile_mm` square; window: best
               `window_mm` square (20 mm = 4 cm2, the First Letters area), clamped to the surface height.
 The blind side is the null for the same sheet: text should raise the reading side only.
+
+Added in 0.2:
+  row score   text at 9 um shows as ROWS of strokes. In the best `row_window_mm` window (along x across y), the across-row
+              profile of above-background pixel density is autocorrelated at line-spacing lags `row_lag_mm`; the score is
+              max(autocorrelation) x profile SD x 100. Known text scores 2.7-4.2 on the reading side; see the README.
+  profile     the reading/blind stroke density along the winding in `profile_bins` bins of the segment length, so that
+              `stroke-score rank` can tell a pattern that repeats on neighbouring windings (sheet structure) from one
+              that does not (text columns do not line up turn after turn).
 """
 from __future__ import annotations
 
@@ -41,6 +49,10 @@ class Params:
     void_frac: float = 0.0         # optional CT-void mask (off by default; it over-masked the PHerc. 343 control)
     void_dilate_mm: float = 0.25
     top: int = 10
+    row_window_mm: tuple = (20.0, 24.0)   # row score window: along the winding x across it
+    row_lag_mm: tuple = (3.5, 8.0)        # Herculaneum line spacing is about 4.5-6 mm
+    row_ds: int = 4                       # row score computed at 1/row_ds resolution
+    profile_bins: int = 200
 
 
 def read_map(path: str, shape: tuple[int, int]) -> np.ndarray:
@@ -137,6 +149,51 @@ def summary(sc: np.ndarray) -> dict:
                 p95=float(np.percentile(v, 95)), median=float(np.median(v)), mean=float(v.mean()))
 
 
+def row_score(E: np.ndarray, valid: np.ndarray, p: Params) -> tuple[float, list | None]:
+    """Row structure of one ensemble side: best window of max autocorrelation (line-spacing lags) x SD x 100 of the
+    across-row density profile of pixels more than `thr` above the masked background (no size filter), at 1/row_ds scale.
+    Returns (score, [y, x] of the window's top-left corner in render pixels)."""
+    ds = max(1, int(p.row_ds)); H, W = E.shape
+    e = cv2.resize(np.where(valid, E, 0).astype(np.float32), (max(1, W // ds), max(1, H // ds)), interpolation=cv2.INTER_AREA)
+    v = cv2.resize(valid.astype(np.float32), (max(1, W // ds), max(1, H // ds)), interpolation=cv2.INTER_AREA) > 0.99
+    px = 1000.0 / p.um / ds; sig = p.bg_mm * px
+    num = cv2.GaussianBlur(np.where(v, e, 0), (0, 0), sig); den = cv2.GaussianBlur(v.astype(np.float32), (0, 0), sig) + 1e-6
+    S = (np.where(v, e - num / den, 0) > p.thr) & v
+    ww, wh = int(p.row_window_mm[0] * px), int(p.row_window_mm[1] * px)
+    lags = np.arange(int(p.row_lag_mm[0] * px), int(p.row_lag_mm[1] * px) + 1)
+    best, where = 0.0, None
+    for y0 in range(0, max(1, S.shape[0] - wh + 1), max(1, wh // 4)):
+        for x0 in range(0, max(1, S.shape[1] - ww + 1), max(1, ww // 4)):
+            vv = v[y0:y0 + wh, x0:x0 + ww]
+            if vv.mean() < 0.7:
+                continue
+            prof = S[y0:y0 + wh, x0:x0 + ww].sum(1) / np.maximum(vv.sum(1), 1)
+            q = prof - prof.mean(); d2 = float((q * q).sum())
+            if d2 <= 0:
+                continue
+            ac = [float((q[:-L] * q[L:]).sum()) / d2 for L in lags if L < len(q)]
+            if not ac:
+                continue
+            sc = max(max(ac), 0.0) * float(prof.std()) * 100
+            if sc > best:
+                best, where = sc, [int(y0 * ds), int(x0 * ds)]
+    return float(best), where
+
+
+def along_profile(S: np.ndarray, use: np.ndarray, p: Params) -> list:
+    """Stroke density along the winding (render x) in `profile_bins` equal bins of the segment length, smoothed over 2 mm."""
+    col_s, col_u = (S & use).sum(0).astype(np.float64), use.sum(0).astype(np.float64)
+    k = max(1, int(2.0 * 1000 / p.um)); ker = np.ones(k) / k
+    cs, cu = np.convolve(col_s, ker, 'same'), np.convolve(col_u, ker, 'same')
+    dens = np.where(cu > 0, cs / np.maximum(cu, 1e-9), np.nan)
+    edges = np.linspace(0, len(dens), p.profile_bins + 1).astype(int)
+    out = []
+    for a, b in zip(edges[:-1], edges[1:]):
+        seg = dens[a:max(b, a + 1)]; seg = seg[np.isfinite(seg)]
+        out.append(round(float(seg.mean()), 5) if seg.size else None)
+    return out
+
+
 def usable_area(valid: np.ndarray, p: Params, ct: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]:
     """Valid pixels minus the edge margin (and, if `void_frac` > 0, minus dark CT voids). Returns (use, void)."""
     # As in the original script, the void mask is always computed when the CT is given: with void_frac 0 it removes
@@ -187,8 +244,9 @@ def score(E: dict[str, np.ndarray], valid: np.ndarray, use: np.ndarray, p: Param
         sc, ys, xs, t = tile_scores(S, use, p, p.tile_mm, p.tile_min_frac)
         w2, _, _, _ = tile_scores(S, use, p, p.window_mm, p.window_min_frac)
         grids[label] = sc
+        rs, rw = row_score(E[label], valid, p)
         sides[label] = dict(components_kept=nk, components_all=nc, stroke_frac=float(S[use].mean()) if use.any() else float('nan'),
-                            tiles=summary(sc), window=summary(w2))
+                            tiles=summary(sc), window=summary(w2), row=dict(score=rs, at=rw), profile=along_profile(S, use, p))
     sc = grids['reading']
     order = np.argsort(np.where(np.isfinite(sc), -sc, np.inf), axis=None)
     top = []

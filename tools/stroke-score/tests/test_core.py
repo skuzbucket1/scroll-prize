@@ -79,3 +79,35 @@ def test_flag_rule():
     assert flag(3, 0.005, 0.004, 0.031, 0.010, a)               # window line, 3x the blind window
     assert not flag(3, 0.005, 0.004, 0.033, 0.029, a)           # window line but the blind side is as high
     assert not flag(4, 0.005, 0.004, 0.032, 0.010, a)           # four models need 0.035
+
+
+def test_row_score_rows_beat_scattered_marks():
+    from stroke_score.core import row_score
+    rng = np.random.default_rng(2)
+    shape = (2600, 2400)                                  # 26 x 24 mm at 10 um
+    rows_img = rng.normal(0, 0.3, shape).astype(np.float32)
+    scat_img = rng.normal(0, 0.3, shape).astype(np.float32)
+    centres_rows = [(300 + 520 * i, 150 + 110 * k) for i in range(5) for k in range(20)]   # 5 lines, 5.2 mm apart
+    centres_scat = [(int(rng.integers(100, 2500)), int(rng.integers(100, 2300))) for _ in range(len(centres_rows))]
+    rows_img[blobs(shape, centres_rows, 25)] += 5.0
+    scat_img[blobs(shape, centres_scat, 25)] += 5.0
+    valid = np.ones(shape, bool)
+    r_rows, _ = row_score(rows_img, valid, P)
+    r_scat, _ = row_score(scat_img, valid, P)
+    assert r_rows > 2.0 and r_rows > 3 * r_scat
+
+
+def test_recurrence_and_v02_flag():
+    from stroke_score.cli import flag_v02, recurrence
+    base = list(np.sin(np.linspace(0, 6, 200)) + 1.5)
+    other = list(np.random.default_rng(3).random(200))
+    rows = [dict(name='fitA_w010', depth=0, models=2, _prof=base), dict(name='fitA_w011', depth=0, models=2, _prof=base),
+            dict(name='fitB_w010', depth=0, models=2, _prof=base), dict(name='fitB_w011', depth=0, models=2, _prof=other)]
+    recurrence(rows)
+    assert rows[0]['recur'] > 0.99 and rows[1]['recur'] > 0.99    # the same pattern on neighbouring windings
+    assert rows[2]['recur'] < 0.5                                   # nothing in common
+    a = SimpleNamespace(row_thr=2.0, row_ratio=1.8)
+    assert flag_v02(3, 2.8, 0.6, a) and flag_v02(2, 4.2, 1.1, a)   # the known-text controls
+    assert not flag_v02(3, 1.45, 0.54, a)                           # best null so far
+    assert not flag_v02(3, 2.2, 1.5, a)                             # rows on both sides
+    assert not flag_v02(1, 5.0, 0.1, a)                             # single model
