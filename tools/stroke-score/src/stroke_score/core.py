@@ -52,6 +52,8 @@ class Params:
     row_window_mm: tuple = (20.0, 24.0)   # row score window: along the winding x across it
     row_lag_mm: tuple = (3.5, 8.0)        # Herculaneum line spacing is about 4.5-6 mm
     row_ds: int = 4                       # row score computed at 1/row_ds resolution
+    row_min_cov: float = 0.5              # profile rows (across the window) with less valid area are left out
+    row_min_mm: float = 12.0              # ... and a window needs this much of usable rows (two lines at 6 mm)
     profile_bins: int = 200
 
 
@@ -82,6 +84,18 @@ def read_map(path: str, shape: tuple[int, int]) -> np.ndarray:
         if a.shape != tuple(shape):
             raise ValueError(f'{path}: shape {a.shape} != surface {tuple(shape)}')
     return np.ascontiguousarray(a, dtype=np.float32)
+
+
+def map_footprint(path: str, shape: tuple[int, int]) -> np.ndarray:
+    """Where an ink map has data (raw value > 0). Not read_map(...) > 0: the display stretch zeroes everything below 64."""
+    if path.lower().endswith('.png'):
+        a = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+        if a is None:
+            raise IOError(path)
+        a = (a[..., 0] if a.ndim == 3 else a) > 0
+        return cv2.resize(a.astype(np.uint8), (shape[1], shape[0]), interpolation=cv2.INTER_NEAREST) > 0 if a.shape != tuple(shape) else a
+    import tifffile
+    return tifffile.imread(path) > 0
 
 
 def valid_mask(surface: str, cache: str | None = None) -> np.ndarray:
@@ -152,6 +166,8 @@ def summary(sc: np.ndarray) -> dict:
 def row_score(E: np.ndarray, valid: np.ndarray, p: Params) -> tuple[float, list | None]:
     """Row structure of one ensemble side: best window of max autocorrelation (line-spacing lags) x SD x 100 of the
     across-row density profile of pixels more than `thr` above the masked background (no size filter), at 1/row_ds scale.
+    Profile rows less than `row_min_cov` valid are left out (zero after centring), so that gaps in the mesh and bands
+    shorter than the window do not disqualify a window; it needs `row_min_mm` of usable rows.
     Returns (score, [y, x] of the window's top-left corner in render pixels)."""
     ds = max(1, int(p.row_ds)); H, W = E.shape
     e = cv2.resize(np.where(valid, E, 0).astype(np.float32), (max(1, W // ds), max(1, H // ds)), interpolation=cv2.INTER_AREA)
@@ -165,16 +181,17 @@ def row_score(E: np.ndarray, valid: np.ndarray, p: Params) -> tuple[float, list 
     for y0 in range(0, max(1, S.shape[0] - wh + 1), max(1, wh // 4)):
         for x0 in range(0, max(1, S.shape[1] - ww + 1), max(1, ww // 4)):
             vv = v[y0:y0 + wh, x0:x0 + ww]
-            if vv.mean() < 0.7:
+            good = vv.mean(1) >= p.row_min_cov
+            if good.sum() < p.row_min_mm * px:
                 continue
             prof = S[y0:y0 + wh, x0:x0 + ww].sum(1) / np.maximum(vv.sum(1), 1)
-            q = prof - prof.mean(); d2 = float((q * q).sum())
+            q = np.where(good, prof - prof[good].mean(), 0.0); d2 = float((q * q).sum())
             if d2 <= 0:
                 continue
             ac = [float((q[:-L] * q[L:]).sum()) / d2 for L in lags if L < len(q)]
             if not ac:
                 continue
-            sc = max(max(ac), 0.0) * float(prof.std()) * 100
+            sc = max(max(ac), 0.0) * float(prof[good].std()) * 100
             if sc > best:
                 best, where = sc, [int(y0 * ds), int(x0 * ds)]
     return float(best), where

@@ -47,8 +47,10 @@ Reader v2 trained on, and PHerc. 0841 auto_grown 20260221022814, from a scroll n
 Our maps reproduce the published AUCs on both, so the render and ink steps are sound. The 0.1 score sees the PHerc. 0139 text
 the way it saw the PHerc. 0343 letters. On PHerc. 0841 it does not: the text covers a small part of the segment and that
 scroll's blind side is noisy, so reading − blind stays at +0.001 to +0.009 and the best window at 1.0–1.4× the blind side.
-The 0.1 rule would not have flagged it, although the letters are plain by eye at row scale. Text at this resolution shows as
-**rows** of short strokes, not as isolated marks.
+The 0.1 rule flags it only on the stroke-area line, which damaged windings cross too (60 of 186 PHerc. 0191 winding-depths
+crossed the 0.1 rule, mostly on that line alone; none of the 25 we checked by eye showed writing); the two lines that compare
+the reading side with the blind side stay quiet, although the
+letters are plain by eye at row scale. Text at this resolution shows as **rows** of short strokes, not as isolated marks.
 
 **Row score.** In the best 2 × 2.4 cm window, the across-row profile of above-background pixel density is autocorrelated at
 line-spacing lags (3.5–8 mm); the score is max(autocorrelation) × profile SD × 100. Reported for both sides
@@ -83,13 +85,16 @@ or a new render setting, on known text at the scan type the eligible scrolls wer
 
 | control | models | AUC (reading) | stroke area R / B | window R / B | row R / B |
 |---|---|---|---|---|---|
-| PHerc. 0139 w047, d −1 | ink_9um ×2 + dense_native | 0.84 | 0.039 / 0.006 | 0.077 / 0.018 | 1.66 / 0.58 |
-| same, d +1 | same | 0.83 | 0.040 / 0.008 | 0.071 / 0.019 | 1.86 / 0.51 |
-| same, d +1 | Reader v2 | 0.85 | 0.034 / 0.009 | 0.068 / 0.028 | 2.80 / 1.11 |
-| PHerc. 0841 auto_grown, d −1 | ink_9um ×2 + dense_native | 0.78 | 0.031 / 0.022 | 0.050 / 0.035 | 3.12 / 1.25 |
-| same, d +1 | same | 0.78 | 0.027 / 0.022 | 0.044 / 0.039 | 3.27 / 1.12 |
-| same, d −1 | Reader v2 + d9v4C | 0.83 | 0.035 / 0.028 | 0.056 / 0.044 | 4.06 / 1.00 |
-| same, d +1 | same | 0.82 | 0.038 / 0.029 | 0.055 / 0.049 | 4.23 / 1.16 |
+| PHerc. 0139 w047, d −1 | ink_9um ×2 + dense_native | 0.84 | 0.030 / 0.006 | 0.054 / 0.016 | 2.86 / 0.65 |
+| same, d +1 | same | 0.83 | 0.029 / 0.007 | 0.056 / 0.017 | 2.77 / 0.58 |
+| same, d +1 | Reader v2 | 0.85 | 0.029 / 0.008 | 0.058 / 0.029 | 3.13 / 1.02 |
+| PHerc. 0841 auto_grown, d −1 | ink_9um ×2 + dense_native | 0.78 | 0.029 / 0.020 | 0.048 / 0.034 | 3.10 / 1.31 |
+| same, d +1 | same | 0.78 | 0.026 / 0.020 | 0.043 / 0.038 | 3.24 / 1.24 |
+| same, d −1 | Reader v2 + d9v4C | 0.83 | 0.034 / 0.027 | 0.055 / 0.043 | 4.07 / 1.10 |
+| same, d +1 | same | 0.82 | 0.037 / 0.027 | 0.054 / 0.048 | 4.24 / 1.17 |
+
+Computed with `stroke-score control eval` without `--surface` (scored area = where every model's map has data); AUC is the
+ensemble's, reading side.
 
 Published AUCs for comparison: PHerc. 0139 w047 dense_native 0.898, Reader v2 0.893, ink_9um 0.778 (78 keV reference);
 PHerc. 0841 dense_native 0.800, Reader v2 0.824, d9v4C 0.830, ink_9um 0.733 (human labels).

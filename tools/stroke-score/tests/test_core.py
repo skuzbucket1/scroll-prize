@@ -97,6 +97,21 @@ def test_row_score_rows_beat_scattered_marks():
     assert r_rows > 2.0 and r_rows > 3 * r_scat
 
 
+def test_row_score_short_gappy_band_still_scored():
+    from stroke_score.core import row_score
+    rng = np.random.default_rng(4)
+    shape = (2000, 2400)                                  # a 2 cm band: shorter than the 2.4 cm window
+    img = rng.normal(0, 0.3, shape).astype(np.float32)
+    img[blobs(shape, [(250 + 520 * i, 150 + 110 * k) for i in range(4) for k in range(20)], 25)] += 5.0
+    valid = np.ones(shape, bool)
+    valid[:, 1300:] = False                               # a mesh gap: best window coverage about 0.6
+    valid[1900:] = False
+    r, at = row_score(img, valid, P)
+    assert r > 2.0 and at is not None
+    valid[:, 300:] = False                                # too little left for a window: no score, no crash
+    assert row_score(img, valid, P) == (0.0, None)
+
+
 def test_recurrence_and_v02_flag():
     from stroke_score.cli import flag_v02, recurrence
     base = list(np.sin(np.linspace(0, 6, 200)) + 1.5)

@@ -104,7 +104,7 @@ def _shift(a: np.ndarray, dy: int, dx: int) -> np.ndarray:
 
 def evaluate(a) -> dict:
     from .cli import MODELS, nieuwlaar_paths
-    from .core import Params, ensemble, read_map, score, usable_area, valid_mask
+    from .core import Params, ensemble, map_footprint, read_map, score, usable_area, valid_mask
     c = CONTROLS[a.control]; d = os.path.join(a.fetched, a.control); name = a.name or c['name']
     models = [m for m in MODELS if nieuwlaar_paths(a.maps, name, m, a.depth)] if a.models == 'auto' else a.models.split(',')
     maps = {m: nieuwlaar_paths(a.maps, name, m, a.depth) for m in models}
@@ -119,7 +119,7 @@ def evaluate(a) -> dict:
     else:
         valid = np.ones((H, W), bool)
         for pr, pb in maps.values():
-            valid &= (read_map(pr, (H, W)) > 0) | (read_map(pb, (H, W)) > 0)
+            valid &= map_footprint(pr, (H, W)) | map_footprint(pb, (H, W))
     H, W = valid.shape
     use, _ = usable_area(valid, p)
     E, _ = ensemble(maps, valid)

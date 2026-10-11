@@ -1,17 +1,16 @@
 """On a fleet worker (or anywhere): scores and small previews for ink maps of ANY model set, without the per-model naming
 rules of stroke_score.py / ensemble_maps.py. Per depth: mean-z ensemble (reading-side normalisation), the stroke score
-(tools/stroke-score core, standard parameters; CT void mask if the render is given), the row-structure score (rowness.py),
-and JPEG previews (reading ensemble, blind ensemble with the same stretch, CT layer 33+d), half resolution, render orientation.
+(tools/stroke-score core, standard parameters; CT void mask if the render is given) with the 0.2 row score and the
+along-winding stroke profiles (for the neighbour-recurrence check in `stroke-score rank`), and JPEG previews (reading ensemble, blind ensemble with the same stretch, CT layer 33+d), half resolution, render orientation.
 Usage: post_models.py <maps dir> <name> <um> <models,comma> <depths,comma> <out dir> [render.zarr]"""
 import json, os, sys, numpy as np, tifffile, cv2
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, 'stroke-score-src'))
 # (HERE itself is NOT put on sys.path: bin/ also holds the older research script stroke_score.py, which would shadow the package)
+import stroke_score
 from stroke_score.core import Params, ensemble, usable_area, score
-import importlib.util
-spec = importlib.util.spec_from_file_location('rowness_mod', os.path.join(HERE, 'rowness_lib.py')); rl = importlib.util.module_from_spec(spec); spec.loader.exec_module(rl)
 mdir, name, um, models, depths, out = sys.argv[1], sys.argv[2], float(sys.argv[3]), sys.argv[4].split(','), [int(x) for x in sys.argv[5].split(',')], sys.argv[6]
 Z = sys.argv[7] if len(sys.argv) > 7 else None
-os.makedirs(out, exist_ok=True); p = Params(um=um); res_all = {'name': name, 'models': models, 'um': um, 'depths': {}}
+os.makedirs(out, exist_ok=True); p = Params(um=um); res_all = {'name': name, 'models': models, 'um': um, 'tool': stroke_score.__version__, 'depths': {}}
 zarr_a = None
 if Z and os.path.isdir(os.path.join(Z, '0')):
     import zarr; zarr_a = zarr.open(Z, mode='r')['0']
@@ -26,9 +25,10 @@ for d in depths:
     use, _ = usable_area(valid, p, ct) if ct is not None else usable_area(valid, p)
     sc, _ = score(E, valid, use, p)
     R, B = sc['sides']['reading'], sc['sides']['blind']
-    rr, rw = rl.row_score(E['reading'], valid, um); rb, _ = rl.row_score(E['blind'], valid, um)
+    rr, rw, rb = R['row']['score'], R['row']['at'], B['row']['score']
     res_all['depths'][d] = {'area_R': R['stroke_frac'], 'area_B': B['stroke_frac'], 'window_R': R['window']['max'], 'window_B': B['window']['max'],
-                            'row_R': rr, 'row_B': rb, 'row_at': rw, 'top_tiles': sc['top_reading_tiles'][:5]}
+                            'row_R': rr, 'row_B': rb, 'row_at': rw, 'row_at_B': B['row']['at'], 'top_tiles': sc['top_reading_tiles'][:5],
+                            'profile_R': R['profile'], 'profile_B': B['profile']}
     lo, hi = np.percentile(E['reading'][valid], [1, 99.7])
     for side in ('reading', 'blind'):
         im = np.clip((E[side] - lo) / (hi - lo) * 255, 0, 255).astype(np.uint8); im[~valid] = 0
