@@ -4,7 +4,8 @@ rules of stroke_score.py / ensemble_maps.py. Per depth: mean-z ensemble (reading
 and JPEG previews (reading ensemble, blind ensemble with the same stretch, CT layer 33+d), half resolution, render orientation.
 Usage: post_models.py <maps dir> <name> <um> <models,comma> <depths,comma> <out dir> [render.zarr]"""
 import json, os, sys, numpy as np, tifffile, cv2
-HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, 'stroke-score-src')); sys.path.insert(0, HERE)
+HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, 'stroke-score-src'))
+# (HERE itself is NOT put on sys.path: bin/ also holds the older research script stroke_score.py, which would shadow the package)
 from stroke_score.core import Params, ensemble, usable_area, score
 import importlib.util
 spec = importlib.util.spec_from_file_location('rowness_mod', os.path.join(HERE, 'rowness_lib.py')); rl = importlib.util.module_from_spec(spec); spec.loader.exec_module(rl)
