@@ -88,13 +88,13 @@ or a new render setting, on known text at the scan type the eligible scrolls wer
 
 | control | models | AUC (reading) | stroke area R / B | window R / B | row R / B |
 |---|---|---|---|---|---|
-| PHerc. 0139 w047, d −1 | ink_9um ×2 + dense_native | 0.84 | 0.030 / 0.006 | 0.054 / 0.016 | 2.86 / 0.65 |
-| same, d +1 | same | 0.83 | 0.029 / 0.007 | 0.056 / 0.017 | 2.77 / 0.58 |
-| same, d +1 | Reader v2 | 0.85 | 0.029 / 0.008 | 0.058 / 0.029 | 3.13 / 1.02 |
-| PHerc. 0841 auto_grown, d −1 | ink_9um ×2 + dense_native | 0.78 | 0.029 / 0.020 | 0.048 / 0.034 | 3.10 / 1.31 |
-| same, d +1 | same | 0.78 | 0.026 / 0.020 | 0.043 / 0.038 | 3.24 / 1.24 |
-| same, d −1 | Reader v2 + d9v4C | 0.83 | 0.034 / 0.027 | 0.055 / 0.043 | 4.07 / 1.10 |
-| same, d +1 | same | 0.82 | 0.037 / 0.027 | 0.054 / 0.048 | 4.24 / 1.17 |
+| PHerc. 0139 w047, d −1 | ink_9um ×2 + dense_native | 0.84 | 0.030 / 0.006 | 0.054 / 0.016 | 2.67 / 0.23 |
+| same, d +1 | same | 0.83 | 0.029 / 0.007 | 0.056 / 0.017 | 2.64 / 0.35 |
+| same, d +1 | Reader v2 | 0.85 | 0.029 / 0.008 | 0.058 / 0.029 | 3.54 / 0.83 |
+| PHerc. 0841 auto_grown, d −1 | ink_9um ×2 + dense_native | 0.78 | 0.029 / 0.020 | 0.048 / 0.034 | 2.64 / 1.08 |
+| same, d +1 | same | 0.78 | 0.026 / 0.020 | 0.043 / 0.038 | 2.66 / 0.96 |
+| same, d −1 | Reader v2 + d9v4C | 0.83 | 0.034 / 0.027 | 0.055 / 0.043 | 4.11 / 0.58 |
+| same, d +1 | same | 0.82 | 0.037 / 0.027 | 0.054 / 0.048 | 4.11 / 0.78 |
 
 Computed with `stroke-score control eval` without `--surface` (scored area = where every model's map has data); AUC is the
 ensemble's, reading side.

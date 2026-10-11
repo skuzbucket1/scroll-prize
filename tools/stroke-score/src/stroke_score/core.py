@@ -15,8 +15,9 @@ The blind side is the null for the same sheet: text should raise the reading sid
 
 Added in 0.2:
   row score   text at 9 um shows as ROWS of strokes. In the best `row_window_mm` window (along x across y), the across-row
-              profile of above-background pixel density is autocorrelated at line-spacing lags `row_lag_mm`; the score is
-              max(autocorrelation) x profile SD x 100. Known text scores 2.7-4.2 on the reading side; see the README.
+              profile of above-background pixel density (median of `row_strips` strips along the window, so lone blobs do
+              not count) is autocorrelated at line-spacing lags `row_lag_mm`; the score is max(autocorrelation) x profile
+              SD x 100. Known text scores 2.0-4.5 on the reading side, depending on the model set; see the README.
   profile     the reading/blind stroke density along the winding in `profile_bins` bins of the segment length, so that
               `stroke-score rank` can tell a pattern that repeats on neighbouring windings (sheet structure) from one
               that does not (text columns do not line up turn after turn).
