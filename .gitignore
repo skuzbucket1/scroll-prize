@@ -11,6 +11,9 @@ docs/img/*.tif
 *.tif
 .DS_Store
 __pycache__/
+# Python build output (pip install leaves these next to the tools)
+build/
+*.egg-info/
 aws/spot.env
 aws/state/
 scratch/
