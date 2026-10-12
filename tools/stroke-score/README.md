@@ -82,20 +82,27 @@ zone, a fold); text columns do not line up turn after turn. Example: on PHerc. 0
 **Any model set.** `--models auto` (the default) uses every model whose maps are present (ink_9um seeds 42/43, dense_native,
 Hecate, Reader v2, d9v4C, in run_ink.sh naming); `--map-list` takes any naming.
 
-**The 0.2 rule** (`flag_v02` in `stroke-score rank`): LOOK when the reading side shows rows of strokes: row score at least the
-model set's row threshold and at least 1.8 × the blind side's (`--row-ratio`), and shape score at least the model set's shape
-threshold. The 0.1 rule is still reported (`flag`). The row score's scale depends on the model set, so the thresholds are set per
-model set (`V02_THRESHOLDS` in cli.py; `--row-thr` and `--shape-thr` override):
+**The 0.2 rule** (`flag_v02` in `stroke-score rank`): LOOK when either line fires (two or more models):
 
-| model set | row ≥ | shape ≥ | null winding-depths passing | known-text 1 cm strips passing |
-|---|---|---|---|---|
-| ink_9um ×2 + dense_native | 1.2 | 0.35 | 0 of 194 (PHerc. 0191 clear band) | PHerc. 0139: 39–57 %; PHerc. 0841: 38 % |
-| Reader v2 + d9v4C | 1.5 | 0.42 | 1 of 100 (PHerc. 0813 outer band) | PHerc. 0841: 31–46 % |
-| any other set | 1.5 | 0.42 | not calibrated | not calibrated |
+- **rows of strokes**: row score at least the model set's row threshold and at least 1.8 × the blind side's (`--row-ratio`),
+  and shape score at least the model set's shape threshold. This catches clear text in rows (PHerc. 0841).
+- **contrast**: stroke area reading − blind at least the model set's contrast threshold. This catches faint, sparse letters
+  that do not form scoreable rows: the PHerc. 0343 First Letters segment scores +0.030 to +0.036 here, with row scores of
+  only 0.4–1.4.
 
-Read the last column as the chance that one 1 cm band through text, at one depth, gets flagged: the rule is a triage line set so
-that our null windings almost never cross it, not a detector. The one PHerc. 0813 null that passes (w079, depth 0) is a crack
-streak (Known false alarms).
+The 0.1 rule is still reported (`flag`). Its area-only line fired on damaged windings and is not part of 0.2. Thresholds
+are per model set (`V02_THRESHOLDS` in cli.py; `--row-thr`, `--shape-thr`, `--contrast-thr` override):
+
+| model set | row ≥ | shape ≥ | contrast ≥ | null winding-depths flagged | known text |
+|---|---|---|---|---|---|
+| ink_9um ×2 + dense_native | 1.2 | 0.35 | 0.020 | 0 of 194 (PHerc. 0191 clear band; R − B max +0.016 over 400) | PHerc. 0343: LOOK (contrast +0.030); 1 cm strips of PHerc. 0139: 39–57 %, PHerc. 0841: 38 % |
+| + Hecate (four models) | 1.5 | 0.42 | 0.020 | 0 of 57 (R − B max +0.010) | PHerc. 0343: LOOK (+0.031) |
+| Reader v2 + d9v4C | 1.5 | 0.42 | 0.025 | 1 of 100 (PHerc. 0813 w079, a crack streak), 3 of 194 PHerc. 0191 (checked by eye: a recurring zone and fibre streaks); R − B max +0.024 | PHerc. 0343: LOOK (+0.034); 1 cm strips of PHerc. 0841: 31–46 % |
+| any other set (e.g. all six) | 1.5 | 0.42 | 0.025 | not calibrated | PHerc. 0343 (six models): LOOK (+0.036) |
+
+Read the strip percentages as the chance that one 1 cm band through clear text, at one depth, is flagged by the rows line.
+The rule is a triage line set so that our null windings almost never cross it, not a detector. Every flag gets a look by
+eye next to the CT (Known false alarms).
 
 ## Known-text control kit
 

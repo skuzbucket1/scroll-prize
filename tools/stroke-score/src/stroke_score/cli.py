@@ -181,7 +181,7 @@ def cmd_rank(a) -> int:
     for x in rows:
         print('\t'.join(f'{x[c]:.4f}' if isinstance(x[c], float) else str(x[c]) for c in cols), file=out)
     print(f'# {len(rows)} rows, {sum(1 for x in rows if x["flag"])} flagged LOOK (v0.1 rule), '
-          f'{sum(1 for x in rows if x["flag_v02"])} LOOK by the v0.2 rule (rows of strokes)', file=sys.stderr)
+          f'{sum(1 for x in rows if x["flag_v02"])} LOOK by the v0.2 rule (rows of strokes or reading-blind contrast)', file=sys.stderr)
     return 0
 
 
