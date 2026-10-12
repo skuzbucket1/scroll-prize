@@ -48,7 +48,7 @@
    "id": "C",
    "title": "The stroke score as a tool",
    "status": "active",
-   "summary": "stroke-score 0.2: rows of strokes or reading-blind contrast, calibrated per model set on three known-text segments (including the PHerc. 0343 First Letters segment) and 671 null winding-depths; shape and streak checks; a known-text control kit that scores known text the way a search band sees it. Release with a write-up before Oct 31."
+   "summary": "stroke-score 0.2: rows of strokes or reading-blind contrast, calibrated per model set on three known-text segments (including the PHerc. 0343 First Letters segment) and 771 null winding-depths; shape and streak checks; a known-text control kit that scores known text the way a search band sees it. Release with a write-up before Oct 31."
   },
   {
    "id": "D",
@@ -2374,7 +2374,7 @@
    "title": "A stroke-shape score: are the marks long thin strokes or round blobs?",
    "question": "Letters are made of strokes; crack edges and damage give blobs. Can a number capture what the eye used to reject the PHerc0813 candidates?",
    "technique": "For every above-background mark: area, length and width from its second moments, elongation, peak height and edge contrast, measured on known text (PHerc0139, PHerc0841), on their blind sides, on the PHerc0813 candidates and on null windings of both scrolls. The score is the share of the marks' area in marks at least 1 mm long and twice as long as wide, measured in the window where the row score found rows.",
-   "result": "Calibrated. The share of the marks' area in long thin marks separates known text (median 0.42–0.63 per 1 cm strip) from crack rows on PHerc0813 (0.15–0.21). The 0.2 rule flags rows of strokes (row and shape thresholds per model set) or a strong reading-blind contrast (added after the PHerc. 0343 check). On 671 null winding-depths it flags four, all checked by eye. A \"streak\" column flags the one remaining false-alarm type, crack edges drawn as long streaks along the winding.",
+   "result": "Calibrated. The share of the marks' area in long thin marks separates known text (median 0.42–0.63 per 1 cm strip) from crack rows on PHerc0813 (0.15–0.21). The 0.2 rule flags rows of strokes (row and shape thresholds per model set) or a strong reading-blind contrast (added after the PHerc. 0343 check). On 771 null winding-depths it flags four, all checked by eye. A \"streak\" column flags the one remaining false-alarm type, crack edges drawn as long streaks along the winding.",
    "verdict": "done",
    "metrics": {},
    "images": [],
@@ -2451,7 +2451,7 @@
    "title": "Would stroke-score 0.2 have found the only First Letters win? At first not; now with every model set",
    "question": "Erwin Nieuwlaar's PHerc. 0343 segment is the one First Letters win so far. Does our final 0.2 rule flag it?",
    "technique": "stroke-score 0.2 on his 66-layer render (8.64 µm) at depth +1 with four model sets: his three and four models, Reader v2 + d9v4C, and all six. Also in strips as tall as our 1 cm search bands.",
-   "result": "With the rows-of-strokes rule alone it did not: his letters are faint and sparse and form weak rows (row score 0.4–1.4), and his mesh is too ragged (62 % of the frame has data) to score in 1 cm strips. What it does show strongly is more stroke area on the reading side than on the blind side of the same sheet: +0.030 to +0.036, while our 671 null winding-depths never pass +0.016 with three or four models and +0.024 with Reader v2 + d9v4C. So the 0.2 rule now has two lines, rows of strokes or reading-blind contrast, with thresholds per model set; the PHerc. 0343 segment is flagged with every model set, and the false alarms on our nulls stay the same few windings we had already checked by eye (image).",
+   "result": "With the rows-of-strokes rule alone it did not: his letters are faint and sparse and form weak rows (row score 0.4–1.4), and his mesh is too ragged (62 % of the frame has data) to score in 1 cm strips. What it does show strongly is more stroke area on the reading side than on the blind side of the same sheet: +0.030 to +0.036, while our 771 null winding-depths never pass +0.016 with three or four models and +0.024 with Reader v2 + d9v4C. So the 0.2 rule now has two lines, rows of strokes or reading-blind contrast, with thresholds per model set; the PHerc. 0343 segment is flagged with every model set, and the false alarms on our nulls stay the same few windings we had already checked by eye (image).",
    "verdict": "done",
    "metrics": {},
    "images": [
@@ -2608,7 +2608,7 @@
   {
    "kind": "tooling",
    "title": "Test the search rule on the one real win",
-   "text": "Calibrated on clear known text, our row rule would have missed the PHerc. 0343 First Letters letters (faint, sparse, weak rows). A second line, reading-blind contrast, catches them with no new false alarms on 671 null winding-depths."
+   "text": "Calibrated on clear known text, our row rule would have missed the PHerc. 0343 First Letters letters (faint, sparse, weak rows). A second line, reading-blind contrast, catches them with no new false alarms on 771 null winding-depths."
   }
  ],
  "next": [
