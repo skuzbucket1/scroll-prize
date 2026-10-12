@@ -14,7 +14,7 @@ Each entry: what was run, what happened, evidence, candidate fix. Candidates for
 - #7 shell confidence: villa #2021, awaiting review.
 - #8 lasagna import: merged as villa #2019.
 - #9 resident-pool staleness: still on main; waiting for villa #1883, which touches the same code.
-- #10 winding scale: still on main. Measured today: 23–26 voxels per node on PHerc0813 and PHerc0191 fits with a 20-voxel step; unflattened renders 16–22 % small, areas 34–43 % low. Fix on branch `fix/winding-scale` (notes/pr-winding-scale.md); PR to villa next.
+- #10 winding scale: still on main. Measured today: 23–26 voxels per node on PHerc0813 and PHerc0191 fits with a 20-voxel step; unflattened renders 16–22 % small, areas 34–43 % low. In review as villa #2056 (branch `fix/winding-scale`, body in notes/pr-winding-scale.md).
 
 ## 1. `build_from_src_debian.sh` installs binaries that cannot start: `libvolcomp.so` missing from the `vc_runtime` component
 

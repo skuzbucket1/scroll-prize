@@ -2659,8 +2659,8 @@
   },
   {
    "kind": "tooling",
-   "title": "#10 Raw spiral windings render 16–22 % too small",
-   "text": "Meshes declare a 20-voxel grid, but on our current PHerc0813 and PHerc0191 fits the nodes are 23–26 voxels apart (26–30 on an earlier fit), so unflattened renders come out 16–22 % small and the recorded areas 34–43 % low; flattened meshes are right. Fix ready: write the measured spacing as the scale and the area in 3D (skuzbucket1/villa, branch fix/winding-scale); PR to villa next."
+   "title": "#10 Raw spiral windings render 16–22 % too small (in review, villa #2056)",
+   "text": "Meshes declare a 20-voxel grid, but on our current PHerc0813 and PHerc0191 fits the nodes are 23–26 voxels apart (26–30 on an earlier fit), so unflattened renders come out 16–22 % small and the recorded areas 34–43 % low; flattened meshes are right. Fix in review as villa #2056: write the measured spacing as the scale and the area in 3D."
   },
   {
    "kind": "tooling",
