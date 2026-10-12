@@ -107,10 +107,23 @@ def map_footprint(path: str, shape: tuple[int, int]) -> np.ndarray:
     return tifffile.imread(path) > 0
 
 
-def valid_mask(surface: str, cache: str | None = None) -> np.ndarray:
-    """Pixels whose CT is > 0 in every layer of the render (array "0" of a zarr group, shape (layers, H, W))."""
+def fill_specks(valid: np.ndarray, max_px: int = 100) -> np.ndarray:
+    """Count isolated invalid specks (invalid components of at most `max_px` pixels) as valid. A single CT voxel of 0 in one
+    of the 66 layers makes a pixel invalid; some renders have tens of thousands of such specks, and the row score's edge
+    margin (`row_edge_mm`) grew each into a 1 mm hole, which zeroed the row score of whole segments (stroke-score 0.2.0)."""
+    if max_px <= 0:
+        return valid
+    n, lab, st, _ = cv2.connectedComponentsWithStats((~valid).astype(np.uint8), connectivity=8)
+    small = st[:, cv2.CC_STAT_AREA] <= max_px
+    small[0] = False                                   # label 0 is the valid area itself
+    return valid | small[lab]
+
+
+def valid_mask(surface: str, cache: str | None = None, speck_px: int = 100) -> np.ndarray:
+    """Pixels whose CT is > 0 in every layer of the render (array "0" of a zarr group, shape (layers, H, W)), with isolated
+    invalid specks of at most `speck_px` pixels counted as valid (`fill_specks`)."""
     if cache and os.path.isfile(cache):
-        return cv2.imread(cache, cv2.IMREAD_UNCHANGED) > 0
+        return fill_specks(cv2.imread(cache, cv2.IMREAD_UNCHANGED) > 0, speck_px)
     import zarr
     st = zarr.open_group(surface, mode='r')['0']
     H, W = int(st.shape[1]), int(st.shape[2])
@@ -119,7 +132,7 @@ def valid_mask(surface: str, cache: str | None = None) -> np.ndarray:
         v[r0:r0 + 128] = (np.asarray(st[:, r0:r0 + 128, :]) > 0).all(0)
     if cache:
         cv2.imwrite(cache, v.astype(np.uint8) * 255)
-    return v
+    return fill_specks(v, speck_px)
 
 
 def masked_blur(E: np.ndarray, valid: np.ndarray, sigma_px: float) -> np.ndarray:

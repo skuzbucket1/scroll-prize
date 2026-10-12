@@ -183,3 +183,20 @@ def test_recurrence_and_v02_flag():
     assert flag_v02(three, 0.44, 0.0, 0.23, a, 0.0354, 0.0057)                   # same, three models
     assert not flag_v02(three, 0.9, 0.3, 0.2, a, 0.030, 0.0144)                  # best three-model null contrast (+0.016)
     assert not flag_v02(rd, 1.0, 0.5, 0.2, a, 0.0315, 0.0073)                    # best Reader v2 + d9v4C null contrast (+0.024)
+
+
+def test_specks_do_not_zero_the_row_score():
+    """Two rows of strokes in a 1 cm band stay scoreable when the valid area is peppered with single invalid pixels."""
+    from stroke_score.core import Params, fill_specks, row_score
+    p = Params(um=9.362); px = 1000 / p.um
+    H, W = int(10.3 * px), int(30 * px)
+    E = np.zeros((H, W), np.float32)
+    for yc in (0.3, 0.75):                              # two text rows
+        y = int(yc * H)
+        for x in range(0, W - 30, 40):
+            E[y - 20:y + 20, x:x + 6] = 6.0             # vertical strokes
+    valid = np.ones((H, W), bool)
+    rng = np.random.default_rng(0)
+    valid[rng.integers(0, H, 4000), rng.integers(0, W, 4000)] = False
+    assert row_score(E, valid, p)[0] < 0.2              # the specks zero it ...
+    assert row_score(E, fill_specks(valid), p)[0] > 1.0  # ... filled, the rows are found
