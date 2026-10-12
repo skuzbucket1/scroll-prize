@@ -2,7 +2,9 @@
 and the null windings, every item scored with the same stroke-score functions (ensemble normalised within the item, as
 for a search winding). Per item: the 0.2 features (row, shape, stroke-area contrast), the 0.2 flag, a 0.2 margin (the
 rule's two lines as multiples of their thresholds; >= 1 means flagged) and plain-ink baselines: mean ink probability,
-share of pixels >= 0.5, the reading - blind difference of that share, and the 0.1 stroke area.
+share of pixels >= 0.5, the reading - blind difference of that share, and the 0.1 stroke area. Items with a render get the
+CT void mask of `stroke-score score`. The plain-ink baselines are not normalised per render, so across scrolls they mostly
+measure the scroll (the report prints how well each score separates the two text-free scrolls).
 Usage: triage_eval.py items <config.json> <out.jsonl> [--workers 3]
        triage_eval.py report <out.jsonl> [--top 20]
 config: {"set": name, "models": [short names], "band_mm": 10.3, "step_mm": 2.0,
@@ -18,13 +20,14 @@ from stroke_score.core import Params, map_footprint, read_map, score, usable_are
 A = SimpleNamespace(row_ratio=1.8, row_thr=None, shape_thr=None, contrast_thr=None)
 
 
-def features(R, B, valid, p, models):
-    """R, B: model -> reading / blind map (0..1) on the item's grid. The ensemble is normalised as in core.ensemble."""
+def features(R, B, valid, p, models, ct=None):
+    """R, B: model -> reading / blind map (0..1) on the item's grid. The ensemble is normalised as in core.ensemble; with
+    `ct` (the mean of the three CT layers around the depth, as core.run uses) dark CT voids are left out as in `stroke-score score`."""
     E = {'reading': np.zeros(valid.shape, np.float32), 'blind': np.zeros(valid.shape, np.float32)}
     for m in R:
         v = R[m][valid].astype(np.float64); mu, sd = float(v.mean()), float(v.std()) + 1e-6
         E['reading'] += (R[m] - mu) / sd / len(R); E['blind'] += (B[m] - mu) / sd / len(R)
-    use, _ = usable_area(valid, p)
+    use, _ = usable_area(valid, p, ct) if ct is not None else usable_area(valid, p)
     if use.sum() < 1000:
         return None
     res, _ = score(E, valid, use, p); sR, sB = res['sides']['reading'], res['sides']['blind']
@@ -53,6 +56,12 @@ def load(maps_dir, name, models, d, shape=None):
     return R, B, fp
 
 
+def ct_layers(render, d):
+    """The mean of render layers 32+d..34+d, the CT that core.run (stroke-score score) builds its void mask from."""
+    import zarr
+    return np.asarray(zarr.open(render, mode='r')['0'][33 + d - 1:33 + d + 2]).astype(np.float32).mean(0)
+
+
 def job(args):
     kind, cfg, it, d, w = args
     models = cfg['models']; p = Params(um=it['um']); out = []
@@ -63,25 +72,26 @@ def job(args):
             return out
         R, B, fp = L; render = os.path.isdir(os.path.join(z, '0'))
         valid = fp & valid_mask(z) if render else fp
-        x = features(R, B, valid, p, models)
+        x = features(R, B, valid, p, models, ct_layers(z, d) if render else None)
         if x:
-            out.append(dict(kind='null', label=it['label'], name=w, depth=d, render_mask=render, **x))
+            out.append(dict(kind='null', label=it['label'], name=w, depth=d, render_mask=render, ct_mask=render, **x))
         return out
     L = load(it['maps'], it['name'], models, d)
     if L is None:
         return out
     R, B, fp = L; valid = fp & valid_mask(it['surface']) if it.get('surface') else fp
+    ct = ct_layers(it['surface'], d) if it.get('surface') else None
     if it.get('whole'):
-        x = features(R, B, valid, p, models)
-        return [dict(kind='known', label=it['label'], name=it['name'], depth=d, strip=None, **x)] if x else []
+        x = features(R, B, valid, p, models, ct)
+        return [dict(kind='known', label=it['label'], name=it['name'], depth=d, strip=None, ct_mask=ct is not None, **x)] if x else []
     h, st = int(cfg['band_mm'] * 1000 / it['um']), int(cfg['step_mm'] * 1000 / it['um'])
     for i, y0 in enumerate(range(0, valid.shape[0] - h + 1, st)):
         sl = slice(y0, y0 + h)
         if valid[sl].mean() < 0.3:
             continue
-        x = features({m: R[m][sl] for m in R}, {m: B[m][sl] for m in B}, valid[sl], p, models)
+        x = features({m: R[m][sl] for m in R}, {m: B[m][sl] for m in B}, valid[sl], p, models, ct[sl] if ct is not None else None)
         if x:
-            out.append(dict(kind='known', label=it['label'], name=it['name'], depth=d, strip=i, y0=y0, **x))
+            out.append(dict(kind='known', label=it['label'], name=it['name'], depth=d, strip=i, y0=y0, ct_mask=ct is not None, **x))
     return out
 
 
@@ -134,6 +144,11 @@ def report(path, top):
         print(f'\n=== model set {s}: {len(N)} null winding-depths ({sum(x["render_mask"] for x in N)} with the render mask), '
               f'{len(K)} known-text items')
         nf = sum(x['flag'] for x in N)
+        labs = sorted({x['label'] for x in N})
+        if len(labs) == 2:
+            a_, b_ = ([x for x in N if x['label'] == l] for l in labs)
+            print(f'  scroll effect (nulls of {labs[0]} vs {labs[1]}, both without text; 0.5 = none): ' +
+                  ', '.join(f"{nm.split(':')[-1].strip()} {auc([f(x) for x in a_], [f(x) for x in b_]):.2f}" for nm, f in SCORES.items()))
         print(f'nulls flagged by 0.2: {nf} ({", ".join(f"{x["label"]} {x["name"]} d{x["depth"]:+d}" for x in N if x["flag"])})')
         for lab in sorted({x['label'] for x in K}):
             for d in sorted({x['depth'] for x in K if x['label'] == lab}):
