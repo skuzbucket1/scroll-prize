@@ -4,7 +4,7 @@
   "subtitle": "Research log: every run, what it asked, what it showed, what changed",
   "goal": "Find 10 legible letters in a 4 cm² area of an unopened Herculaneum scroll (First Letters, $50k/scroll), and surface evidence-backed tooling fixes along the way (Progress Prizes).",
   "scroll": "PHerc0191 — 9.362 µm / 113 keV scan 20250821151635, crushed cross-section, full public data (CT, Lasagna normals, tracks, surface predictions). Its clearest band has had the three-model check (A3/A4). PHerc0813 is the second scroll: its band z 12,000–13,000 passes the geometry gate. After the 9 µm known-text control, both are being re-checked with two newer ink models.",
-  "hardware": "Home: 4-GPU Linux box (2× RTX 3060 12 GB, RTX 3060 Ti 8 GB; GTX 1660 SUPER unusable), i3-9100 4 cores, 1 TB NVMe, 300 Mbps WAN. This is the default. Cloud GPUs (AWS) only when it is cost-effective.",
+  "hardware": "Home: Linux box with 2× RTX 3060 12 GB and an RTX 3060 Ti 8 GB (the GTX 1660 SUPER was removed), i3-9100 4 cores (the bottleneck), 2 × 1 TB NVMe, 300 Mbps WAN. This is the default. Cloud GPUs (AWS) only when it is cost-effective.",
   "fit_chart_note": "All fits are PHerc0191 band z 9,000–10,000 except the last: PHerc0191's clear band z 11,200–12,200 (different tracks, so compare with care). The PHerc0813 fit (0.557 / 0.182) is described in its own run and kept off this chart because it is a different scroll."
  },
  "phases": [
@@ -48,7 +48,7 @@
    "id": "C",
    "title": "The stroke score as a tool",
    "status": "active",
-   "summary": "stroke-score 0.1 packaged (MIT). stroke-score 0.2 in progress: a row score calibrated at the height of our search bands, a stroke-shape score, an automatic neighbour-recurrence check, and a known-text control kit that scores known text the way a search band would see it; thresholds per model set. Release before the Oct 31 deadline."
+   "summary": "stroke-score 0.2: rows of strokes or reading-blind contrast, calibrated per model set on three known-text segments (including the PHerc. 0343 First Letters segment) and 671 null winding-depths; shape and streak checks; a known-text control kit that scores known text the way a search band sees it. Release with a write-up before Oct 31."
   },
   {
    "id": "D",
@@ -60,7 +60,7 @@
    "id": "E",
    "title": "Brute force: more surface to search",
    "status": "active",
-   "summary": "Inference is cheap; geometry is the bottleneck. Two ways to put horsepower on it: tile whole scrolls with taller bands (the proven pipeline), and an ink-first search that finds ink from the published surface predictions without meshes (prototype on known text)."
+   "summary": "Inference is cheap; geometry is the bottleneck. Tall bands tile PHerc0813 (2.3 cm fit passed its gate; next band fitting), and ink first (tools/ink-first) finds known text without a mesh at about 80 % of the mesh pipeline on an unseen scroll."
   },
   {
    "id": "P4",
@@ -2370,15 +2370,15 @@
    "date": "2026-10-11",
    "phase": "C",
    "track": "Tooling",
-   "short": "Stroke shape score (calibrating)",
+   "short": "Stroke shape + the 0.2 rule",
    "title": "A stroke-shape score: are the marks long thin strokes or round blobs?",
    "question": "Letters are made of strokes; crack edges and damage give blobs. Can a number capture what the eye used to reject the PHerc0813 candidates?",
    "technique": "For every above-background mark: area, length and width from its second moments, elongation, peak height and edge contrast, measured on known text (PHerc0139, PHerc0841), on their blind sides, on the PHerc0813 candidates and on null windings of both scrolls. The score is the share of the marks' area in marks at least 1 mm long and twice as long as wide, measured in the window where the row score found rows.",
-   "result": "Edge contrast and peak height do not separate text from crack blobs. Elongation does: on the reading side of known text 0.40–0.67 of the mark area is in long thin marks (median per 1 cm strip 0.42–0.63), against 0.16–0.35 for the PHerc0813 candidates and 0.06–0.20 for PHerc0191 nulls. Calibrating the combined rule (rows of strokes) on the band-height strips and all null windings now.",
-   "verdict": "running",
+   "result": "Calibrated. The share of the marks' area in long thin marks separates known text (median 0.42–0.63 per 1 cm strip) from crack rows on PHerc0813 (0.15–0.21). The 0.2 rule flags rows of strokes (row and shape thresholds per model set) or a strong reading-blind contrast (added after the PHerc. 0343 check). On 671 null winding-depths it flags four, all checked by eye. A \"streak\" column flags the one remaining false-alarm type, crack edges drawn as long streaks along the winding.",
+   "verdict": "done",
    "metrics": {},
    "images": [],
-   "learned": "Pending: thresholds per model set, then the rule goes into stroke-score 0.2.",
+   "learned": "Letters are strokes; cracks are blobs and streaks. Shape is what told them apart by eye, and now it is a number.",
    "credits": [
     "vc-known-text",
     "readerv2",
@@ -2393,11 +2393,11 @@
    "date": "2026-10-11",
    "phase": "E",
    "track": "Geometry",
-   "short": "Tall band PHerc0813 (running)",
+   "short": "Tall bands on PHerc0813 (running)",
    "title": "Brute force, option 1: tile the scroll with taller bands, starting with 2.3 cm on PHerc0813",
    "question": "We have searched about 1 cm of PHerc0813's 15.9 cm. Does our fit recipe hold on a band 2.5 times taller, so that we can tile the whole scroll, and do taller windings make text easier to see?",
    "technique": "The exp-30k spiral-fit recipe on z 10,500–13,000 (2,500 slices, 2.3 cm), which contains our best 1 cm band (z 12,000–13,000, satisfied tracks 0.557 / 0.182); then snap, flatten, render, ink with Reader v2 + d9v4C and score with stroke-score 0.2. Gate after the snap: fit metrics and QA before anything is inked. On the home GPUs.",
-   "result": "Running: inputs mirrored, fit queued for the first free 12 GB GPU.",
+   "result": "The 2.3 cm fit held: satisfied track points 0.526 and tracks 0.160 (the 1 cm band: 0.557 and 0.182), 88 % of mesh points on a predicted sheet after the snap. All 76 windings (w040–w115) are flattened and rendered; Reader v2 + d9v4C inking is about two-thirds done. The next band, z 8,000–10,500, is fitting.",
    "verdict": "running",
    "metrics": {},
    "images": [],
@@ -2416,15 +2416,21 @@
    "date": "2026-10-11",
    "phase": "E",
    "track": "Ink & render",
-   "short": "Ink first (prototype)",
+   "short": "Ink first: 80 % of the mesh pipeline, no mesh",
    "title": "Brute force, option 3: find ink first, build geometry only where it is",
    "question": "Our search only covers surface where we have good meshes, and meshes are the slow, fragile part. Can the ink models find text from the published surface predictions alone, with no mesh, so that compute can sweep a whole scroll?",
    "technique": "On a 1.2 × 1.2 cm block of PHerc0139 around the densest known text of w047: points on the published recto-surface prediction about every 0.9 mm; at each point the normal from the local shape of the prediction; a 66-layer patch cut along that normal like a tiny render; all patches tiled into one mosaic and inked with the same models and scripts as our renders; the results mapped back to 3D and onto w047, where the text is known.",
-   "result": "Running: block downloaded (CT and both surface predictions), patches being cut.",
-   "verdict": "running",
+   "result": "Tested on two known-text segments with models that never trained on them (we first used d9v4C on PHerc0139 w047, which it was trained on; those runs are discarded, see notes/inkfirst-2026-10-11.md). On PHerc0841, a scroll none of the 9 µm models saw, against human ink labels: AUC 0.76 and correlation 0.45 at 49 % coverage (z +5 against 72 shifted labels), against 0.81 and 0.57 for our full mesh pipeline on the same pixels, so about 80 % of its signal with no geometry work. On PHerc0139 w047 (Reader v2): correlation 0.33 at 50 % coverage, 0.28 at 74 % with blending (z +6). As a coarse ink-density map (0.5 mm cells) 0.59 on PHerc0841. Within one scroll it agrees with the mesh pipeline on the same windings (per winding r 0.2–0.6 on PHerc0813 and PHerc0191). Not shown yet: telling text regions from text-free ones; a text block has three to ten times more high-contrast patches than two text-free blocks, but those two differ from each other by four times. Packaged as tools/ink-first 0.1.",
+   "verdict": "done",
    "metrics": {},
-   "images": [],
-   "learned": "Pending. If the known text appears without any mesh, the same method can sweep any eligible scroll on many GPUs, and careful geometry is only needed where ink shows up.",
+   "images": [
+    {
+     "file": "inkfirst-PHerc0841-clean.jpg",
+     "wide": true,
+     "caption": "PHerc0841, a scroll the models never trained on, 1.2 × 1.2 cm: the human ink labels, our mesh pipeline (Reader v2), and ink first with no mesh (Reader v2; blue: no patch landed). The ink-first patches are brighter near the letters, which is what the AUC of 0.76 measures, but the picture is a patchwork, not readable text."
+    }
+   ],
+   "learned": "Ink can be found in 9 µm scans without a fitted mesh, at most of the mesh pipeline's strength, on an unseen scroll. Next: coverage (snapping each patch onto the surface), and a test inside one scroll of whether it points at text regions. Prior art: the organisers segment ink directly in 3D on PHerc. Paris 4 at 2.4 µm, where ink is visible; we have not found this approach at 9 µm.",
    "credits": [
     "vc-known-text",
     "vc-data",
@@ -2433,6 +2439,42 @@
     "d9v4c",
     "nieuwlaar-343",
     "villa",
+    "ours"
+   ]
+  },
+  {
+   "id": "check-343",
+   "date": "2026-10-12",
+   "phase": "C",
+   "track": "Tooling",
+   "short": "Would it find the 343 letters?",
+   "title": "Would stroke-score 0.2 have found the only First Letters win? At first not; now with every model set",
+   "question": "Erwin Nieuwlaar's PHerc. 0343 segment is the one First Letters win so far. Does our final 0.2 rule flag it?",
+   "technique": "stroke-score 0.2 on his 66-layer render (8.64 µm) at depth +1 with four model sets: his three and four models, Reader v2 + d9v4C, and all six. Also in strips as tall as our 1 cm search bands.",
+   "result": "With the rows-of-strokes rule alone it did not: his letters are faint and sparse and form weak rows (row score 0.4–1.4), and his mesh is too ragged (62 % of the frame has data) to score in 1 cm strips. What it does show strongly is more stroke area on the reading side than on the blind side of the same sheet: +0.030 to +0.036, while our 671 null winding-depths never pass +0.016 with three or four models and +0.024 with Reader v2 + d9v4C. So the 0.2 rule now has two lines, rows of strokes or reading-blind contrast, with thresholds per model set; the PHerc. 0343 segment is flagged with every model set, and the false alarms on our nulls stay the same few windings we had already checked by eye (image).",
+   "verdict": "done",
+   "metrics": {},
+   "images": [
+    {
+     "file": "stroke-score-sees-PHerc0343.jpg",
+     "wide": true,
+     "caption": "What stroke-score sees on the PHerc. 0343 First Letters segment (Nieuwlaar; four models, depth +1, reading orientation): ink marks over the CT, long thin (stroke-shaped) marks in orange, round marks in blue; reading side, the blind side of the same sheet, and the across-row profile (two peaks: two lines of letters)."
+    },
+    {
+     "file": "stroke-score-sees-PHerc0813-w094.jpg",
+     "wide": true,
+     "caption": "The same view of a false alarm, PHerc0813 w094 (Reader v2 + d9v4C): two rows, so a high row score (2.6), but the marks are round blobs along crack edges, not strokes."
+    }
+   ],
+   "learned": "Test a search tool on the one known win before trusting it. Text at the limit of detection does not look like the clear text we calibrated on; the two lines cover both kinds.",
+   "credits": [
+    "nieuwlaar-343",
+    "ink9um",
+    "dense-native",
+    "hecate",
+    "readerv2",
+    "d9v4c",
+    "vc-data",
     "ours"
    ]
   }
@@ -2557,13 +2599,23 @@
    "kind": "scroll",
    "title": "Calibrate on known text cut to your band height",
    "text": "Our search bands are about 1 cm tall, so a winding shows at most two lines of text. Known text scored over a whole segment looks far stronger than it would in a band like ours; cut into 1 cm strips, it lands much closer to our null windings. stroke-score's control kit now scores known text at any band height (--band-mm)."
+  },
+  {
+   "kind": "scroll",
+   "title": "Ink can be found at 9 µm without a mesh",
+   "text": "On PHerc0841, a scroll the models never trained on, patches cut along the published surface prediction and inked with the standard 9 µm models find the human-labelled text at AUC 0.76, about 80 % of our full mesh pipeline on the same pixels. A method result on known text, not a discovery; whether it can steer a search is the next test."
+  },
+  {
+   "kind": "tooling",
+   "title": "Test the search rule on the one real win",
+   "text": "Calibrated on clear known text, our row rule would have missed the PHerc. 0343 First Letters letters (faint, sparse, weak rows). A second line, reading-blind contrast, catches them with no new false alarms on 671 null winding-depths."
   }
  ],
  "next": [
-  "PHerc0191 clear band with Reader v2 + d9v4C (inking finishes tonight): final scoring pass with stroke-score 0.2, then the top windings by eye at full resolution next to known text.",
-  "stroke-score 0.2: finish calibrating the shape score and the combined rule (rows of strokes) per model set, then release with a write-up before the Oct 31 Progress Prize deadline.",
-  "Brute force, option 1: the 2.3 cm PHerc0813 band; if the fit holds, tile the rest of the scroll with tall bands (home GPUs; cloud only on approval).",
-  "Brute force, option 3: the ink-first prototype on known text (PHerc0139); if the text appears without a mesh, scale it to whole scrolls.",
+  "stroke-score 0.2: release 0.2.0 with a write-up (drafted for review) by about Oct 20, so it can be used before the Oct 31 Progress Prize deadline.",
+  "Visuals that show what the tools see: \"what stroke-score sees\" (strokes vs blobs, rows), a map of where we have searched, and ink-first \"glowing sheets\" in CT cross-sections.",
+  "Tall bands: finish scoring the 2.3 cm PHerc0813 band (six-model, full-depth deep look for anything flagged), then the next band (fitting).",
+  "Ink first: per-patch surface snapping for coverage, then a within-scroll test of whether it points at text regions.",
   "Progress Prize write-ups for tooling findings #6–#10 (three PRs staged)."
  ],
  "credits": [
