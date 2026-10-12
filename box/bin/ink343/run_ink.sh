@@ -54,12 +54,15 @@ if [[ -d $Z/1 && -f $Z/0/.zarray ]]; then
 fi
 
 if [[ $MODEL != hecate ]]; then
-  # 17-layer window s..s+16 centred on layer N/2 + d (= 33 + d); --layer-end is exclusive
+  # 17-layer window s..s+16 centred on layer N/2 + d (= 33 + d); --layer-end is exclusive.
+  # Precision pinned to fp16 (Ted Bienapfl 2026-10-12). All five villa checkpoints here declare mixed_precision fp16,
+  # so the CLI default "auto" already runs fp16; the pin keeps it that way if villa's defaults change (see villa PR
+  # #1890), so new maps stay comparable with the calibrated ones. VILLA_AMP overrides.
   S=$(( N / 2 + D - 8 )); E=$(( S + 17 ))
   (( S >= 0 && E <= N )) || { echo "d=$D gives layers $S..$((E - 1)), outside 0..$((N - 1))"; exit 2; }
   (cd "$T" && TMPDIR=$T "$PY" -m vesuvius.ink_detection.inference.infer "$ZIN" "$CK" "$T/out.tif" \
       --overlap 0.5 --blend-mode hann --batch-size "${VILLA_BATCH:-4}" --direction both \
-      --layer-start "$S" --layer-end "$E")
+      --layer-start "$S" --layer-end "$E" --amp-dtype "${VILLA_AMP:-fp16}")
   [[ -s $T/out.tif && -s $T/out_reverse.tif ]] || { echo "infer produced no output"; exit 4; }
   mv -f "$T/out.tif" "$OUT/${NAME}__${MODEL}__L${N}s${S}.tif"
   mv -f "$T/out_reverse.tif" "$OUT/${NAME}__${MODEL}__L${N}s${S}_reverse.tif"
