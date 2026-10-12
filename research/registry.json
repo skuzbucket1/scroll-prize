@@ -2524,6 +2524,31 @@
     "dense-native",
     "ours"
    ]
+  },
+  {
+   "id": "heldout-0841-w00",
+   "date": "2026-10-12",
+   "phase": "C",
+   "track": "Tooling",
+   "short": "Held-out test + baselines (running)",
+   "title": "Does stroke-score 0.2 hold on text it never saw, and does it beat plain ink measures?",
+   "question": "The 0.2 thresholds were set on three known-text segments, and the contrast line was added after the PHerc. 0343 check. Do they hold on new text, and is the rule better than simply measuring how much ink the models see?",
+   "technique": "Thresholds frozen first: tag stroke-score-v0.2.0. Held-out text: PHerc0841 w00, the sheet next to our 0841 control (about 0.4 mm away, so different text), on a scroll none of the 9 µm models trained on; rendered from the public CT, inked with both model sets, cut into 1 cm strips like our search bands. Baselines and ranking: known-text strips and the null windings scored with the same code; the 0.2 rule against mean ink probability, ink area and their reading-blind differences, at the same number of false alarms on the nulls, and where known text lands when it is mixed into the null ranking. On the home GPUs.",
+   "result": "Running: the held-out segment is being rendered; it is inked when the tall band frees the GPUs.",
+   "verdict": "running",
+   "metrics": {},
+   "images": [],
+   "learned": "Pending.",
+   "credits": [
+    "vc-known-text",
+    "vc-data",
+    "readerv2",
+    "d9v4c",
+    "ink9um",
+    "dense-native",
+    "nieuwlaar-343",
+    "ours"
+   ]
   }
  ],
  "findings": [
@@ -2559,27 +2584,27 @@
   },
   {
    "kind": "tooling",
-   "title": "#1 libvolcomp not installed by the VC3D build (fixed, PR #2008)",
-   "text": "One-line CMake install fix; submitted."
+   "title": "#1 libvolcomp not installed by the VC3D build (merged upstream, villa #2008)",
+   "text": "One-line CMake install fix; merged on 2026-10-12."
   },
   {
    "kind": "tooling",
    "title": "#2–#5 image tags, lockfile rewrite, remote-fetch aborts",
-   "text": ":stable tag missing; uv.lock rewritten by sync; infer and renderer abort on a single transient remote chunk fetch."
+   "text": ":stable tag missing; uv.lock rewritten by sync; infer and renderer abort on a single transient remote chunk fetch. Since then upstream: vc_render_tifxyz takes a remote URL as --volume (villa #1863), and a retry for inference is open as villa #1919 (not ours)."
   },
   {
    "kind": "tooling",
-   "title": "#6 Shipped track-crossing cache rejected after download",
-   "text": "Signature uses nanosecond mtime; any download zeroes sub-second mtime. 2.4 GB downloaded for nothing; every run rebuilds."
+   "title": "#6 Shipped track-crossing cache rejected after download (in review, villa #2020)",
+   "text": "Signature uses nanosecond mtime; any download zeroes sub-second mtime. 2.4 GB downloaded for nothing; every run rebuilds. After review the fix covers all three checks, and it still catches a local edit within the same second (my first version did not; a test caught it)."
   },
   {
    "kind": "tooling",
-   "title": "#7 Outer-shell loss silently zero for sparse shells",
+   "title": "#7 Outer-shell loss silently zero for sparse shells (villa #2021, awaiting review)",
    "text": "Confidence normalized by an edge spike → 0.22 < 0.25 → no valid samples, no warning. Reproduced outside the fitter."
   },
   {
    "kind": "tooling",
-   "title": "#8 Fiber inference needs lasagna on PYTHONPATH",
+   "title": "#8 Fiber inference needs lasagna on PYTHONPATH (merged upstream, villa #2019)",
    "text": "geometry.py imports lasagna.omezarr_pyramid unguarded; the models extra does not ship it."
   },
   {
@@ -2630,12 +2655,12 @@
   {
    "kind": "tooling",
    "title": "#9 Resident-pool sidecars reused after the source store is rebuilt",
-   "text": "The fitter silently trained on a stale SDT pool (1 of 1,456 bricks) after the store was rebuilt at the same path."
+   "text": "The fitter silently trained on a stale SDT pool (1 of 1,456 bricks) after the store was rebuilt at the same path. Still the case on main; waiting for villa #1883, which changes the same code, before sending a fix."
   },
   {
    "kind": "tooling",
-   "title": "#10 Raw spiral windings render 23–33% compressed",
-   "text": "Meshes declare a 20-voxel grid but nodes are 26–30 voxels apart; ink models see letters too small unless the winding is flattened first. Mesh areas are understated ~2×."
+   "title": "#10 Raw spiral windings render 16–22 % too small",
+   "text": "Meshes declare a 20-voxel grid, but on our current PHerc0813 and PHerc0191 fits the nodes are 23–26 voxels apart (26–30 on an earlier fit), so unflattened renders come out 16–22 % small and the recorded areas 34–43 % low; flattened meshes are right. Fix ready: write the measured spacing as the scale and the area in 3D (skuzbucket1/villa, branch fix/winding-scale); PR to villa next."
   },
   {
    "kind": "tooling",

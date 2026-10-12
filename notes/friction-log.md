@@ -3,6 +3,19 @@
 Evidence-backed problems hit while running the First Letters workflow on the GPU box (`llm`, Ubuntu 24.04.5, 4× NVIDIA).
 Each entry: what was run, what happened, evidence, candidate fix. Candidates for PRs per CONTRIBUTING.md (real data, before/after evidence).
 
+## Status (2026-10-12)
+
+- #1 libvolcomp install: merged as villa #2008.
+- #2 lockfile and tracked egg-info: still on main; low value, not sent.
+- #3 container tags: villa #1588 is open, and a promote-stable workflow has been added since; not sent.
+- #4 inference retry: covered by villa #1919 (someone else's PR).
+- #5 renderer remote fetch: `vc_render_tifxyz` now takes a remote URL as `--volume` (villa #1863); the retry is not sent.
+- #6 track-cache signature: villa #2020, updated after review (all three checks; a same-second local edit is still detected; unit tests).
+- #7 shell confidence: villa #2021, awaiting review.
+- #8 lasagna import: merged as villa #2019.
+- #9 resident-pool staleness: still on main; waiting for villa #1883, which touches the same code.
+- #10 winding scale: still on main. Measured today: 23–26 voxels per node on PHerc0813 and PHerc0191 fits with a 20-voxel step; unflattened renders 16–22 % small, areas 34–43 % low. Fix on branch `fix/winding-scale` (notes/pr-winding-scale.md); PR to villa next.
+
 ## 1. `build_from_src_debian.sh` installs binaries that cannot start: `libvolcomp.so` missing from the `vc_runtime` component
 
 - **Date / commit:** 2026-10-08, villa `12f21236a` (2026-10-09).
