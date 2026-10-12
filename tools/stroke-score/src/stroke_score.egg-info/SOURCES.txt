@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/stroke_score/__init__.py
+src/stroke_score/cli.py
+src/stroke_score/control.py
+src/stroke_score/core.py
+src/stroke_score.egg-info/PKG-INFO
+src/stroke_score.egg-info/SOURCES.txt
+src/stroke_score.egg-info/dependency_links.txt
+src/stroke_score.egg-info/entry_points.txt
+src/stroke_score.egg-info/requires.txt
+src/stroke_score.egg-info/top_level.txt
+tests/test_core.py

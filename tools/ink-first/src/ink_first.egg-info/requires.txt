@@ -1,0 +1,9 @@
+numpy
+scipy
+opencv-python-headless
+tifffile
+imagecodecs
+zarr>=3
+
+[test]
+pytest

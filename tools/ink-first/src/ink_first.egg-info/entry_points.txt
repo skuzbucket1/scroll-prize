@@ -1,0 +1,2 @@
+[console_scripts]
+ink-first = ink_first.cli:main

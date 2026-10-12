@@ -1,0 +1,2 @@
+[console_scripts]
+stroke-score = stroke_score.cli:main

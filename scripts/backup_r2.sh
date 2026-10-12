@@ -4,7 +4,8 @@
 #       data/catalog, data/results, data/ref. Credentials from .secrets via scripts/r2_env.sh (never printed).
 #   box (run on the GPU box, from /mnt/nvme/scroll-prizes): data/<scroll>/geometry (fits, snapped and flattened meshes),
 #       the spiral-dataset umbilicus/scroll files, data/<scroll>/scores, runs/, and the ink maps + ensemble images of the windings
-#       listed in backup/windings_of_interest.tsv. Credentials from ~/.config/rclone/rclone.conf (remote "r2"); bucket name from $R2_BUCKET or ~/.config/rclone/r2_bucket.
+#       listed in backup/windings_of_interest.tsv, and the ink-first results (patches, ink maps, back-projections; not the
+#       re-downloadable CT and prediction blocks). Credentials from ~/.config/rclone/rclone.conf (remote "r2"); bucket name from $R2_BUCKET or ~/.config/rclone/r2_bucket.
 # Never backed up: .secrets, scan data and other public inputs, renders, resident pools, caches (all re-creatable).
 # rclone sync with --backup-dir r2:<bucket>/_archive/<UTC stamp>/<host>/: files changed or deleted locally are kept in R2.
 set -euo pipefail
@@ -29,6 +30,8 @@ X
 else
   ROOT=/mnt/nvme/scroll-prizes; R2_BUCKET=${R2_BUCKET:-$(cat ~/.config/rclone/r2_bucket 2>/dev/null)}; [ -n "$R2_BUCKET" ] || { echo 'no bucket name'; exit 2; }; cd $ROOT
   { echo "- /data/*/geometry/*/flattened/*/model*/**"
+    echo "- /data/*/inkfirst*/*.zarr/**"; echo "- /data/*/inkfirst*/**/mosaic.zarr/**"; echo "- /data/*/inkfirst*/**/q[0-3]/**"
+    echo "+ /data/*/inkfirst*/**"
     echo "+ /data/*/geometry/**"
     echo "+ /data/*/inputs/spiral-dataset/umbilicus*"; echo "+ /data/*/inputs/spiral-dataset/spiral-scroll.json"; echo "+ /data/*/inputs/spiral-dataset/qa/**"
     echo "+ /data/*/scores/**"; echo "+ /runs/**"

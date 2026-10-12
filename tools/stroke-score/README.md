@@ -151,7 +151,7 @@ PHerc. 0841 dense_native 0.800, Reader v2 0.824, d9v4C 0.830, ink_9um 0.733 (hum
 pip install ./tools/stroke-score        # or: pip install -e ./tools/stroke-score[test]
 ```
 
-Needs Python ≥ 3.10, numpy, opencv-python-headless, tifffile, zarr.
+Needs Python ≥ 3.10, numpy, opencv-python-headless, tifffile, imagecodecs (the ink models write LZW-compressed TIFFs), zarr.
 
 ## Use
 

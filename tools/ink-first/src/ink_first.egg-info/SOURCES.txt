@@ -1,0 +1,16 @@
+README.md
+pyproject.toml
+src/ink_first/__init__.py
+src/ink_first/back.py
+src/ink_first/cli.py
+src/ink_first/evaluate.py
+src/ink_first/fetch.py
+src/ink_first/mosaic.py
+src/ink_first/sample.py
+src/ink_first.egg-info/PKG-INFO
+src/ink_first.egg-info/SOURCES.txt
+src/ink_first.egg-info/dependency_links.txt
+src/ink_first.egg-info/entry_points.txt
+src/ink_first.egg-info/requires.txt
+src/ink_first.egg-info/top_level.txt
+tests/test_ink_first.py
