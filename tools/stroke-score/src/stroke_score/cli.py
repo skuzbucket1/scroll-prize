@@ -80,12 +80,14 @@ def flag(nm: int, aR: float, aB: float, wR: float, wB: float, a) -> bool:
 
 
 # v0.2 LOOK thresholds per model set (the row score's scale depends on the models), set from known text cut into strips as
-# tall as our ~1 cm search bands and from the null windings; see the README. Other model sets use V02_DEFAULT.
+# tall as our ~1 cm search bands, from the PHerc. 343 First Letters segment and from the null windings; see the README.
+# Other model sets use V02_DEFAULT.
 V02_THRESHOLDS = {
-    frozenset({'dnative', 'ink9-42', 'ink9-43'}): dict(row=1.2, shape=0.35),   # 0 of 194 PHerc0191 null winding-depths pass
-    frozenset({'readerv2', 'd9v4c'}): dict(row=1.5, shape=0.42),               # 1 of 100 PHerc0813 null winding-depths passes
+    frozenset({'dnative', 'ink9-42', 'ink9-43'}): dict(row=1.2, shape=0.35, contrast=0.020),            # nulls: R-B max +0.016
+    frozenset({'dnative', 'hecate', 'ink9-42', 'ink9-43'}): dict(row=1.5, shape=0.42, contrast=0.020),  # nulls: R-B max +0.010
+    frozenset({'readerv2', 'd9v4c'}): dict(row=1.5, shape=0.42, contrast=0.025),                        # nulls: R-B max +0.024
 }
-V02_DEFAULT = dict(row=1.5, shape=0.42)
+V02_DEFAULT = dict(row=1.5, shape=0.42, contrast=0.025)
 _SHORT = {v: k for k, v in MODELS.items()}
 
 
@@ -95,17 +97,23 @@ def v02_thresholds(models, a=None) -> dict:
         t['row'] = a.row_thr
     if a is not None and getattr(a, 'shape_thr', None) is not None:
         t['shape'] = a.shape_thr
+    if a is not None and getattr(a, 'contrast_thr', None) is not None:
+        t['contrast'] = a.contrast_thr
     return t
 
 
-def flag_v02(models, rR, rB, sR, a) -> bool:
-    """v0.2 LOOK: the reading side shows rows (row_R at least the model set's row threshold and at least row_ratio x the
-    blind side) and those rows are made of strokes (shape_R, the share of mark area in long thin marks, at least the
-    shape threshold). Needs two or more models."""
-    if len(models) < 2 or rR is None or rB is None or sR is None:
+def flag_v02(models, rR, rB, sR, a, aR=None, aB=None) -> bool:
+    """v0.2 LOOK when either line fires (needs two or more models):
+    rows of strokes: row_R at least the model set's row threshold and at least row_ratio x the blind side's, and shape_R
+      (the share of mark area in long thin marks) at least the shape threshold. Catches clear text (PHerc. 0841).
+    contrast: stroke area reading - blind (aR - aB) at least the model set's contrast threshold. Catches faint, sparse
+      letters (the PHerc. 0343 First Letters segment: +0.030, row 0.4-1.3) that do not form scoreable rows."""
+    if len(models) < 2:
         return False
     t = v02_thresholds(models, a)
-    return rR >= t['row'] and rR >= a.row_ratio * rB and sR >= t['shape']
+    rows = rR is not None and rB is not None and sR is not None and rR >= t['row'] and rR >= a.row_ratio * rB and sR >= t['shape']
+    contrast = aR is not None and aB is not None and (aR - aB) >= t['contrast']
+    return bool(rows or contrast)
 
 
 def recurrence(rows: list) -> None:
@@ -163,7 +171,7 @@ def cmd_rank(a) -> int:
                          top_damage=top.get('damage', ''), flag='LOOK' if flag(nm, aR, aB, wR, wB, a) else '',
                          file=f, row_R=rR if rR is not None else '', row_B=rB if rB is not None else '',
                          shape_R=sR if sR is not None else '', shape_B=sB if sB is not None else '', streak=hz if hz is not None else '',
-                         recur='', flag_v02='LOOK' if flag_v02(j['models'], rR, rB, sR, a) else '', _prof=r.get('profile')))
+                         recur='', flag_v02='LOOK' if flag_v02(j['models'], rR, rB, sR, a, aR, aB) else '', _prof=r.get('profile')))
     recurrence(rows)
     rows.sort(key=lambda x: -(x['area_R'] if not math.isnan(x['area_R']) else -1))
     cols = ['name', 'depth', 'models', 'area_R', 'area_B', 'diff', 'window_R', 'window_B', 'top_read_y', 'top_read_x',
@@ -219,6 +227,7 @@ def main(argv=None) -> int:
     r.add_argument('--row-thr', type=float, help='v0.2 rule: reading-side row score at least this (default: per model set)')
     r.add_argument('--row-ratio', type=float, default=1.8, help='v0.2 rule: and at least this times the blind side')
     r.add_argument('--shape-thr', type=float, help='v0.2 rule: shape score at least this (default: per model set)')
+    r.add_argument('--contrast-thr', type=float, help='v0.2 rule, contrast line: stroke area reading - blind at least this (default: per model set)')
     r.set_defaults(fn=cmd_rank)
     from . import control
     control.add_parser(sub)

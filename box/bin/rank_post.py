@@ -6,7 +6,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.jo
 from stroke_score.cli import flag_v02, recurrence
 
 ap = argparse.ArgumentParser(); ap.add_argument('post'); ap.add_argument('--row-thr', type=float)
-ap.add_argument('--row-ratio', type=float, default=1.8); ap.add_argument('--shape-thr', type=float); a = ap.parse_args()
+ap.add_argument('--row-ratio', type=float, default=1.8); ap.add_argument('--shape-thr', type=float); ap.add_argument('--contrast-thr', type=float); a = ap.parse_args()
 rows = []
 for f in sorted(glob.glob(os.path.join(a.post, '**', '*__post.json'), recursive=True)):
     j = json.load(open(f))
@@ -17,7 +17,7 @@ for f in sorted(glob.glob(os.path.join(a.post, '**', '*__post.json'), recursive=
                          window_B=r['window_B'], row_at=r.get('row_at'), recur='', _prof=r.get('profile_R')))
 recurrence(rows)
 for x in rows:
-    x['flag_v02'] = 'LOOK' if flag_v02(x['mlist'], x['row_R'], x['row_B'], x['shape_R'], a) else ''
+    x['flag_v02'] = 'LOOK' if flag_v02(x['mlist'], x['row_R'], x['row_B'], x['shape_R'], a, x['area_R'], x['area_B']) else ''
 rows.sort(key=lambda x: -x['row_R'])
 cols = ['name', 'depth', 'set', 'row_R', 'row_B', 'shape_R', 'shape_B', 'streak', 'recur', 'flag_v02', 'area_R', 'area_B', 'window_R', 'window_B', 'row_at', 'tool']
 print('\t'.join(cols))

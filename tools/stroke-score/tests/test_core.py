@@ -178,3 +178,8 @@ def test_recurrence_and_v02_flag():
     assert not flag_v02(three, 2.0, 1.5, 0.5, a)                                   # rows on both sides
     assert not flag_v02(['readerv2'], 5.0, 0.1, 0.9, a)                            # single model
     assert flag_v02(three, 1.8, 0.4, 0.3, SimpleNamespace(row_thr=None, shape_thr=0.25, row_ratio=1.8))   # override
+    four = ['dnative', 'hecate', 'hybrid_3d2d-seed42', 'hybrid_3d2d-seed43']
+    assert flag_v02(four, 1.28, 0.0, 0.54, a, 0.0335, 0.0026)                    # PHerc. 0343 letters: contrast line
+    assert flag_v02(three, 0.44, 0.0, 0.23, a, 0.0354, 0.0057)                   # same, three models
+    assert not flag_v02(three, 0.9, 0.3, 0.2, a, 0.030, 0.0144)                  # best three-model null contrast (+0.016)
+    assert not flag_v02(rd, 1.0, 0.5, 0.2, a, 0.0315, 0.0073)                    # best Reader v2 + d9v4C null contrast (+0.024)
