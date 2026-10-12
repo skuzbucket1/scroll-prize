@@ -2374,10 +2374,16 @@
    "title": "A stroke-shape score: are the marks long thin strokes or round blobs?",
    "question": "Letters are made of strokes; crack edges and damage give blobs. Can a number capture what the eye used to reject the PHerc0813 candidates?",
    "technique": "For every above-background mark: area, length and width from its second moments, elongation, peak height and edge contrast, measured on known text (PHerc0139, PHerc0841), on their blind sides, on the PHerc0813 candidates and on null windings of both scrolls. The score is the share of the marks' area in marks at least 1 mm long and twice as long as wide, measured in the window where the row score found rows.",
-   "result": "Calibrated. The share of the marks' area in long thin marks separates known text (median 0.42–0.63 per 1 cm strip) from crack rows on PHerc0813 (0.15–0.21). The 0.2 rule flags rows of strokes (row and shape thresholds per model set) or a strong reading-blind contrast (added after the PHerc. 0343 check). On 771 null winding-depths it flags four, all checked by eye. A \"streak\" column flags the one remaining false-alarm type, crack edges drawn as long streaks along the winding.",
+   "result": "Calibrated. The share of the marks' area in long thin marks separates known text (median 0.42–0.63 per 1 cm strip) from crack rows on PHerc0813 (0.15–0.21). The 0.2 rule flags rows of strokes (row and shape thresholds per model set) or a strong reading-blind contrast (added after the PHerc. 0343 check). On 771 null winding-depths it flags four, all checked by eye. A \"streak\" column flags the one remaining false-alarm type, crack edges drawn as long streaks along the winding. Released as stroke-score 0.2.0 (git tag stroke-score-v0.2.0).",
    "verdict": "done",
    "metrics": {},
-   "images": [],
+   "images": [
+    {
+     "file": "stroke-score-sees-PHerc0813-w079.jpg",
+     "wide": true,
+     "caption": "The false alarm the 0.2 rule still flags, PHerc0813 w079 (Reader v2 + d9v4C, depth 0): long marks (orange), but all of them lie flat along a crack. The streak column reports this; a look at the CT settles it."
+    }
+   ],
    "learned": "Letters are strokes; cracks are blobs and streaks. Shape is what told them apart by eye, and now it is a number.",
    "credits": [
     "vc-known-text",
@@ -2428,6 +2434,11 @@
      "file": "inkfirst-PHerc0841-clean.jpg",
      "wide": true,
      "caption": "PHerc0841, a scroll the models never trained on, 1.2 × 1.2 cm: the human ink labels, our mesh pipeline (Reader v2), and ink first with no mesh (Reader v2; blue: no patch landed). The ink-first patches are brighter near the letters, which is what the AUC of 0.76 measures, but the picture is a patchwork, not readable text."
+    },
+    {
+     "file": "inkfirst-glowing-sheets-PHerc0841.jpg",
+     "wide": true,
+     "caption": "Ink first in a CT slice across PHerc0841 through a line of writing (Reader v2, no mesh): the patches lie along the sheets and are painted with the ink prediction (dim: below the block's median). Zoom: the labelled sheet coloured by ink first, next to the same sheet coloured by the human ink labels; ink first is brighter on the labelled ink (0.45 against 0.33 at this height). Bottom: a PHerc0813 block with no text found, same colour scale (its patches are 0.9 mm apart instead of 0.6 mm). Two text-free scrolls differ from each other about as much, so this does not show yet that ink first separates text from no text."
     }
    ],
    "learned": "Ink can be found in 9 µm scans without a fitted mesh, at most of the mesh pipeline's strength, on an unseen scroll. Next: coverage (snapping each patch onto the surface), and a test inside one scroll of whether it points at text regions. Prior art: the organisers segment ink directly in 3D on PHerc. Paris 4 at 2.4 µm, where ink is visible; we have not found this approach at 9 µm.",
@@ -2475,6 +2486,42 @@
     "readerv2",
     "d9v4c",
     "vc-data",
+    "ours"
+   ]
+  },
+  {
+   "id": "where-looked",
+   "date": "2026-10-12",
+   "phase": "C",
+   "track": "Tooling",
+   "short": "Maps: where we have looked",
+   "title": "Where we have looked: every searched winding on a CT slice of each scroll",
+   "question": "How much of PHerc0191 and PHerc0813 has the search covered so far, and where were the flags?",
+   "technique": "A CT slice across the scroll (from above) and one along its axis through the centre (from the side), with every fitted winding drawn where its mesh crosses the slice: grey for fitted only, blue for rendered, inked and scored, orange for flagged by stroke-score 0.2 and checked by eye. box/bin/viz_looked.py.",
+   "result": "PHerc0813: 58 windings searched in the 1 cm band at 112–122 mm, one flag (w079, crack-edge streaks); the 2.3 cm band at 98–122 mm (76 windings) is being scored, and 75–98 mm is being fitted. PHerc0191: 129 windings in two 1 cm bands (84–94 and 105–114 mm), two flags (w061, fibre streaks; w087, a zone that recurs on neighbouring windings). The search reaches a good share of the outer windings but only a band or two of each scroll's height.",
+   "verdict": "done",
+   "metrics": {},
+   "images": [
+    {
+     "file": "where-we-looked-PHerc0813.jpg",
+     "wide": true,
+     "caption": "PHerc0813 from above (CT slice at 117 mm) and from the side (through the centre). Blue: windings rendered, inked and scored; orange: flagged by stroke-score 0.2 and checked by eye (w079, crack-edge streaks); light blue: the 2.3 cm band being scored; hatched: being fitted; grey: fitted, not searched."
+    },
+    {
+     "file": "where-we-looked-PHerc0191.jpg",
+     "wide": true,
+     "caption": "PHerc0191, the same view (CT slice at 110 mm): two searched 1 cm bands; orange: w061 (fibre streaks) and w087 (a recurring zone), both checked by eye."
+    }
+   ],
+   "learned": "Seen from the side, each searched band is a thin slice of the scroll. Taller bands are how to cover more of it.",
+   "credits": [
+    "vc-data",
+    "vc-predictions",
+    "spiral-fitter",
+    "readerv2",
+    "d9v4c",
+    "ink9um",
+    "dense-native",
     "ours"
    ]
   }
@@ -2612,8 +2659,7 @@
   }
  ],
  "next": [
-  "stroke-score 0.2: release 0.2.0 with a write-up (drafted for review) by about Oct 20, so it can be used before the Oct 31 Progress Prize deadline.",
-  "Visuals that show what the tools see: \"what stroke-score sees\" (strokes vs blobs, rows), a map of where we have searched, and ink-first \"glowing sheets\" in CT cross-sections.",
+  "stroke-score 0.2.0 is tagged. Before the write-up (about Oct 20): a baseline (does it beat plain ink area?), where known text lands when mixed into the null ranking, and a held-out known-text test the rule never saw.",
   "Tall bands: finish scoring the 2.3 cm PHerc0813 band (six-model, full-depth deep look for anything flagged), then the next band (fitting).",
   "Ink first: per-patch surface snapping for coverage, then a within-scroll test of whether it points at text regions.",
   "Progress Prize write-ups for tooling findings #6–#10 (three PRs staged)."

@@ -148,7 +148,8 @@ PHerc. 0841 dense_native 0.800, Reader v2 0.824, d9v4C 0.830, ink_9um 0.733 (hum
 ## Install
 
 ```
-pip install ./tools/stroke-score        # or: pip install -e ./tools/stroke-score[test]
+pip install "git+https://github.com/skuzbucket1/scroll-prize@stroke-score-v0.2.0#subdirectory=tools/stroke-score"
+pip install ./tools/stroke-score        # from a clone; or: pip install -e ./tools/stroke-score[test]
 ```
 
 Needs Python ≥ 3.10, numpy, opencv-python-headless, tifffile, imagecodecs (the ink models write LZW-compressed TIFFs), zarr.
