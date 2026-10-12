@@ -44,6 +44,17 @@ CONTROLS = {
         supervision='PHerc0841/segments/20260221022814-auto_grown_20260220174252405/ink-labels/2.403um-volume-20260319124803/20260918/supervision.zarr/',
         note='A scroll ink_9um, dense_native, Reader v2, d9v2/d9v3/d9v4C and ft_s42 did not train on (Hecate may have). '
              'Human ink labels (two text rows) with a supervision mask; scored inside the mask.'),
+    '0841-w00': dict(
+        scroll='PHerc0841', um=9.366, name='c0841_w00_66',
+        volume=f'{S3}/PHerc0841/volumes/20250821151531-9.366um-1.2m-113keV-masked.zarr',
+        mesh='PHerc0841/segments/20260220213127-w00/mesh/20260220213127-on-20250821151531-9.366um.tifxyz/',
+        reference='PHerc0841/segments/20260220213127-w00/ink-detection/PHerc0841-20260220213127-2.403um-0.22m-77keV-volume-'
+                  '20260319124803-20260417190342-new_canon_autoresearch_recipe-tile256-stride128.tif',
+        labels='PHerc0841/segments/20260220213127-w00/ink-labels/2.403um-volume-20260319124803/20260918/inklabels.zarr/',
+        supervision='PHerc0841/segments/20260220213127-w00/ink-labels/2.403um-volume-20260319124803/20260918/supervision.zarr/',
+        note='The neighbouring sheet of 0841-ag2814 (median 0.4 mm away; under 2 % of it within 0.1 mm), so different text. '
+             'Not used to calibrate stroke-score 0.2: the held-out test of its thresholds. Same training notes as 0841-ag2814. '
+             'Human ink labels with a supervision mask.'),
 }
 
 
