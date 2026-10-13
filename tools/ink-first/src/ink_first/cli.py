@@ -2,7 +2,7 @@
 ink them with any 66-layer surface-volume ink model, map the predictions back to 3D.
 
   ink-first fetch  --url <zarr> --out <store> --box z0 z1 y0 y1 x0 x1 [--level 0]
-  ink-first sample --ct <zarr> --pred <zarr> --box z0 z1 y0 y1 x0 x1 --out <dir> [--stride 96] [--size 256] [--flat 0.25]
+  ink-first sample --ct <zarr> --pred <zarr> --box z0 z1 y0 y1 x0 x1 --out <dir> [--stride 96] [--size 256] [--flat 0.25] [--per-sheet]
   (ink <dir>/mosaic.zarr with your model; with Nieuwlaar's run_ink.sh: run_ink.sh <dir>/mosaic.zarr readerv2 0 <dir>/maps)
   ink-first split  <dir>                     big mosaics: ink <dir>/q0..q3/mosaic.zarr, then
   ink-first stitch <dir> --model readerv2
@@ -27,7 +27,7 @@ def _fetch(a):
 
 def _sample(a):
     from .sample import sample_block
-    sample_block(a.ct, a.pred, a.box, a.out, a.thr, a.stride, a.size, a.radius, a.flat, a.margin)
+    sample_block(a.ct, a.pred, a.box, a.out, a.thr, a.stride, a.size, a.radius, a.flat, a.margin, per_sheet=a.per_sheet, sheet_min=a.sheet_min)
 
 
 def _split(a):
@@ -113,7 +113,10 @@ def main(argv=None) -> int:
     s.add_argument('--ct', required=True); s.add_argument('--pred', required=True); s.add_argument('--box', nargs=6, type=int, required=True)
     s.add_argument('--out', required=True); s.add_argument('--thr', type=int, default=128); s.add_argument('--stride', type=int, default=96)
     s.add_argument('--size', type=int, default=256); s.add_argument('--radius', type=int, default=10); s.add_argument('--flat', type=float, default=0.25)
-    s.add_argument('--margin', type=int, default=48); s.set_defaults(fn=_sample)
+    s.add_argument('--margin', type=int, default=48)
+    s.add_argument('--per-sheet', action='store_true', help='one point per separate sheet piece in each cell, not one per cell')
+    s.add_argument('--sheet-min', type=int, default=200, help='smallest sheet piece (voxels) that gets a point with --per-sheet')
+    s.set_defaults(fn=_sample)
     p = sub.add_parser('split', help='split a big mosaic into quarters for inference'); p.add_argument('dir'); p.set_defaults(fn=_split)
     p = sub.add_parser('stitch', help='stitch the quarters\' ink maps'); p.add_argument('dir'); p.add_argument('--model', required=True)
     p.add_argument('--s', type=int, default=25, help='run_ink.sh layer start (25 = depth 0)'); p.set_defaults(fn=_stitch)

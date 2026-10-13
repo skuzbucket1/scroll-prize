@@ -20,19 +20,37 @@ from scipy.ndimage import map_coordinates
 LAYERS = 66
 
 
-def surface_points(pr: np.ndarray, thr: int, stride: int, margin: int, min_voxels: int = 20) -> np.ndarray:
-    """One surface point per stride^3 cell of the block (block-local zyx)."""
+def surface_points(pr: np.ndarray, thr: int, stride: int, margin: int, min_voxels: int = 20, per_sheet: bool = False,
+                   sheet_min: int = 200) -> np.ndarray:
+    """Surface points of the block (block-local zyx): one per stride^3 cell, the prediction voxel nearest the cell's mean;
+    or, with `per_sheet`, one per separate piece of surface in the cell (connected pieces of the prediction >= thr with at
+    least `sheet_min` voxels), so that every sheet crossing the cell gets a point. Where sheets lie closer together than
+    the cell, the plain mode gives most of them no point at all (on PHerc. 343: 37 of 766 patches on the letters' sheet)."""
+    from scipy.ndimage import label
     centres = []
     for cz in range(margin, pr.shape[0] - margin, stride):
         for cy in range(margin, pr.shape[1] - margin, stride):
             for cx in range(margin, pr.shape[2] - margin, stride):
                 cell = pr[cz:min(cz + stride, pr.shape[0] - margin), cy:min(cy + stride, pr.shape[1] - margin),
                           cx:min(cx + stride, pr.shape[2] - margin)]
-                grp = np.argwhere(cell >= thr)
-                if len(grp) < min_voxels:
+                off = np.array([cz, cy, cx])
+                if not per_sheet:
+                    grp = np.argwhere(cell >= thr)
+                    if len(grp) < min_voxels:
+                        continue
+                    mu = grp.mean(0)
+                    centres.append(grp[np.argmin(((grp - mu) ** 2).sum(1))] + off)
                     continue
-                mu = grp.mean(0)
-                centres.append(grp[np.argmin(((grp - mu) ** 2).sum(1))] + np.array([cz, cy, cx]))
+                lab, n = label(cell >= thr)
+                if not n:
+                    continue
+                idx = np.argwhere(lab > 0); ids = lab[tuple(idx.T)]; order = np.argsort(ids, kind='stable')
+                idx, ids = idx[order], ids[order]; cuts = np.flatnonzero(np.diff(ids)) + 1
+                for grp in np.split(idx, cuts):
+                    if len(grp) < max(sheet_min, min_voxels):
+                        continue
+                    mu = grp.mean(0)
+                    centres.append(grp[np.argmin(((grp - mu) ** 2).sum(1))] + off)
     return np.array(centres).reshape(-1, 3)
 
 
@@ -76,7 +94,7 @@ def cut_patch(ct: np.ndarray, c, n, u, v, size: int) -> np.ndarray:
 
 
 def sample_block(ct_path: str, pred_path: str, box, out: str, thr: int = 128, stride: int = 96, size: int = 256,
-                 radius: int = 10, flat: float = 0.25, margin: int = 48, log=print) -> dict:
+                 radius: int = 10, flat: float = 0.25, margin: int = 48, log=print, per_sheet: bool = False, sheet_min: int = 200) -> dict:
     """Read the block (z0 z1 y0 y1 x0 x1, level 0) of a CT zarr and a surface-prediction zarr, cut the patches, write
     <out>/mosaic.zarr (66, H, W) and <out>/patches.npz (centre in volume coords, normal, u, v, mosaic row/col, size, box)."""
     import zarr
@@ -85,8 +103,8 @@ def sample_block(ct_path: str, pred_path: str, box, out: str, thr: int = 128, st
     ct = np.asarray(zarr.open(ct_path, mode='r')['0'][z0:z1, y0:y1, x0:x1])
     pr = np.asarray(zarr.open(pred_path, mode='r')['0'][z0:z1, y0:y1, x0:x1])
     log(f'block {ct.shape}, CT nonzero {np.mean(ct > 0):.2f}, prediction >= {thr}: {np.mean(pr >= thr):.4f} ({time.time() - t0:.0f}s)')
-    cen = surface_points(pr, thr, stride, margin)
-    log(f'{len(cen)} surface points')
+    cen = surface_points(pr, thr, stride, margin, per_sheet=per_sheet, sheet_min=sheet_min)
+    log(f'{len(cen)} surface points' + (' (one per sheet piece per cell)' if per_sheet else ''))
     cen, N = normals(pr, ct, cen, thr, radius, flat)
     log(f'{len(cen)} sheet-like points ({time.time() - t0:.0f}s)')
     if not len(cen):

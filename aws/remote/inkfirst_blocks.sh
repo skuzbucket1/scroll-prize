@@ -7,7 +7,8 @@
 # Env: MAX_QUEUED (cut blocks waiting for the GPU, default 2), NO_GLOW=1 (delete the CT and prediction blocks after
 #      cutting; no per-block glow figure), SPLIT_ABOVE (ink mosaics of more patches in quarters; 1100 suits a 12 GB home GPU, 2500 an A10G/L4),
 #      ROOT (/opt/scroll), PY, VILLA (villa checkout), BIN (scripts: ink343/, ink-first-src/, inkfirst_block_summary.py,
-#      viz_glow.py), CKPT_DIR, WORK, RESULTS, CUDA_VISIBLE_DEVICES. Marker in RESULTS/progress.log: BLOCKS-EXIT.
+#      viz_glow.py), CKPT_DIR, WORK, RESULTS, CUDA_VISIBLE_DEVICES, SAMPLE_ARGS (extra options for ink-first sample, e.g.
+#      --per-sheet). Marker in RESULTS/progress.log: BLOCKS-EXIT.
 set -uo pipefail
 BL=$1; CT=$2; PRED=$3; UM=$4; MODELS=$5; STRIDE=${6:-96}; SIZE=${7:-256}; PAR=${8:-4}
 ROOT=${ROOT:-/opt/scroll}; PY=${PY:-$ROOT/villa/vesuvius/.venv/bin/python}; VILLA=${VILLA:-$ROOT/villa}; BIN=${BIN:-$ROOT/bin}
@@ -27,7 +28,7 @@ cut_block(){   # id z0 z1 y0 y1 x0 x1: fetch + sample, then SAMPLED (or EMPTY)
   $IF fetch --url $CT --out $D/ct.zarr --box $B --threads 16 > $O/fetch.log 2>&1 &&
   $IF fetch --url $PRED --out $D/pred.zarr --box $B --threads 16 >> $O/fetch.log 2>&1 || { log "$id fetch FAILED"; rm -rf $D; return 1; }
   local t1=$(date +%s)
-  nice -n 5 $IF sample --ct $D/ct.zarr --pred $D/pred.zarr --box $B --out $D/s --stride $STRIDE --size $SIZE > $O/sample.log 2>&1
+  nice -n 5 $IF sample --ct $D/ct.zarr --pred $D/pred.zarr --box $B --out $D/s --stride $STRIDE --size $SIZE ${SAMPLE_ARGS:-} > $O/sample.log 2>&1
   local rc=$? t2=$(date +%s)
   echo "$(( t1 - t0 )) $(( t2 - t1 ))" > $D/cut_seconds
   if [ $rc -ne 0 ] || [ ! -f $D/s/patches.npz ]; then

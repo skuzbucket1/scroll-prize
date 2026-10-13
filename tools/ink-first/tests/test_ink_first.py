@@ -38,6 +38,17 @@ def test_sample_tilted_sheet(tmp_path):
     assert behind > front + 50                                                    # papyrus behind the surface (layer 33), air in front
 
 
+def test_per_sheet_sampling_finds_every_sheet():
+    from ink_first.sample import surface_points
+    pr = np.zeros((96, 96, 96), np.uint8)
+    for z in (30, 50, 70):                                                        # three flat sheets 20 voxels apart
+        pr[z:z + 2] = 255
+    plain = surface_points(pr, 128, 96, 0)
+    per = surface_points(pr, 128, 96, 0, per_sheet=True)
+    assert len(plain) == 1                                                        # one point for the whole cell
+    assert np.allclose(sorted(p[0] for p in per), [30.5, 50.5, 70.5], atol=0.6)   # one on each sheet
+
+
 def test_split_stitch_roundtrip(tmp_path):
     import tifffile
     from ink_first.mosaic import split, stitch
