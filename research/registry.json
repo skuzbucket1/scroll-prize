@@ -2399,15 +2399,15 @@
    "date": "2026-10-11",
    "phase": "E",
    "track": "Geometry",
-   "short": "Tall bands on PHerc0813 (running)",
+   "short": "Tall bands on PHerc0813: the 2.3 cm band",
    "title": "Brute force, option 1: tile the scroll with taller bands, starting with 2.3 cm on PHerc0813",
    "question": "We have searched about 1 cm of PHerc0813's 15.9 cm. Does our fit recipe hold on a band 2.5 times taller, so that we can tile the whole scroll, and do taller windings make text easier to see?",
    "technique": "The exp-30k spiral-fit recipe on z 10,500–13,000 (2,500 slices, 2.3 cm), which contains our best 1 cm band (z 12,000–13,000, satisfied tracks 0.557 / 0.182); then snap, flatten, render, ink with Reader v2 + d9v4C and score with stroke-score 0.2. Gate after the snap: fit metrics and QA before anything is inked. On the home GPUs.",
-   "result": "The 2.3 cm fit held: satisfied track points 0.526 and tracks 0.160 (the 1 cm band: 0.557 and 0.182), 88 % of mesh points on a predicted sheet after the snap. All 76 windings (w040–w115) are flattened and rendered; Reader v2 + d9v4C inking is about two-thirds done. The next band, z 8,000–10,500, is fitting.",
-   "verdict": "running",
+   "result": "The 2.3 cm fit held: satisfied track points 0.526 and tracks 0.160 (the 1 cm band: 0.557 and 0.182), 88 % of mesh points on a predicted sheet after the snap. All 76 windings (w040–w115) were inked with Reader v2 + d9v4C at depths 0 and +1 (304 runs) and scored with stroke-score 0.2: three flags (w083, w043, w066), none writing. w083 is a diffuse cloud where the fit put three windings (w082–w084) on one sheet; w043 and w066 are bright clusters at the strip's edge, next to cracks that run through the neighbouring turns. The next band, z 8,000–10,500, is rendered and being inked.",
+   "verdict": "null",
    "metrics": {},
    "images": [],
-   "learned": "Pending. If the fit holds, the next bands tile outward from here.",
+   "learned": "The recipe tiles: a 2.3 cm band fits about as well as a 1 cm one. In places the fit stacks two or three windings on one sheet (neighbours under 0.1 mm apart with identical CT), which leaves other sheets unsearched; we will measure that before trusting a band's coverage.",
    "credits": [
     "spiral-fitter",
     "vc-data",
@@ -2530,15 +2530,15 @@
    "date": "2026-10-12",
    "phase": "C",
    "track": "Tooling",
-   "short": "Held-out test + baselines (running)",
+   "short": "Held-out test + baselines (stroke-score 0.2.1)",
    "title": "Does stroke-score 0.2 hold on text it never saw, and does it beat plain ink measures?",
    "question": "The 0.2 thresholds were set on three known-text segments, and the contrast line was added after the PHerc. 0343 check. Do they hold on new text, and is the rule better than simply measuring how much ink the models see?",
    "technique": "Thresholds frozen first: tag stroke-score-v0.2.0. Held-out text: PHerc0841 w00, the sheet next to our 0841 control (about 0.4 mm away, so different text), on a scroll none of the 9 µm models trained on; rendered from the public CT, inked with both model sets, cut into 1 cm strips like our search bands. Baselines and ranking: known-text strips and the null windings scored with the same code; the 0.2 rule against mean ink probability, ink area and their reading-blind differences, at the same number of false alarms on the nulls, and where known text lands when it is mixed into the null ranking. On the home GPUs.",
-   "result": "Running: the held-out segment is being rendered; it is inked when the tall band frees the GPUs.",
-   "verdict": "running",
+   "result": "Thresholds frozen at stroke-score-v0.2.0, then scored on PHerc. 0841 w00, the neighbouring sheet of the 0841 control: new text that no 9 µm model trained on. With Reader v2 + d9v4C the 0.2 rule flags 14 of its 15 one-centimetre strips; with the three models (ink_9um ×2 + dense_native), 6 of 15. On the null windings it flags 8 of 294 winding-depths (Reader v2 + d9v4C) and 0 of 194 (three models); every flag was checked by eye: crack streaks and bright zones that recur on the neighbouring turns. Known-text strips against nulls: AUC 0.895 and 0.968. Plain ink amounts score as high (up to 0.99) but also tell the two text-free scrolls apart (AUC 0.95), so across scrolls they measure the scan, not the text. Mixed into the null ranking, the 0.2 margin puts 3.8 of 4.7 and 7.5 of 8.5 known strips in the top 20. On the way we found a bug: isolated invalid pixels zeroed the row score of renders with many one-pixel specks.",
+   "verdict": "done",
    "metrics": {},
    "images": [],
-   "learned": "Pending.",
+   "learned": "The rule holds on new text with Reader v2 + d9v4C and is weaker with the three-model set on faint text. Released as stroke-score 0.2.1: same thresholds, the speck fix, and these numbers in the README.",
    "credits": [
     "vc-known-text",
     "vc-data",
@@ -2547,6 +2547,117 @@
     "ink9um",
     "dense-native",
     "nieuwlaar-343",
+    "ours"
+   ]
+  },
+  {
+   "id": "inkfirst-sweep-0175A",
+   "date": "2026-10-12",
+   "phase": "E",
+   "track": "Ink & render",
+   "short": "Ink first over all of PHerc0175A (AWS)",
+   "title": "Brute force, option 3 at scale: ink first over a whole 8.64 µm scroll",
+   "question": "Can ink first, which needs no mesh, sweep a whole scroll in an evening and point at text?",
+   "technique": "PHerc0175A, the clearest of the 8.64 µm eligible scans, tiled into 199 blocks of 1280³ voxels. In each block, patches cut along the sheets of the published surface prediction (one point per 0.8 mm cube), inked with Reader v2 in both layer orders, summarised per block and mapped over the scroll. Four g5.4xlarge on AWS, about four hours, $25.50 on demand.",
+   "result": "129,125 patches over the whole scroll, no failures, and nothing writing-like. Hot patches are about as common on the reading side as on the other (1.42 % and 1.31 %), and the hottest are saturated blobs on cracks, holes and crushed fibres. The positive control on PHerc. 343 afterwards (next entry) showed that this sampling puts too few patches on any one sheet for a small written area to stand out, so the quiet map rules out large, strongly inked areas, not a few lines of text.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [
+    {
+     "file": "inkfirst-PHerc0175A-whole-scroll.jpg",
+     "wide": true,
+     "caption": "PHerc0175A from above and from the side, every ink-first patch coloured by how much of its centre Reader v2 inks on the reading side; grey = looks like damage. The hot spots are scattered through the scroll and sit on damage; no region stands out."
+    }
+   ],
+   "learned": "A whole-scroll sweep is cheap (an evening, about $25), but at one point per 0.8 mm cube it is a coarse net. Next: a sampler that takes a point on every sheet, tested first on PHerc. 343.",
+   "credits": [
+    "vc-data",
+    "vc-predictions",
+    "readerv2",
+    "ours"
+   ]
+  },
+  {
+   "id": "inkfirst-343-control",
+   "date": "2026-10-12",
+   "phase": "E",
+   "track": "Ink & render",
+   "short": "Ink first on known 8.64 µm letters (PHerc. 343)",
+   "title": "Does ink first see real 8.64 µm letters? A positive control on PHerc. 343",
+   "question": "Before trusting a quiet PHerc0175A: does ink first light up on letters we know are there, in the same kind of scan?",
+   "technique": "One block of PHerc. 343 holding 10 of Erwin Nieuwlaar's 18 First Letters (his letter boxes placed in 3D through his published mesh), cut and inked exactly like the PHerc0175A sweep (Reader v2 and d9v4C); every patch mapped back onto his segment.",
+   "result": "Half yes. Where patches land on his letters they light up on the reading side only (15 % of letter patches hot with Reader v2 and 23 % with d9v4C, against 1 % on other sheets), and they match the mesh pipeline's map of the same spots (r 0.72). But only 13 of the block's 766 patches land on letters: one point per 0.8 mm cube is spread over many sheets. A sampler that takes a point on every sheet piece in each cube found 4,441 patches in the same block; that run is being inked.",
+   "verdict": "partial",
+   "metrics": {},
+   "images": [
+    {
+     "file": "inkfirst-PHerc0343-letters.jpg",
+     "wide": true,
+     "caption": "Nieuwlaar's PHerc. 343 segment in reading orientation. Grey: our Reader v2 map from the mesh pipeline, with his letters inside the boxes. Squares: ink-first patch centres (1.1 mm), coloured by how much they ink, filled when hot. Top: reading side; bottom: the other side. Most letters get no patch at all."
+    }
+   ],
+   "learned": "Ink first can see 8.64 µm ink, but it needs denser sampling to find it.",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "vc-predictions",
+    "readerv2",
+    "d9v4c",
+    "ours"
+   ]
+  },
+  {
+   "id": "raw-ct-ink",
+   "date": "2026-10-12",
+   "phase": "E",
+   "track": "Ink & render",
+   "short": "Is the ink in the raw CT?",
+   "title": "Is there an ink signal in the raw CT itself, without a model?",
+   "question": "The CT shows the papyrus weave, cracks and holes in fine detail but never the ink. Is the ink in the data at all at 8.64 µm, and can we see it without a model?",
+   "technique": "On Nieuwlaar's PHerc. 343 segment: the CT brightness along the normal inside the letter strokes against the papyrus between them; the same split by where the surface sits inside a voxel; plain-CT images made to bring out a brighter written face.",
+   "result": "The ink is in the CT: inside the strokes the CT is about 8 units brighter (about 6 % of the scan's range) through the written sheet, peaking two voxels in. Where the surface sits inside a voxel matters a little (about 15 % weaker contrast in the worst quarter), because the scan's blur spreads the ink over two or three voxels. But no plain-CT image shows the letters: the weave, cracks and holes are far stronger. The models' map shows them plainly.",
+   "verdict": "finding",
+   "metrics": {},
+   "images": [
+    {
+     "file": "raw-ct-vs-models-PHerc0343.jpg",
+     "wide": true,
+     "caption": "PHerc. 343, Nieuwlaar's letters (boxes) in reading orientation. Top three panels: CT only (the rendered layer; the written face, smoothed; the written face minus the gap in front). Bottom: the five-model ink map. The letters show only in the bottom panel. 1 cm bars."
+    }
+   ],
+   "learned": "At 8–9 µm only trained models pull the ink out of the texture, so better models for this kind of scan are the main lever.",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "readerv2",
+    "d9v4c",
+    "dense-native",
+    "ink9um",
+    "ours"
+   ]
+  },
+  {
+   "id": "model-agreement",
+   "date": "2026-10-12",
+   "phase": "E",
+   "track": "Ink & render",
+   "short": "Do the six models agree?",
+   "title": "Real letters light up in every model; false alarms in some",
+   "question": "Our false alarms often show in one or two models only. Does counting how many of six independently trained models see a spot one-sided separate letters from damage?",
+   "technique": "Six models (Nieuwlaar's four, Reader v2 and d9v4C) on PHerc. 343 at the letters' depth, and our six-model deep look at PHerc0813 w079 (a spot Ted picked in the viewer): per tile, how many models see the reading side brighter than the blind side by more than a fifth of their own spread.",
+   "result": "At least five of the six agree on 78 % of 343's 18 letters, on 10 % of 39 tiles of its bare papyrus, and on 25 % of the w079 spot's 8 tiles; there, only the two models that flagged it saw a one-sided signal, and no model shows strokes. The same test on clean papyrus of PHerc0813 and PHerc0191 is running.",
+   "verdict": "finding",
+   "metrics": {},
+   "images": [],
+   "learned": "Agreement is the first rule we have that separates real letters from the crack-and-hole false alarms; it goes into triage if it holds on 9.36 µm papyrus.",
+   "credits": [
+    "nieuwlaar-343",
+    "vc-data",
+    "readerv2",
+    "d9v4c",
+    "dense-native",
+    "ink9um",
+    "hecate",
     "ours"
    ]
   }
@@ -2684,10 +2795,12 @@
   }
  ],
  "next": [
-  "stroke-score 0.2.0 is tagged. Before the write-up (about Oct 20): a baseline (does it beat plain ink area?), where known text lands when mixed into the null ranking, and a held-out known-text test the rule never saw.",
-  "Tall bands: finish scoring the 2.3 cm PHerc0813 band (six-model, full-depth deep look for anything flagged), then the next band (fitting).",
-  "Ink first: per-patch surface snapping for coverage, then a within-scroll test of whether it points at text regions.",
-  "Progress Prize write-ups for tooling findings #6–#10 (three PRs staged)."
+  "A model trained on 8.64 µm ink: fine-tune on PHerc. 343's letters (credited) and PHerc1447's published text, test it on letters it never saw, then run it on PHerc0175A and the other 8.64 µm scrolls.",
+  "A damage map: score cracks, holes, folds and sheet edges per tile, search the clean papyrus first and discount flags inside damage.",
+  "Ink first with a point on every sheet: the PHerc. 343 test is running; if the letters stand out, sweep PHerc0175A again.",
+  "The six-model agreement rule on 9.36 µm papyrus (running), then in triage.",
+  "Geometry: measure where the fits stack two windings on one sheet, and how much of each band is really covered.",
+  "Write-up for the October Progress Prize (stroke-score 0.2.1)."
  ],
  "credits": [
   {
