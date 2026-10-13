@@ -14,6 +14,6 @@ __pycache__/
 # Python build output (pip install leaves these next to the tools)
 build/
 *.egg-info/
-aws/spot.env
-aws/state/
+infra/aws/spot.env
+infra/aws/state/
 scratch/

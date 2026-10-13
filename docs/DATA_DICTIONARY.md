@@ -20,10 +20,10 @@ behind it is `notes/data-inventory-2026-10-10.md`. Sizes are `du` figures taken 
 
 - Box: `~/scroll-prizes` is a symlink to `/mnt/nvme/scroll-prizes`. Box paths below are relative to it unless absolute.
   In the dataset sections, `0191/` stands for `data/PHerc0191/` on the box.
-- Mac: the repository root `/Users/tbienapfl/dev/vscode/scroll-prizes`. `data/`, `villa/`, `memory/`, `aws/state/`,
-  `aws/spot.env` and all `*.tif` files are git-ignored.
-- Scripts: box `bin/`, copied to `box/bin/` in the repository (in sync on 2026-10-10). `bin/ink343/` holds Erwin
-  Nieuwlaar's ink scripts from the PHerc. 343 First Letters repository (MIT), unchanged. AWS scripts are in `aws/` (run on the Mac) and `aws/remote/` (run on the instances).
+- Mac: the repository root `/Users/tbienapfl/dev/vscode/scroll-prizes`. `data/`, `villa/`, `memory/`, `infra/aws/state/`,
+  `infra/aws/spot.env` and all `*.tif` files are git-ignored.
+- Scripts: box `bin/`, copied into the repository's status folders (`pipeline/`, `experiments/`, `dead-ends/`, `archive/`, `infra/box/`; `infra/box/sync_bin.py` maps them by file name). `bin/ink343/` holds Erwin
+  Nieuwlaar's ink scripts from the PHerc. 343 First Letters repository (MIT), unchanged. AWS scripts are in `aws/` (run on the Mac) and `infra/aws/remote/` (run on the instances).
 - Every job writes a log that ends with a marker `<NAME>-EXIT: <rc>`; waiter scripts poll for these markers.
 
 ### Names
@@ -122,7 +122,7 @@ Written by `bin/ink343/run_ink.sh <surface.zarr> <model> <d> <out_dir>`, one pai
 ### Stroke scores
 
 Written by `bin/stroke_score.py`, called by `bin/stroke_rank.sh`, `bin/stroke_watch.sh`, `bin/three_model_windings.sh`,
-`aws/fleet_score.sh` and on AWS workers by `aws/remote/run_batch.sh`.
+`infra/aws/fleet_score.sh` and on AWS workers by `infra/aws/remote/run_batch.sh`.
 
 Files:
 
@@ -172,13 +172,13 @@ Ranking tables:
 - Box `data/strokes/ranking.tsv` (`bin/stroke_rank.sh`, incremental; `FORCE=1` re-scores all): `name, set (s42 | ens4),
   depth, area_R, area_B, R-B, window_R, window_B, max_tile_R, max_tile_B, top_read_y, top_read_x, top_damage, flag`,
   sorted by area_R. Reference rows: the PHerc. 343 control.
-- Mac `data/aws-results/run2/ranking.tsv` (`aws/fleet_rank.sh`): `winding, depth, models, area_R, area_B, R-B,
+- Mac `data/aws-results/run2/ranking.tsv` (`infra/aws/fleet_rank.sh`): `winding, depth, models, area_R, area_B, R-B,
   window_R, window_B, top_read_y, top_read_x, top_damage, flag, crops`.
 
 LOOK flag (identical in `stroke_rank.sh` and `fleet_rank.sh`): area_R ≥ 0.015, or R−B ≥ 0.010, or (window_R ≥ 0.030
 with fewer than four models, ≥ 0.035 with four, and window_R ≥ 2 × window_B).
 
-Calibration (2026-10-09, depths 0 and +1, from the header of `aws/fleet_rank.sh`):
+Calibration (2026-10-09, depths 0 and +1, from the header of `infra/aws/fleet_rank.sh`):
 
 | set | PHerc. 343 control area_R / R−B / window | PHerc0191 w068–w074, maximum |
 |---|---|---|
@@ -513,7 +513,7 @@ the reading side. Ignore the flag on `s42` rows.
 - What: copies of the AWS maps and ensemble images of w073 and w074, used for box-side scoring and the
   AWS-vs-box check.
 - Where: box `0191/aws-maps/{w073,w074}/` (188 M), `0191/aws-ens/{w073,w074}/` (167 M).
-- Made by: `aws/fleet_score.sh` (copy); originals in Mac `data/aws-results/run1/`.
+- Made by: `infra/aws/fleet_score.sh` (copy); originals in Mac `data/aws-results/run1/`.
 - Class: KEEP one copy (paid compute). The box copy duplicates the Mac copy.
 
 **GTX 1660 SUPER benchmark**
@@ -528,7 +528,7 @@ the reading side. Ignore the flag on `s42` rows.
 - Where: box `data/strokes/` (355 M, 638 files): `wNNN/` × 23 (w036, w060–w080, w103; tags none, `_s42`, `_3m`,
   `_s4243`, `_pm`), `box3m/wNNN/` × 7 (three models, no tag), `aws/{w073,w074}/` (four models from the AWS maps),
   `c343/` (control), `ranking.tsv` (97 rows), `rank-errors.log`, `rank-force.log`, `rank-last.log`.
-- Made by: `bin/stroke_rank.sh` (via `bin/stroke_watch.sh`), `bin/three_model_windings.sh`, `aws/fleet_score.sh`,
+- Made by: `bin/stroke_rank.sh` (via `bin/stroke_watch.sh`), `bin/three_model_windings.sh`, `infra/aws/fleet_score.sh`,
   `tmp/permodel.sh`; `_3m` and `_s4243` by an earlier version of `stroke_score.py` run by hand.
 - Class: KEEP (small; `ranking.tsv` and the reviewed crops are results). Each file can be recomputed in seconds to
   minutes if the maps and renders exist.
@@ -551,13 +551,13 @@ the reading side. Ignore the flag on `s42` rows.
   within 1/255.
 - Where: Mac `data/aws-results/i-07316924655570581/` (named by instance id; `control343/` with maps, previews, logs;
   `instance-info.txt`), 14 M.
-- Made by: `aws/poc.sh`; logs `aws/state/poc-*.log`, `bootstrap-*.log`.
+- Made by: `infra/aws/poc.sh`; logs `infra/aws/state/poc-*.log`, `bootstrap-*.log`.
 - Class: KEEP.
 
 **AWS fleet run 1**
 - What: two workers, w073 and w074, four models at d 0 / +1, maps fetched.
 - Where: Mac `data/aws-results/run1/w01/`, `w02/` (maps, ensemble images, previews, logs, `timings.tsv`), 463 M, 146 files.
-- Made by: `FETCH_MAPS=1 aws/fleet.sh 2 --yes w073 w074` (written to `data/aws-results/fleet/`, renamed afterwards).
+- Made by: `FETCH_MAPS=1 infra/aws/fleet.sh 2 --yes w073 w074` (written to `data/aws-results/fleet/`, renamed afterwards).
 - Class: KEEP (paid).
 
 **AWS fleet run 2**
@@ -565,21 +565,21 @@ the reading side. Ignore the flag on `s42` rows.
   workers; lite fetch, so the raw maps were not copied and are gone with the instances.
 - Where: Mac `data/aws-results/run2/wNN/` × 10 (6 segments each: `ensemble/` with ct/ensemble/ensemble_blind PNGs and
   `stats.json`, `strokes/`, logs, `timings.tsv`, `DONE`), `run2/ranking.tsv` (118 rows); 2.5 G, 1,855 files.
-- Made by: `aws/fleet.sh 10 --yes …` with `aws/remote/run_batch.sh`, `chain_batch.sh`, `run_segment.sh`;
-  `aws/fleet_rank.sh` for the ranking (its `crops` column still points to `data/aws-results/fleet/…`). Cost about $10.70.
+- Made by: `infra/aws/fleet.sh 10 --yes …` with `infra/aws/remote/run_batch.sh`, `chain_batch.sh`, `run_segment.sh`;
+  `infra/aws/fleet_rank.sh` for the ranking (its `crops` column still points to `data/aws-results/fleet/…`). Cost about $10.70.
 - Class: KEEP (paid; the maps would need a new run).
 
 **Staged meshes**
 - What: copies of the box's flattened windings uploaded to the workers, and the run manifest.
 - Where: Mac `data/aws-stage/segments/exp30k_snapped_wNNN/flatten.tifxyz` × 92, `manifest.tsv` (absolute Mac paths),
   `flattest/w005/` (an unflattened community winding); 204 M.
-- Made by: `aws/stage_segments.sh`.
+- Made by: `infra/aws/stage_segments.sh`.
 - Class: SCRATCH between runs (re-staged from the box in minutes).
 
 **AWS run state**
 - What: run logs (`poc-*.log`, `fleet-run-*.log`, `bootstrap-*.log`), user-data, `known_hosts`, `fleet/plan.tsv`,
   per-worker records (`fleet/wNN/` with instance id, IP, type, launch time, batch), and one SSH key file.
-- Where: Mac `aws/state/` (376 K, not in git).
+- Where: Mac `infra/aws/state/` (376 K, not in git).
 - Class: KEEP the logs and plan (provenance and cost record). The key file is sensitive and only useful while its
   key pair exists in AWS.
 
@@ -594,13 +594,13 @@ the reading side. Ignore the flag on `s42` rows.
 **Research site**
 - What: GitHub Pages site rendered from the registry.
 - Where: `docs/index.html`, `docs/img/` (32 images, 25 M, copied from `data/results/`), `docs/.nojekyll`; this file.
-- Made by: `scripts/build_site.py`.
+- Made by: `infra/site/build_site.py`.
 - Class: REGENERABLE (seconds), tracked in git.
 
 **Result images**
 - What: the images the site and notes cite (JPEG/PNG, plus git-ignored TIFF originals).
 - Where: `data/results/` (94 files, 82 M).
-- Made by: `scripts/pull_preview.sh` and hand conversions of box previews.
+- Made by: `infra/site/pull_preview.sh` and hand conversions of box previews.
 - Class: KEEP.
 
 **Notes and references**
@@ -661,7 +661,7 @@ the reading side. Ignore the flag on `s42` rows.
 **Job logs and scripts**
 - Where: box top level `*.log` × 105 (2.0 M) and `0191/*.log` × 10 (download logs); scripts in `bin/` (528 K) and
   `build-vc3d.sh`.
-- Class: KEEP (provenance and code; scripts are synced to `box/bin/` in git).
+- Class: KEEP (provenance and code; scripts are synced into the repository by `infra/box/sync_bin.py`).
 
 ## Open questions
 

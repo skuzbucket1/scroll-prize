@@ -1,32 +1,75 @@
-# scroll-prizes — a Vesuvius Challenge campaign on PHerc0191
+# scroll-prize
 
-Working notes, scripts and results for an attempt at the Vesuvius Challenge First Letters prize on
-PHerc0191, plus the tooling problems found along the way in `ScrollPrize/villa`.
+Our attempt at the Vesuvius Challenge First Letters prize: find ten letters inside an unopened Herculaneum scroll, using
+only its CT scan. So far we have searched parts of PHerc0191, PHerc0813 and PHerc0175A and found no writing.
 
-**Research log (static site):** open `docs/index.html` — every run, what it asked, what it showed,
-what changed. Rebuild with `python3 scripts/build_site.py` after editing `research/registry.json`.
+**Research log:** https://skuzbucket1.github.io/scroll-prize/ has every run: what it asked, what it showed, and what
+changed because of it.
 
-## Layout
+The repo is sorted by what we know about each piece of code. What works sits in one place. What we are still testing
+sits in another. What we tried and dropped sits in a third, with the reason written down.
 
-| path | what |
-|---|---|
-| `research/registry.json` | the experiment/finding registry that drives the site |
-| `docs/` | generated site (GitHub Pages serves this folder) |
-| `notes/` | campaign plan, daily results, friction log (evidence-backed tooling issues), PR drafts |
-| `box/bin/` | the scripts that run on the 4-GPU box (mirroring, spiral-fit experiments, outer shell, winding cache, tracer tests, QA) |
-| `scripts/` | Mac-side helpers (site build, preview pulling) |
-| `CLAUDE.md` | project brief and where state lives |
+## What works: `pipeline/`
 
-Large data (CT mirrors, caches, meshes, renders) lives on the GPU box under `~/scroll-prizes/data/` and
-is not versioned; `docs/img/` holds downsampled previews only.
+Every step here has been checked on a scroll where the text is known, and every search uses it.
 
-## Status (2026-10-09)
+- **Geometry** (`pipeline/geometry/`): a spiral fit of one band of the scroll (villa's spiral fitter with our 30k-step
+  recipe), snapped onto the predicted papyrus surface (Erwin Nieuwlaar's snap), then flattened (Lasagna). On PHerc0191
+  and PHerc0813 this gives windings that show clean papyrus weave. One known limit: in places the fit lays two or three
+  windings on the same sheet (being measured in `experiments/geometry-coverage`).
+- **Render** (`pipeline/render/`): a 66-layer stack around each flattened winding, from a local copy of the CT.
+- **Ink** (`pipeline/ink/`): six public ink models, run through Nieuwlaar's scripts on both faces of the sheet at any
+  depth. The models are ink_9um 42/43, dense_native, Hecate, Reader v2 and d9v4C. The step reproduces three lines of
+  Greek on PHerc. Paris 4 and the winning letters on PHerc. 343, and matches the published scores on PHerc0139 and
+  PHerc0841.
+- **Rank** (`pipeline/rank/` and the released tool `tools/stroke-score/`): stroke, row and shape scores pick out the spots
+  worth a closer look. On text it never saw (PHerc0841) it flags 14 of 15 one-centimetre strips; on bare windings, 8 of 294 winding-depths (each one checked by eye). It ranks;
+  it does not prove anything.
+- **Review** (`pipeline/review/`): the pictures we judge by eye. A candidate window, the same place on the neighbouring
+  turns, and a deep look (six models at every depth from −15 to +15).
+- **Controls** (`pipeline/controls/`): the known-text checks above, plus the check that our "reading side" is the written face.
 
-Calibrated the ink pipeline on known text; chose PHerc0191; found the minimal-route spiral fit sits on
-the sheet only ~46–49% of the time and why; the patch-growing route needs the normal grids the docs call
-required and then partly follows sheets. Winding-model supervision and anisotropic-fit experiments are
-running. Eight tooling findings so far; #1 submitted as villa PR #2008.
+## Still being tested: `experiments/`
+
+Each folder has a `STATUS.md` that gives the question, the numbers so far, and what will decide it.
+
+- **model-agreement**: real letters light up in at least five of the six models; false alarms light up in only some.
+  Holds on PHerc. 343 and on one PHerc0841 segment, fails on the other. PHerc0139 is the tiebreaker (running).
+- **ink-ablation**: what in the CT do the models actually respond to on real 9.36 µm letters? (running)
+- **geometry-coverage**: how much of a fitted band is really new papyrus? First pass: about a fifth of the area repeats
+  a sheet that another winding already covers.
+- **ink-first**: find ink without building a mesh first. It sees real letters where it lands. A whole-scroll sweep is
+  still a coarse net.
+
+## Didn't work: `dead-ends/`
+
+Kept so that nobody, us included, repeats them. Each README gives what we tried, the numbers, and why it failed.
+
+- **damage-map-2d** and **damage-map-3d**: our false alarms do not sit on cracked or damaged papyrus, so a damage mask
+  would not remove them.
+- **model-free-ink**: at 8–9 µm you cannot see the ink in the raw CT, even after taking out the papyrus weave.
+- **model-8um-v1**: a model fine-tuned on PHerc. 343 using our own ensemble's guesses as labels memorised its training
+  letters and did worse on letters it hadn't seen.
+- **spiral-fit-tuning**, **winding-model-supervision**, **old-fitter**: fit settings, an outer shell, local spacing
+  supervision and the older fitter. None of them moved the fit onto the sheet. What helped (more steps, then the snap)
+  is in the pipeline.
+- **patch-growing**: growing a surface from a seed point stays on one sheet for only part of a patch.
+- **rerun-public-segments**: re-inking already-published segments found nothing new.
+
+## Also here
+
+- `archive/`: one-off setup steps that are done, and scripts that newer ones replaced (the README says which replaced which).
+- `infra/`: plumbing. This is data mirroring, the AWS fleet, backup and the artifact catalog, and the site and viewer
+  builders. It also holds `infra/box/sync_bin.py`, which maps these folders to the GPU box, where every script lives flat
+  in `~/scroll-prizes/bin/`.
+- `research/registry.json` drives the site in `docs/` (`python3 infra/site/build_site.py`). `docs/` also holds the code
+  dictionary, the data layout and the data dictionary.
+- `notes/`: dated working notes, the friction log of tooling problems, and drafts of our pull requests to villa.
+
+The large data (CT copies, meshes, renders, ink maps) lives on the GPU box and is not versioned. `docs/img/` holds
+downsampled previews only. `infra/moved-2026-10-13.tsv` lists where every file went when the repo was sorted this way.
 
 ## License
 
-MIT for the code and notes here. Scroll data is the Vesuvius Challenge's, under its own terms.
+MIT for the code and notes here. Copied code keeps its own licence notice (`pipeline/ink/ink343/`,
+`pipeline/geometry/LICENSE-snap_meshes_nieuwlaar`). Scan data belongs to the Vesuvius Challenge and is under its own terms.

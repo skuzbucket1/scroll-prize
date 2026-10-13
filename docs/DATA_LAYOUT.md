@@ -21,7 +21,7 @@ work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on 
   letters, maps, views), `2026-10-12_ct-ink-signature/`, `2026-10-12_model-agreement/`, `2026-10-12_agreement-null/`,
   `2026-10-12_deeplook-0813-w079/`, `2026-10-12_ted-picks/` (neighbour views), `2026-10-12_sheet-tracer/`,
   `2026-10-12_viz-looked/`, `2026-10-12_viz-glow/`.
-- **Mac only, private:** `data/viewer/` (preview images, `index.html`, `links.json`; built by `scripts/build_viewer.py`).
+- **Mac only, private:** `data/viewer/` (preview images, `index.html`, `links.json`; built by `infra/site/build_viewer.py`).
 
 **Changes on 2026-10-13:**
 - **Cleanup** (approved by Ted). Tier 1, about 21 G: the torch compile cache in `/mnt/nvme2/scroll-prizes/scratch/`, the
@@ -32,7 +32,7 @@ work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on 
   `data/PHerc0191/source/VOLUME_DELETED.txt` says where to re-download the CT. Kept: every band render (PHerc0813
   exp30k-z8000, z10500, z12000; PHerc0191 exp30k-z11200), ink maps, scores, meshes, fit inputs and the PHerc0813 CT mirror.
   NVMe 84 % → 40 % (562 G free); NVMe2 75 % (224 G free). New PHerc0191 renders now need the CT re-fetched, or only the
-  chunks around a mesh (`box/bin/fetch_mesh_chunks.py`).
+  chunks around a mesh (`pipeline/render/fetch_mesh_chunks.py`).
 - **8.64 µm ink model:** training set `data/train8um/labels/pherc0343-nieuwlaar/` (villa's flat layout: 65-layer reversed
   `surface-volume.zarr`, ink labels, supervision and validation masks); run `runs/2026-10-13_model-8um/` (`build_dataset.py`,
   `train_v1.json`, checkpoints in `out_v1/`, evaluation in `eval_v1/`).
@@ -43,7 +43,7 @@ NVMe 825 G → 701 G (89 % → 76 %). Deleted: old-band renders `data/PHerc0191/
 kept, renders regenerable), fibre fields `inputs/fields/fiber` (11 G), tracer tests (`geometry/tracer-tests`,
 `renders/tracer-tests`, 8.7 G), `checkpoint_fitted.ckpt` of the 9 dropped fit experiments (pilot, expdirlow, expdirlow2,
 expdr32, expshell105, expshell105b, exptrack2x, expwm, expwm2; meshes and metrics kept, ~8.5 G), the old-fitter worktree
-`wt/spiral-0fb38c45` (6.9 G; its one local change is saved as `box/patches/old-fitter-0fb38c45-fit_spiral.diff`), old QA
+`wt/spiral-0fb38c45` (6.9 G; its one local change is saved as `dead-ends/old-fitter/old-fitter-0fb38c45-fit_spiral.diff`), old QA
 renders (`geometry/qa-legacy`, `geometry/pilot-z9000/qa`, 1.7 G), the day-1 smoke runs (1.1 G), idle scratch files; plus
 the compatibility symlinks that pointed at them (no dangling links left). Still to clear: `scratch/torchinductor_tbienapfl`
 (6.4 G) once Phase A3 ends. Tier 2 (PHerc0191 CT outside the clear band, Lasagna, tracks, ~400 G) waits for Gate A;
@@ -75,7 +75,7 @@ The same logical tree on the GPU box (`/mnt/nvme/scroll-prizes`, alias `~/scroll
 
 ```
 scroll-prizes/
-  bin/                          code (mirrored into the public repo as box/bin/); see docs/CODE_DICTIONARY.md
+  bin/                          code, flat (in the public repo sorted by status; infra/box/sync_bin.py); see docs/CODE_DICTIONARY.md
   data/
     <SCROLL>/                   e.g. PHerc0191, PHerc0343, PHerc0800, PHercParis4
       source/                   public data mirrored as-is, read-only (re-downloadable)
@@ -131,7 +131,7 @@ Every job writes one, so a result can always be traced back to the code and inpu
   "started": "2026-10-09T22:50:15Z", "finished": "2026-10-10T00:21:32Z",
   "where": "aws: 10 x g4dn.2xlarge (T4)",
   "code": {"repo_commit": "d92a377", "villa_commit": "12f21236a"},
-  "command": "aws/fleet.sh 10 --yes ...",
+  "command": "infra/aws/fleet.sh 10 --yes ...",
   "params": {"models": "ens3", "depths": [0, 1]},
   "inputs": ["data/PHerc0191/geometry/exp30k-z9000/flattened/w037", "..."],
   "outputs": ["data/PHerc0191/scores/exp30k-z9000/ens3/ranking.tsv", "..."],
@@ -252,18 +252,18 @@ small duplicates. The NVMe would go from 840 G to about 650 G used (about 69 %).
 the canonical tree (`<scroll>/geometry`, `ink`, `scores`); AWS runs land in `data/<scroll>/runs-aws/<date>_<run-id>/` on the Mac
 and are synced to the box. Folders created since the migration that follow this pattern: `data/controls9um/` (known-text
 controls at 9 µm: PHerc0139 w047, PHerc0841 auto_grown; maps, references, evaluations), `runs/2026-10-11_tier23-newmodels/post/`
-(scores and previews for any model set, from `box/bin/post_models.py`).
+(scores and previews for any model set, from `pipeline/rank/post_models.py`).
 
 **Catalog and results table (generated, never hand-edited).**
-- `scripts/catalog.py <host> <root> <out.sqlite>` walks a host and writes one row per artifact (host, path, kind, scroll, fit,
+- `infra/backup/catalog.py <host> <root> <out.sqlite>` walks a host and writes one row per artifact (host, path, kind, scroll, fit,
   winding, model, depth, side, run, size, mtime, sha1 for critical files, critical flag). Zarr stores and tifxyz meshes are one
   artifact each; public scan inputs are listed per store without walking.
-- `scripts/results_db.py <host> <root> <out.sqlite>` collects every score (stroke-score JSONs, post_models JSONs, row scores,
+- `infra/backup/results_db.py <host> <root> <out.sqlite>` collects every score (stroke-score JSONs, post_models JSONs, row scores,
   control AUCs) into one `scores` table with provenance and the v0.1 LOOK flag recomputed; `--merge` combines hosts.
 - Merged copies on the Mac: `data/catalog/catalog.sqlite`, `data/catalog/results.sqlite`; summary `docs/DATA_CATALOG.md`
-  (`scripts/catalog_report.py`). Re-run all three after each run.
+  (`infra/backup/catalog_report.py`). Re-run all three after each run.
 
-**Backup.** `scripts/backup_r2.sh mac|box` syncs the critical set to Ted's private object-storage bucket (rclone, with dated
+**Backup.** `infra/backup/backup_r2.sh mac|box` syncs the critical set to Ted's private object-storage bucket (rclone, with dated
 `_archive/` copies of anything changed or deleted). Critical = memory, fits and meshes, umbilici, scores, run records, review
-images, controls, AWS results, and the ink maps of the windings in `backup/windings_of_interest.tsv`. Not backed up: scan data and
+images, controls, AWS results, and the ink maps of the windings in `infra/backup/windings_of_interest.tsv`. Not backed up: scan data and
 other public inputs, renders, resident pools, caches (all re-creatable).
