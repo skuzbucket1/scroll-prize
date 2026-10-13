@@ -4,7 +4,7 @@ Ranks Herculaneum-scroll segments by how much **stroke-shaped ink** an ink-model
 sheet, compared with the **blind side of the same sheet**. It is a triage tool: it tells you which windings, depths and
 4 cm² windows deserve a human look, and it writes review crops so that look is quick. It does not decide what is text.
 
-Status: version 0.2 (draft), October 2026. Tested on three known-text segments at two scan types (PHerc. 0343 at 8.64 µm;
+Status: version 0.2.1, October 2026. Tested on three known-text segments at two scan types (PHerc. 0343 at 8.64 µm;
 PHerc. 0139 and PHerc. 0841 at 9.36 µm) and several hundred windings of PHerc. 0191 and PHerc. 0813 with no text found.
 New in 0.2: a row score, a stroke-shape score, a neighbour-recurrence check, any set of ink models, and a known-text control
 kit that scores known text the way a search band of your height would see it. The 0.2 rule's thresholds are set per model set
@@ -95,14 +95,35 @@ are per model set (`V02_THRESHOLDS` in cli.py; `--row-thr`, `--shape-thr`, `--co
 
 | model set | row ≥ | shape ≥ | contrast ≥ | null winding-depths flagged | known text |
 |---|---|---|---|---|---|
-| ink_9um ×2 + dense_native | 1.2 | 0.35 | 0.020 | 0 of 194 (PHerc. 0191 clear band; R − B max +0.016 over 400) | PHerc. 0343: LOOK (contrast +0.030); 1 cm strips of PHerc. 0139: 39–57 %, PHerc. 0841: 38 % |
+| ink_9um ×2 + dense_native | 1.2 | 0.35 | 0.020 | 0 of 194 (PHerc. 0191 clear band; R − B max +0.016 over 400) | PHerc. 0343: LOOK (contrast +0.030); 1 cm strips of PHerc. 0139 w047: 78 %, PHerc. 0841: 46 %, held-out PHerc. 0841 w00: 40 % |
 | + Hecate (four models) | 1.5 | 0.42 | 0.020 | 0 of 57 (R − B max +0.010) | PHerc. 0343: LOOK (+0.031) |
-| Reader v2 + d9v4C | 1.5 | 0.42 | 0.025 | 1 of 100 (PHerc. 0813 w079, a crack streak), 3 of 194 PHerc. 0191 (checked by eye: a recurring zone and fibre streaks); R − B max +0.024 | PHerc. 0343: LOOK (+0.034); 1 cm strips of PHerc. 0841: 31–46 % |
+| Reader v2 + d9v4C | 1.5 | 0.42 | 0.025 | 5 of 100 PHerc. 0813 (w079, w062 at both depths, w063, w110: crack streaks and bright zones that recur on the neighbouring turns), 3 of 194 PHerc. 0191 (a recurring zone and fibre streaks); all checked by eye | PHerc. 0343: LOOK (+0.034); 1 cm strips of PHerc. 0841: 54 %, held-out PHerc. 0841 w00: 93 % |
 | any other set (e.g. all six) | 1.5 | 0.42 | 0.025 | not calibrated | PHerc. 0343 (six models): LOOK (+0.036) |
 
-Read the strip percentages as the chance that one 1 cm band through clear text, at one depth, is flagged by the rows line.
+Read the strip percentages as the chance that one 1 cm band through clear text, at one depth, is flagged by the 0.2 rule
+(10.3 mm strips every 2 mm, scored with the CT void mask as `stroke-score score` does; see 0.2.1 below).
 The rule is a triage line set so that our null windings almost never cross it, not a detector. Every flag gets a look by
 eye next to the CT (Known false alarms).
+
+## 0.2.1: one bug fix and a test on new text
+
+**The bug.** `valid_mask` let isolated invalid pixels grow, through the row score's 0.5 mm edge margin, into holes that
+could zero the row score: renders with many one-pixel specks (our new control renders had about 30,000) scored rows 0.
+Invalid specks of 100 pixels or less now count as valid (`fill_specks`, test added). The thresholds did not change; they
+were frozen at the tag `stroke-score-v0.2.0` before the test below.
+
+**The held-out test.** PHerc. 0841 w00 is the neighbouring sheet of the 0841 control: new text that no 9 µm model trained
+on and that 0.2 was not tuned on. With Reader v2 + d9v4C the 0.2 rule flags 14 of its 15 one-centimetre strips (rows
+line 4, contrast line 14); with ink_9um ×2 + dense_native, 6 of 15 (contrast line). On the null windings the rule flags
+8 of 294 winding-depths with Reader v2 + d9v4C and 0 of 194 with the three models, every flag checked by eye (table above).
+
+**Against simpler scores.** Separating known-text strips from null windings, the 0.2 margin reaches AUC 0.895 (Reader v2
++ d9v4C, 28 strips against 294 nulls) and 0.968 (three models, 51 against 200). Plain ink amounts score as high or higher
+(up to 0.99), but they also tell the two text-free scrolls apart (mean ink: AUC 0.95 between the PHerc. 0191 and PHerc.
+0813 nulls), so across scrolls they measure the scan, not the text; the 0.2 margin is less affected (0.75). With known
+strips mixed into a ranking of the nulls, the 0.2 margin puts 3.8 of 4.7 (Reader v2 + d9v4C) and 7.5 of 8.5 (three
+models) known strips in the top 20, about as many as the 0.1 stroke area (3.8 and 8.3). The whole PHerc. 0343 First
+Letters segment ranks first among the nulls with both model sets.
 
 ## Known-text control kit
 
@@ -148,7 +169,7 @@ PHerc. 0841 dense_native 0.800, Reader v2 0.824, d9v4C 0.830, ink_9um 0.733 (hum
 ## Install
 
 ```
-pip install "git+https://github.com/skuzbucket1/scroll-prize@stroke-score-v0.2.0#subdirectory=tools/stroke-score"
+pip install "git+https://github.com/skuzbucket1/scroll-prize@stroke-score-v0.2.1#subdirectory=tools/stroke-score"
 pip install ./tools/stroke-score        # from a clone; or: pip install -e ./tools/stroke-score[test]
 ```
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stroke-score"
-version = "0.2.0"
+version = "0.2.1"
 description = "Rank Herculaneum-scroll segments by stroke-like ink on the reading side versus the blind side of the same sheet"
 readme = "README.md"
 license = {text = "MIT"}
