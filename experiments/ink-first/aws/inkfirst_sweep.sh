@@ -5,7 +5,7 @@
 # its blocks are done; a trap fetches and terminates every worker on any exit. Each instance also has a hard
 # auto-shutdown after FLEET_MAX_HOURS. Usage: experiments/ink-first/aws/inkfirst_sweep.sh <blocks.tsv> [workers=4] [models=readerv2] [par=4]
 # Results: data/PHerc0175A/runs-aws/<date>_inkfirst-sweep/w<i>/ (progress.log, timings.tsv, <block>/summary.npz, galleries)
-export INSTANCE_TYPES="g5.4xlarge g6.4xlarge" MARKET=ondemand FLEET_MAX_HOURS=${FLEET_MAX_HOURS:-6} RETRY_MINUTES=${RETRY_MINUTES:-30}
+export INSTANCE_TYPES="g5.4xlarge g6.4xlarge" MARKET=${MARKET:-spot-then-ondemand} FLEET_MAX_HOURS=${FLEET_MAX_HOURS:-6} RETRY_MINUTES=${RETRY_MINUTES:-30}
 AWS=$(cd "$(dirname "$0")/../../../infra/aws" && pwd)   # the shared AWS scripts (lib.sh, spot_*.sh) and state
 ST=$AWS/state/inkfirst-sweep; export ISTATE=$ST/main
 source "$AWS/lib.sh"

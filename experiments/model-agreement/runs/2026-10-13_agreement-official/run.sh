@@ -8,6 +8,8 @@
 # trained on which segment comes from the public model cards and training lists (scratch/credits/report.md, 2026-10-13):
 # controls.tsv gives the models to run (Hecate is skipped where it trained) and the clean ones; clean ones decide, the rest
 # give a seen-text upper bound. Six of the eight 0139 windings were seen by every model: upper bound only.
+# 2026-10-13 11:10 CT: trimmed to the three held-out segments (controls.tsv; all nine in controls_all9.tsv) because the
+# box CPU was overloaded and the six seen-by-every-model windings only give an upper bound.
 # GPU stage on GPU 2 after the PHerc1447 ink-first block (INKFIRST1447-EXIT); GPU 0 is the other session's top30 run.
 # Markers in run.log: CPU-DONE (all renders), AGREE-OFFICIAL-EXIT.
 S=/home/tbienapfl/scroll-prizes; R=$S/runs/2026-10-13_agreement-official; PY=$S/villa/vesuvius/.venv/bin/python

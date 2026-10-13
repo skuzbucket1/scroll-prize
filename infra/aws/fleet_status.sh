@@ -2,7 +2,7 @@
 # Progress of every fleet worker and a running cost estimate.
 source "$(dirname "$0")/lib.sh"
 P=$STATE/fleet/plan.tsv; [ -s "$P" ] || { echo "no plan" >&2; exit 2; }
-if [ "${MARKET:-spot}" = ondemand ]; then RATE=${ONDEMAND_PRICE:-0.752}; else RATE=$MAX_PRICE; fi
+if [ "${MARKET:-spot}" != spot ]; then RATE=${ONDEMAND_PRICE:-0.752}; else RATE=$MAX_PRICE; fi   # spot-then-ondemand: the on-demand rate is the upper bound
 tot=0; done_=0; cost=0
 for w in $(cut -f1 "$P" | sort -u); do
   export ISTATE=$STATE/fleet/$w

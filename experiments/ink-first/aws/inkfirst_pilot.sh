@@ -4,7 +4,7 @@
 # PHerc0175A read straight from the public bucket, Reader v2, then fetch the small results and TERMINATE the instance
 # (trap on every exit). Usage: experiments/ink-first/aws/inkfirst_pilot.sh <blocks.tsv> [models=readerv2] [par=4]
 # Results: data/PHerc0175A/runs-aws/<date>_inkfirst-pilot/ (progress.log, timings.tsv, <block>/summary.npz, glow.png, galleries).
-export INSTANCE_TYPES="g5.4xlarge g6.4xlarge" MARKET=ondemand ONDEMAND_PRICE=1.624 FLEET_MAX_HOURS=${FLEET_MAX_HOURS:-3} RETRY_MINUTES=${RETRY_MINUTES:-20}
+export INSTANCE_TYPES="g5.4xlarge g6.4xlarge" MARKET=${MARKET:-spot-then-ondemand} ONDEMAND_PRICE=1.624 FLEET_MAX_HOURS=${FLEET_MAX_HOURS:-3} RETRY_MINUTES=${RETRY_MINUTES:-20}
 AWS=$(cd "$(dirname "$0")/../../../infra/aws" && pwd)   # the shared AWS scripts (lib.sh, spot_*.sh) and state
 export ISTATE=${ISTATE:-$AWS/state/inkfirst-pilot}
 source "$AWS/lib.sh"

@@ -9,6 +9,7 @@
 S=~/scroll-prizes; R=$S/runs/2026-10-13_inkfirst-1447; PY=$S/villa/vesuvius/.venv/bin/python
 U=https://vesuvius-challenge-open-data.s3.amazonaws.com/PHerc1447
 until grep -q ABLATION-EXIT $S/runs/2026-10-13_ink-ablation/run.log 2>/dev/null; do sleep 60; done
+while ls $S/runs/.gpu2-hold* > /dev/null 2>&1; do sleep 60; done   # other short GPU-2 jobs hold the card (each removes its file when done)
 export ROOT=$S PY VILLA=$S/villa BIN=$S/bin CKPT_DIR=$S/checkpoints/ckpt343 WORK=/mnt/nvme2/scroll-prizes/scratch/inkfirst-1447 \
   KEEP_BLOCKS=1 RESULTS=$R/results TMPDIR=/mnt/nvme2/scroll-prizes/scratch SAMPLE_ARGS=--per-sheet \
   CUDA_VISIBLE_DEVICES=GPU-7937f33e-73c8-2a4f-d7c6-9c4c3c20c74f VILLA_BATCH=8 TORCHDYNAMO_DISABLE=1

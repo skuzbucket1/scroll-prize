@@ -1,7 +1,8 @@
 """Download only the level-0 chunks of a remote CT zarr (v2, dimension_separator '/') that a 66-layer render of a tifxyz mesh
 reads: every chunk within `margin` voxels of a mesh point. Writes a local store with the same layout (.zattrs, .zgroup,
 0/.zarray, chunks), so vc_render_tifxyz, which only opens local zarrs, can render the mesh from it.
-Usage: fetch_mesh_chunks.py <CT zarr URL> <tifxyz dir> <out.zarr> [margin=48] [threads=24]"""
+Usage: fetch_mesh_chunks.py <CT zarr URL> <tifxyz dir> <out.zarr> [margin=48] [threads=24] [level=0]
+(level L > 0: the chunks of pyramid level L instead, for a render with --group-idx L; the margin is in level-L voxels.)"""
 import concurrent.futures as cf, json, os, sys, time, urllib.error, urllib.request
 import numpy as np, tifffile, cv2
 
@@ -33,26 +34,27 @@ def get(base, out, rel):
 
 base, mesh, out = sys.argv[1].rstrip('/'), sys.argv[2], sys.argv[3]
 margin = int(sys.argv[4]) if len(sys.argv) > 4 else 48; threads = int(sys.argv[5]) if len(sys.argv) > 5 else 24
-for m in ('.zattrs', '.zgroup', '0/.zarray'):
+lv = int(sys.argv[6]) if len(sys.argv) > 6 else 0
+for m in ('.zattrs', '.zgroup', '0/.zarray', f'{lv}/.zarray'):
     get(base, out, m)
 try:                                                           # the other levels' metadata too (no chunks), for readers that open them
     for d in json.load(open(os.path.join(out, '.zattrs')))['multiscales'][0]['datasets']:
         get(base, out, f"{d['path']}/.zarray")
 except (KeyError, IndexError, FileNotFoundError):
     pass
-c = json.load(open(os.path.join(out, '0', '.zarray')))['chunks']
+c = json.load(open(os.path.join(out, str(lv), '.zarray')))['chunks']
 X, Y, Z = (tifffile.imread(os.path.join(mesh, f'{k}.tif')).astype(np.float32) for k in 'xyz')
 f = 4                                                          # grid cells are ~20 voxels: sample every ~5 voxels
 up = lambda A: cv2.resize(A, (A.shape[1] * f, A.shape[0] * f), interpolation=cv2.INTER_LINEAR)
 ok = cv2.resize(((X > 0) & (Y > 0) & (Z > 0)).astype(np.uint8), (X.shape[1] * f, X.shape[0] * f), interpolation=cv2.INTER_NEAREST) > 0
-P = np.stack([up(Z)[ok], up(Y)[ok], up(X)[ok]], 1)
+P = np.stack([up(Z)[ok], up(Y)[ok], up(X)[ok]], 1) / 2 ** lv              # mesh points are level-0 voxels
 keys = set()
 for dz in (-margin, 0, margin):
     for dy in (-margin, 0, margin):
         for dx in (-margin, 0, margin):
             q = np.floor((P + np.array([dz, dy, dx])) / np.array(c)).astype(int)
             keys |= set(map(tuple, np.unique(q, axis=0)))
-keys = [f'0/{z}/{y}/{x}' for z, y, x in sorted(keys) if min(z, y, x) >= 0]
+keys = [f'{lv}/{z}/{y}/{x}' for z, y, x in sorted(keys) if min(z, y, x) >= 0]
 t0 = time.time()
 with cf.ThreadPoolExecutor(threads) as ex:
     got = list(ex.map(lambda k: get(base, out, k), keys))

@@ -34,8 +34,13 @@ Every step here has been checked on a scroll where the text is known, and every 
 Each folder has a `STATUS.md` that gives the question, the numbers so far, and what will decide it.
 
 - **model-agreement**: real letters light up in at least five of the six models; false alarms light up in only some.
-  Holds on PHerc. 343 and on one PHerc0841 segment, fails on the other. PHerc0139 is the tiebreaker (running).
-- **ink-ablation**: what in the CT do the models actually respond to on real 9.36 µm letters? (running)
+  Holds on PHerc. 343, PHerc0841 w00 and PHerc0139 w047, fails on PHerc0841 ag2814. Next: the official ink labels on
+  the segments the models never saw (running).
+- **ink-ablation**: what in the CT do the models respond to on real 9.36 µm letters? Fine texture, about 75 µm, in the
+  layers just above the surface, not brightness.
+- **synthetic-letters**: train on letters painted into real text-free renders, with that texture. (just started)
+- **ink9-swap**: would another checkpoint, or a soup, of ink_9um make a better member? Candidates built and checked;
+  comparison not run yet.
 - **geometry-coverage**: how much of a fitted band is really new papyrus? First pass: about a fifth of the area repeats
   a sheet that another winding already covers.
 - **ink-first**: find ink without building a mesh first. It sees real letters where it lands. A whole-scroll sweep is

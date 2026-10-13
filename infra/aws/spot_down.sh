@@ -19,7 +19,9 @@ if [ -n "$IDS" ] && [ "$IDS" != "None" ]; then
   [ -n "$KILL" ] && awsc ec2 wait instance-terminated --instance-ids $KILL && log "terminated:$KILL"
   if [ -f "$ISTATE/launched_at" ]; then
     h=$(python3 -c "import time; print(round((time.time()-$(cat "$ISTATE/launched_at"))/3600, 2))")
-    if [ "${MARKET:-spot}" = "ondemand" ]; then RATE=${ONDEMAND_PRICE:-0.752}; WHAT="on-demand rate"; else RATE=$MAX_PRICE; WHAT="spot ceiling (actual spot price is lower)"; fi
+    MK=$(cat "$ISTATE/market" 2>/dev/null || echo "${MARKET:-spot}")   # what spot_up.sh got (older state: the requested MARKET)
+    if [ "$MK" = spot ] && [ -s "$ISTATE/price" ]; then RATE=$(cat "$ISTATE/price"); WHAT="spot price at launch"
+    elif [ "$MK" = ondemand ]; then RATE=${ONDEMAND_PRICE:-0.752}; WHAT="on-demand rate"; else RATE=$MAX_PRICE; WHAT="spot ceiling (actual spot price is lower)"; fi
     log "ran ~${h} h; at the $WHAT of \$$RATE/h that is about \$$(python3 -c "print(round($h*$RATE, 2))")"
   fi
 else
@@ -27,7 +29,7 @@ else
 fi
 LEFT=$(awsc ec2 describe-volumes --filters "Name=tag:Project,Values=$PROJECT_TAG" --query 'Volumes[].VolumeId' --output text)
 [ -n "$LEFT" ] && log "note: tagged volumes still listed: $LEFT (delete-on-termination removes them within minutes)"
-rm -f "$ISTATE/instance_id" "$ISTATE/instance_ip" "$ISTATE/launched_at" "$ISTATE/instance_type"
+rm -f "$ISTATE/instance_id" "$ISTATE/instance_ip" "$ISTATE/launched_at" "$ISTATE/instance_type" "$ISTATE/market" "$ISTATE/price"
 if [ $CLEAN -eq 1 ]; then
   SG=$(awsc ec2 describe-security-groups --filters Name=vpc-id,Values="$VPC_ID" Name=group-name,Values="$SG_NAME" "Name=tag:Project,Values=$PROJECT_TAG" --query 'SecurityGroups[0].GroupId' --output text)
   [ "$SG" != "None" ] && awsc ec2 delete-security-group --group-id "$SG" && log "deleted security group $SG"

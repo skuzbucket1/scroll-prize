@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Back up the critical set to Ted's private S3-compatible backup bucket with rclone. Usage: infra/backup/backup_r2.sh mac|box [--dry-run]
 #   mac (run on the Mac, repo root): memory/, data/<scroll>/reviews, data/<scroll>/runs-aws, data/aws-results, data/controls9um,
-#       data/catalog, data/results, data/ref. Credentials from .secrets via infra/backup/r2_env.sh (never printed).
+#       data/catalog, data/results, data/ref, notes/, and the private paths kept out of git that are listed in
+#       infra/backup/private_paths.txt (git-excluded; one rclone pattern per line, e.g. /experiments/<name>/**). Credentials from .secrets via infra/backup/r2_env.sh (never printed).
 #   box (run on the GPU box, from /mnt/nvme/scroll-prizes): data/<scroll>/geometry (fits, snapped and flattened meshes),
 #       the spiral-dataset umbilicus/scroll files, data/<scroll>/scores, runs/, and the ink maps + ensemble images of the windings
 #       listed in infra/backup/windings_of_interest.tsv, and the ink-first results (patches, ink maps, back-projections; not the
@@ -26,8 +27,10 @@ if [ "$HOST" = mac ]; then
 + /data/catalog/**
 + /data/results/**
 + /data/ref/**
-- **
++ /notes/**
 X
+  if [ -f infra/backup/private_paths.txt ]; then { grep -v '^#' infra/backup/private_paths.txt || true; } | sed '/^$/d; s|^|+ |' >> $F; fi
+  echo '- **' >> $F
 else
   ROOT=/mnt/nvme/scroll-prizes; R2_BUCKET=${R2_BUCKET:-$(cat ~/.config/rclone/r2_bucket 2>/dev/null)}; [ -n "$R2_BUCKET" ] || { echo 'no bucket name'; exit 2; }; cd $ROOT
   { echo "- /data/*/geometry/*/flattened/*/model*/**"

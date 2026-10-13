@@ -7,7 +7,7 @@ M=$ROOT/data/aws-stage/manifest.tsv; [ -s "$M" ] || { echo "no manifest: run inf
 mkdir -p "$STATE/fleet"; P=$STATE/fleet/plan.tsv; : > "$P"
 awk -v n="$N" 'BEGIN{FS=OFS="\t"} NF { printf "w%02d\t%s\n", (NR-1) % n + 1, $0 }' "$M" > "$P"
 TOTAL=$(wc -l < "$M" | tr -d ' ')
-if [ "${MARKET:-spot}" = ondemand ]; then RATE=${ONDEMAND_PRICE:-0.752}; else RATE=$MAX_PRICE; fi
+if [ "${MARKET:-spot}" != spot ]; then RATE=${ONDEMAND_PRICE:-0.752}; else RATE=$MAX_PRICE; fi   # spot-then-ondemand: the on-demand rate is the upper bound
 python3 - "$TOTAL" "$N" "$MPS" "$RATE" <<'PY'
 import sys, math
 total, n, mps, rate = int(sys.argv[1]), int(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4])

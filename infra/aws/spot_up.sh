@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Request one spot instance, bootstrap it (villa vesuvius env, VC3D AppImage, ink checkpoints), wait until ready.
+# Request one instance (spot, on-demand, or spot first then on-demand: MARKET), bootstrap it (villa vesuvius env, VC3D AppImage, ink checkpoints), wait until ready.
 # Usage: infra/aws/spot_up.sh            (state written to infra/aws/state/: instance_id, instance_ip, launched_at)
 source "$(dirname "$0")/lib.sh"
 check_account
@@ -38,14 +38,22 @@ UD=$ISTATE/userdata.sh
 sed -e "s|@MAX_MINUTES@|$(( ${FLEET_MAX_HOURS:-$MAX_HOURS} * 60 ))|g" -e "s|@VILLA_COMMIT@|$VILLA_COMMIT|g" -e "s|@VC3D_RELEASE@|$VC3D_RELEASE|g" "$HERE/userdata.sh.tmpl" > "$UD"
 
 NAME="$PROJECT_TAG-${WORKER_NAME:-spot}-$(date -u +%Y%m%d-%H%M%S)"
-log "requesting spot (types: ${INSTANCE_TYPES:-$INSTANCE_TYPE}; max \$$MAX_PRICE/h; hard limit ${FLEET_MAX_HOURS:-$MAX_HOURS}h)"
-if [ "${MARKET:-spot}" = "ondemand" ]; then MARKET_OPTS=(); log "ON-DEMAND requested (MARKET=ondemand): no spot discount, same hard limit and teardown"
-else MARKET_OPTS=(--instance-market-options "{\"MarketType\":\"spot\",\"SpotOptions\":{\"MaxPrice\":\"$MAX_PRICE\",\"SpotInstanceType\":\"one-time\",\"InstanceInterruptionBehavior\":\"terminate\"}}"); fi
+# MARKET: spot (ceiling MAX_PRICE) | ondemand | spot-then-ondemand (every type x subnet on spot first, capped at the
+# on-demand price, then the same list on-demand; an interrupted spot instance is terminated, not resumed)
+case ${MARKET:-spot} in spot) MARKETS=spot;; ondemand) MARKETS=ondemand;; spot-then-ondemand) MARKETS="spot ondemand";;
+  *) echo "MARKET must be spot, ondemand or spot-then-ondemand (got $MARKET)" >&2; exit 2;; esac
+log "requesting ${MARKETS// / then } (types: ${INSTANCE_TYPES:-$INSTANCE_TYPE}; hard limit ${FLEET_MAX_HOURS:-$MAX_HOURS}h)"
+market_opts(){ MARKET_OPTS=()
+  [ $MK = ondemand ] && return
+  local cap=""; [ "${MARKET:-spot}" = spot ] && cap="\"MaxPrice\":\"$MAX_PRICE\","   # no MaxPrice = the on-demand price
+  MARKET_OPTS=(--instance-market-options "{\"MarketType\":\"spot\",\"SpotOptions\":{$cap\"SpotInstanceType\":\"one-time\",\"InstanceInterruptionBehavior\":\"terminate\"}}"); }
 IID=""; TYPES=${INSTANCE_TYPES:-$INSTANCE_TYPE}; DEADLINE=$(( $(date +%s) + ${RETRY_MINUTES:-0} * 60 ))
 while [ -z "$IID" ]; do
+for MK in $MARKETS; do
+market_opts
 for INSTANCE_TYPE in $TYPES; do
 for SUBNET in $SUBNET_IDS; do
-  log "trying $INSTANCE_TYPE in subnet $SUBNET"
+  log "trying $INSTANCE_TYPE $MK in subnet $SUBNET"
   if IID=$(awsc ec2 run-instances --image-id "$AMI" --instance-type "$INSTANCE_TYPE" --key-name "$KEY_NAME" \
     --network-interfaces "[{\"DeviceIndex\":0,\"SubnetId\":\"$SUBNET\",\"Groups\":[\"$SG\"],\"AssociatePublicIpAddress\":true,\"DeleteOnTermination\":true}]" \
     "${MARKET_OPTS[@]}" \
@@ -55,26 +63,39 @@ for SUBNET in $SUBNET_IDS; do
     --user-data "file://$UD" \
     --tag-specifications "ResourceType=instance,Tags=[{Key=Project,Value=$PROJECT_TAG},{Key=Name,Value=$NAME}]" "ResourceType=volume,Tags=[{Key=Project,Value=$PROJECT_TAG}]" \
     --query 'Instances[0].InstanceId' --output text 2> "$ISTATE/run-instances.err"); then
-    break 2
+    break 3
   fi
   log "  no: $(tail -1 "$ISTATE/run-instances.err" | grep -oE '\((InsufficientInstanceCapacity|SpotMaxPriceTooLow|MaxSpotInstanceCountExceeded|[A-Za-z]+)\)' | head -1)"; IID=""
+done
 done
 done
 [ -n "$IID" ] && break
 [ "$(date +%s)" -lt "$DEADLINE" ] || break
 log "no capacity in any type/subnet; retrying in 2 min (until $(date -u -r $DEADLINE +%H:%M) UTC)"; sleep 120
 done
-[ -n "$IID" ] || { echo "spot request failed for every type/subnet (see infra/aws/state/run-instances.err)" >&2; exit 7; }
-log "got $INSTANCE_TYPE in $SUBNET"
-echo "$IID" > "$ISTATE/instance_id"; date -u +%s > "$ISTATE/launched_at"; echo "$INSTANCE_TYPE" > "$ISTATE/instance_type"
+[ -n "$IID" ] || { echo "request failed for every market/type/subnet (see infra/aws/state/run-instances.err)" >&2; exit 7; }
+log "got $INSTANCE_TYPE $MK in $SUBNET"
+echo "$IID" > "$ISTATE/instance_id"; date -u +%s > "$ISTATE/launched_at"; echo "$INSTANCE_TYPE" > "$ISTATE/instance_type"; echo "$MK" > "$ISTATE/market"
 log "instance $IID requested; waiting for running"
 awsc ec2 wait instance-running --instance-ids "$IID"
+if [ $MK = spot ]; then   # the spot price at launch, for the cost line in spot_down.sh
+  AZ=$(awsc ec2 describe-instances --instance-ids "$IID" --query 'Reservations[0].Instances[0].Placement.AvailabilityZone' --output text)
+  SP=$(awsc ec2 describe-spot-price-history --instance-types "$INSTANCE_TYPE" --availability-zone "$AZ" --product-descriptions "Linux/UNIX" \
+       --max-items 1 --query 'SpotPriceHistory[0].SpotPrice' --output text 2>/dev/null | head -1)
+  [[ "$SP" =~ ^[0-9.]+$ ]] && echo "$SP" > "$ISTATE/price" && log "spot in $AZ at \$$SP/h"
+fi
 IP=$(awsc ec2 describe-instances --instance-ids "$IID" --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
+if [[ "$IP" == 100.* ]] && [ "${IP_RETRY:-0}" -lt 4 ]; then   # 2026-10-13: the Mac routes 100.0.0.0/8 into the Tailscale tailnet
+  log "public IP $IP is in 100.0.0.0/8, which this Mac sends into the tailnet (no SSH): terminating it and retrying"
+  awsc ec2 terminate-instances --instance-ids "$IID" > /dev/null
+  rm -f "$ISTATE/instance_id" "$ISTATE/instance_ip" "$ISTATE/launched_at" "$ISTATE/instance_type" "$ISTATE/market" "$ISTATE/price"
+  IP_RETRY=$(( ${IP_RETRY:-0} + 1 )) exec bash "$0" "$@"
+fi
 echo "$IP" > "$ISTATE/instance_ip"; log "running at $IP"
 
 log "waiting for SSH"
 for _ in $(seq 1 40); do rssh true 2>/dev/null && break; sleep 10; done
-log "waiting for bootstrap (uv env, VC3D AppImage, checkpoints; ~15-25 min)"
+log "waiting for bootstrap (uv env, VC3D AppImage, checkpoints; ~2-5 min)"
 t0=$(date +%s)
 while true; do
   st=$(rssh 'test -f /opt/scroll/BOOTSTRAP-DONE && echo done || (test -f /opt/scroll/BOOTSTRAP-FAILED && echo failed) || echo wait' 2>/dev/null || echo wait)
