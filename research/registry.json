@@ -2538,7 +2538,7 @@
    "verdict": "done",
    "metrics": {},
    "images": [],
-   "learned": "The rule holds on new text with Reader v2 + d9v4C and is weaker with the three-model set on faint text. Released as stroke-score 0.2.1: same thresholds, the speck fix, and these numbers in the README.",
+   "learned": "The rule holds on new text with Reader v2 + d9v4C and is weaker with the three-model set on faint text. Released as stroke-score 0.2.1: same thresholds, the speck fix, and these numbers in the README. 0.2.2 fixes 0.2.1's packaging: an old build copy in the repository could be installed instead of the fixed code.",
    "credits": [
     "vc-known-text",
     "vc-data",
