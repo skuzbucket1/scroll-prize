@@ -2,14 +2,15 @@
 # Ink maps for any model set and depths on the rendered windings of one fit (Nieuwlaar's run_ink.sh; models e.g. readerv2,d9v4c).
 # Units = (winding, model, depth), shared by several GPUs through claim folders in <run dir>/claims-<scroll>-<fit>/.
 # Usage: band_models.sh <scroll> <fit-id> <CUDA GPU UUID> <run dir> <models,comma> <depths,comma> w061 w062 ...
-# Marker: MODELS-EXIT (one per call).
+# Env: VILLA_BATCH (default 4); TORCHDYNAMO_DISABLE=1 skips the per-run torch compile (minutes on a busy CPU; same
+# outputs up to rounding). Marker: MODELS-EXIT (one per call).
 set -uo pipefail
 SC=$1; FIT=$2; GPU=$3; RUN=$4; MS=${5//,/ }; DS=${6//,/ }; shift 6; WS="$*"
 case "$GPU" in 1|GPU-33b8aac6*) echo "REFUSED: GPU 1 (GTX 1660 SUPER) is not usable for this work"; exit 97;; esac
 S=~/scroll-prizes; P=/mnt/nvme/scroll-prizes/data/$SC; Z=$P/renders/$FIT; M=$P/ink/$FIT/maps; C=$RUN/claims-$SC-$FIT; L=$RUN/units
 mkdir -p $M $C $L
 export CUDA_VISIBLE_DEVICES=$GPU CKPT_DIR=$S/checkpoints/ckpt343 PY=$S/villa/vesuvius/.venv/bin/python N_LAYERS=66 NATIVE_UM=9.362 \
-       VILLA_BATCH=4 TMPDIR=/mnt/nvme/scroll-prizes/scratch
+       VILLA_BATCH=${VILLA_BATCH:-4} TMPDIR=/mnt/nvme/scroll-prizes/scratch
 have() { local f=$M/$1__$2__L66s$((25 + $3)); [ -s $f.tif ] && [ -s ${f}_reverse.tif ]; }
 cd $S/villa/vesuvius
 for d in $DS; do for w in $WS; do for m in $MS; do
