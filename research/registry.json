@@ -772,6 +772,10 @@
     "hecate",
     "dense-native",
     "ours"
+   ],
+   "related": [
+    "scrollrank",
+    "gaona-atlas"
    ]
   },
   {
@@ -851,6 +855,10 @@
     "hecate",
     "dense-native",
     "ours"
+   ],
+   "related": [
+    "scrollrank",
+    "gaona-atlas"
    ]
   },
   {
@@ -1174,6 +1182,10 @@
     "hecate",
     "vc-data",
     "ours"
+   ],
+   "related": [
+    "scrollrank",
+    "gaona-atlas"
    ]
   },
   {
@@ -1832,6 +1844,10 @@
     "vc-data",
     "villa",
     "ours"
+   ],
+   "related": [
+    "millermuller",
+    "shribyr"
    ]
   },
   {
@@ -2033,6 +2049,9 @@
     "nieuwlaar-343",
     "vc-data",
     "ours"
+   ],
+   "related": [
+    "scrollrank"
    ]
   },
   {
@@ -2398,6 +2417,9 @@
     "ink9um",
     "dense-native",
     "ours"
+   ],
+   "related": [
+    "scrollrank"
    ]
   },
   {
@@ -2529,6 +2551,10 @@
     "ink9um",
     "dense-native",
     "ours"
+   ],
+   "related": [
+    "rodriguescarson-atlas",
+    "millermuller"
    ]
   },
   {
@@ -2554,6 +2580,10 @@
     "dense-native",
     "nieuwlaar-343",
     "ours"
+   ],
+   "related": [
+    "scrollrank",
+    "gaona-atlas"
    ]
   },
   {
@@ -2640,6 +2670,10 @@
     "dense-native",
     "ink9um",
     "ours"
+   ],
+   "related": [
+    "shribyr",
+    "korotetskyi-haindl"
    ]
   },
   {
@@ -2665,6 +2699,9 @@
     "ink9um",
     "hecate",
     "ours"
+   ],
+   "related": [
+    "shribyr"
    ]
   },
   {
@@ -2925,7 +2962,7 @@
   {
    "id": "dense-native",
    "who": "Erwin Nieuwlaar",
-   "what": "dense_native ink model (fine-tune on PHerc. 0139).",
+   "what": "dense_native ink model (fine-tune on PHerc. 0139); initialised from Domenico Russo's ink9um-dense, with dense labels on native PHerc. 0139 scans (its card lists the segments it held out, which we use for training-overlap checks).",
    "link": "https://huggingface.co/Nieuwlaar/ink9um-dense-native"
   },
   {
@@ -2990,20 +3027,20 @@
   },
   {
    "id": "readerv2",
-   "who": "DomRusso2",
-   "what": "Reader v2, a 9 µm ink model (MIT; weights published on Hugging Face as domenicor046/reader-v2, step 40,000), and its published benchmark table, which we compare our control AUCs with. Run in AWS run 7 on the 9 µm controls and the PHerc0813 picks, and in the overnight re-check.",
+   "who": "Domenico Russo (DomRusso2 / domenicor046)",
+   "what": "Reader v2, a 9 µm ink model distilled onto native 8.64–9.36 µm scans (MIT; weights on Hugging Face as domenicor046/reader-v2, step 40,000), and its published benchmark table, which we compare our control AUCs with; also ink9um-dense and its benchmark of all 14 released ink_9um checkpoints. Run in AWS run 7 on the 9 µm controls and the PHerc0813 picks, and in the overnight re-check.",
    "link": "https://github.com/DomRusso2/reader-v2"
   },
   {
    "id": "d9v4c",
    "who": "TAUIL-Abd-Elilah",
-   "what": "d9v4C, a 9 µm ink model (9um-reader-letter-shape, release v1.0, MIT), and its published PHerc. 0841 benchmark. Run in AWS run 7 on the PHerc. 0841 control and the PHerc0813 picks, and in the overnight re-check.",
+   "what": "d9v4C, a 9 µm ink model (Reader v2 fine-tuned with a letter-shape loss; 9um-reader-letter-shape v1.0, MIT), and its published PHerc. 0841 benchmark and training list. It trained on PHerc. 0139 w047, so we never evaluate it there. Run in AWS run 7 on the PHerc. 0841 control and the PHerc0813 picks, and in the overnight re-check.",
    "link": "https://github.com/TAUIL-Abd-Elilah/9um-reader-letter-shape"
   },
   {
    "id": "vc-known-text",
    "who": "Vesuvius Challenge / EduceLab",
-   "what": "The known-text segments we use as 9 µm positive controls: PHerc. 0139 w047 with its published reference ink map (78 keV scan), and PHerc. 0841 auto_grown 20260221022814 with its human ink labels (CC BY-NC 4.0).",
+   "what": "The known-text segments we use as 9 µm positive controls: PHerc. 0139 w047 with its published reference ink map (78 keV scan), and the official human ink labels in the open-data bucket (release of 2026-09-18: PHerc. 0841 w00, auto_grown 20260221022814 and 20260220144552896, and eight PHerc. 0139 windings) (CC BY-NC 4.0).",
    "link": "https://scrollprize.org/data"
   },
   {
@@ -3023,6 +3060,42 @@
    "who": "SirColton",
    "what": "pherc0841-9um-letter-test: a pre-registered blind letter test on PHerc. 0841; 3 of 8 letters named from a 9 µm map against 6 of 8 at 2.4 µm.",
    "link": "https://github.com/SirColton/pherc0841-9um-letter-test"
+  },
+  {
+   "id": "scrollrank",
+   "who": "FrankTheRope",
+   "what": "ScrollRank (formerly ScrollScout, MIT, first published 2026-09-03): ranks 4 cm² windows of ink predictions by line periodicity over several strips and tilt angles, with stroke-shape and multi-run consistency terms. It came before our row and stroke-shape scores, which we developed independently and found it only afterwards.",
+   "link": "https://github.com/FrankTheRope/scrollrank"
+  },
+  {
+   "id": "gaona-atlas",
+   "who": "Armando Gaona",
+   "what": "vesuvius-ink-atlas (MIT, 2026-08): a legibility score over 46,764 equal-area windows of every published ink prediction, and checkpoint averaging for the ink models. It came before our window ranking.",
+   "link": "https://github.com/armando-gaona/vesuvius-ink-atlas"
+  },
+  {
+   "id": "shribyr",
+   "who": "Chris Scheirer (Shribyr Labs)",
+   "what": "vesuvius-reports (MIT): a letter-scale 9 µm ink-reader benchmark whose nulls include the raw CT used as the \"read\" and depth-reversed reads; our raw-CT test and our reading-side versus blind-side checks repeat these. Also reports on where the m7 surface prediction misses or merges sheets.",
+   "link": "https://github.com/ShribyrLabs/vesuvius-reports"
+  },
+  {
+   "id": "korotetskyi-haindl",
+   "who": "Oleksandr Korotetskyi and Michal Haindl",
+   "what": "Volumetric Texture Analysis for Unsupervised Ink Detection in Herculaneum Papyri (Zenodo, CC BY 4.0, 2026-06): ink found without a trained model on PHerc. 172; prior work to our test of ink in the raw CT.",
+   "link": "https://zenodo.org/records/20766169"
+  },
+  {
+   "id": "millermuller",
+   "who": "Lutfiya Miller and Chris Müller",
+   "what": "first-light-pherc0826 (MIT): the First Letters workflow run end to end on PHerc. 0826 with a control, a pre-registered verdict, costs and failures; and sense-check, which shows a spiral fit cannot tell which way a scroll turns.",
+   "link": "https://github.com/millerandmuller/sense-check"
+  },
+  {
+   "id": "rodriguescarson-atlas",
+   "who": "Carson Rodrigues (rodriguescarson), with meshes by pscamillo",
+   "what": "eligible-scroll-atlas-renders: surface volumes and both-direction ink_9um and Hecate maps for 340 public meshes on eight eligible scrolls, including 75 on PHerc. 0813.",
+   "link": "https://huggingface.co/datasets/rodriguescarson/eligible-scroll-atlas-renders"
   },
   {
    "id": "ours",

@@ -377,14 +377,22 @@ findings = f"""
 </section>"""
 
 
+def used_line(c):
+    u = sum(1 for e in exps if c["id"] in e.get("credits", []))
+    r = sum(1 for e in exps if c["id"] in e.get("related", []))
+    if u == 0 and r:
+        return f"Related work: prior or parallel to {r} of our runs (we did not build on it)"
+    return f"Used in {u} of {len(exps)} runs" + (f"; related work on {r} more" if r else "")
+
+
 cl = "".join(
     f'<li><b>{(chr(60)+"a href=\""+esc(c["link"])+"\""+chr(62)+esc(c["who"])+chr(60)+"/a"+chr(62)) if c.get("link") else esc(c["who"])}</b><p>{esc(c["what"])}</p>'
-    f'<p class="used">Used in {sum(1 for e in exps if c["id"] in e.get("credits", []))} of {len(exps)} runs</p></li>'
+    f'<p class="used">{used_line(c)}</p></li>'
     for c in d.get("credits", []))
 creditsview = f"""
 <section class="view" id="credits" aria-labelledby="h-credits">
   <h1 id="h-credits">Credits</h1>
-  <p class="lede">This campaign is built almost entirely on other people's work. Everything below is theirs; only the entry marked "This project" is ours. Each run page lists exactly what it used.</p>
+  <p class="lede">This campaign is built almost entirely on other people's work. Everything below is theirs; only the entry marked "This project" is ours. Each run page lists exactly what it used ("Built on") and, separately, related work by others that came first or does something similar but that we did not build on ("Related work").</p>
   <ul class="plain creditlist">{cl}</ul>
   <p class="note">Scan data and everything derived from it (all images here) are the Vesuvius Challenge's and EduceLab's, under CC BY-NC 4.0. Copied third-party code keeps its licence notice in the repository (pipeline/ink/ink343/).</p>
 </section>"""
@@ -399,7 +407,7 @@ nextview = f"""
 
 def credit_card(e):
     ids = e.get("credits", [])
-    if not ids:
+    if not ids and not e.get("related"):
         return ""
     items = []
     for cid in ids:
@@ -408,7 +416,17 @@ def credit_card(e):
             continue
         who = f'<a href="{esc(c["link"])}">{esc(c["who"])}</a>' if c.get("link") else esc(c["who"])
         items.append(f'<li><b>{who}</b> — {esc(c["what"])}</li>')
-    return f'<div class="card credits"><h3>Built on</h3><ul class="plain">{"".join(items)}</ul><p class="more"><a href="#credits">All credits</a></p></div>'
+    rel = []
+    for cid in e.get("related", []):
+        c = credits.get(cid)
+        if not c:
+            continue
+        who = f'<a href="{esc(c["link"])}">{esc(c["who"])}</a>' if c.get("link") else esc(c["who"])
+        rel.append(f'<li><b>{who}</b> — {esc(c["what"])}</li>')
+    out = f'<div class="card credits"><h3>Built on</h3><ul class="plain">{"".join(items)}</ul><p class="more"><a href="#credits">All credits</a></p></div>' if items else ""
+    if rel:
+        out += f'<div class="card credits"><h3>Related work by others</h3><p class="more">Prior or parallel work on the same question; we did not build on it.</p><ul class="plain">{"".join(rel)}</ul></div>'
+    return out
 
 # ---------------------------------------------------------------- one page per run
 run_views = []

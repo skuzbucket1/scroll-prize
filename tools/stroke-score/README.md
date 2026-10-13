@@ -276,6 +276,21 @@ Every flag so far on PHerc. 0191 was one of these, found by looking at the revie
   model cards and the ink_9um dataset README.
 - Scan data: Vesuvius Challenge / EduceLab (CC BY-NC 4.0).
 
+## Related work
+
+Others published tools for the same job before us. We built stroke-score independently and only found them on
+2026-10-13, so none of their code is in here. They came first:
+- **ScrollRank** (formerly ScrollScout) by FrankTheRope (github.com/FrankTheRope/scrollrank, MIT, first published
+  2026-09-03). It ranks 4 cm² windows of an ink prediction by line periodicity over several strips and tilt angles. It
+  also computes a stroke-shape term and keeps a multi-run consistency map. Its README reports that stroke shape changed
+  sign between data types and gives it no weight. Our shape score held on our known text, but that is worth knowing
+  before relying on it elsewhere. What stroke-score adds: the reading side against the blind side of the same sheet, the
+  multi-model ensemble, the neighbour-recurrence check, and calibration on known text cut to the search band's height.
+- **vesuvius-ink-atlas** by Armando Gaona (github.com/armando-gaona/vesuvius-ink-atlas, MIT, August 2026): a legibility
+  score over equal-area windows of every published ink prediction, validated against blind hand labels.
+- **vesuvius-reports** by Chris Scheirer, Shribyr Labs (github.com/ShribyrLabs/vesuvius-reports, MIT): a letter-scale
+  benchmark of 9 µm ink readers. Its nulls include depth-reversed reads, the same idea as our blind side.
+
 ## Licence
 
 MIT

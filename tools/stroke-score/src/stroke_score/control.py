@@ -42,7 +42,8 @@ CONTROLS = {
                   '77keV-volume-20260319124803-20260417190342-new_canon_autoresearch_recipe-tile256-stride128.tif',
         labels='PHerc0841/segments/20260221022814-auto_grown_20260220174252405/ink-labels/2.403um-volume-20260319124803/20260918/inklabels.zarr/',
         supervision='PHerc0841/segments/20260221022814-auto_grown_20260220174252405/ink-labels/2.403um-volume-20260319124803/20260918/supervision.zarr/',
-        note='A scroll ink_9um, dense_native, Reader v2, d9v2/d9v3/d9v4C and ft_s42 did not train on (Hecate may have). '
+        note='A scroll ink_9um, dense_native, Reader v2, d9v2/d9v3/d9v4C and ft_s42 did not train on. Hecate\'s model card says it was '
+             'developed on the scrollprize ink bucket, which holds all three PHerc0841 labelled segments: treat Hecate as trained on it. '
              'Human ink labels (two text rows) with a supervision mask; scored inside the mask.'),
     '0841-w00': dict(
         scroll='PHerc0841', um=9.366, name='c0841_w00_66',
