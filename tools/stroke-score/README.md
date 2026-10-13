@@ -4,7 +4,7 @@ Ranks Herculaneum-scroll segments by how much **stroke-shaped ink** an ink-model
 sheet, compared with the **blind side of the same sheet**. It is a triage tool: it tells you which windings, depths and
 4 cm² windows deserve a human look, and it writes review crops so that look is quick. It does not decide what is text.
 
-Status: version 0.2.1, October 2026. Tested on three known-text segments at two scan types (PHerc. 0343 at 8.64 µm;
+Status: version 0.2.2, October 2026. Tested on three known-text segments at two scan types (PHerc. 0343 at 8.64 µm;
 PHerc. 0139 and PHerc. 0841 at 9.36 µm) and several hundred windings of PHerc. 0191 and PHerc. 0813 with no text found.
 New in 0.2: a row score, a stroke-shape score, a neighbour-recurrence check, any set of ink models, and a known-text control
 kit that scores known text the way a search band of your height would see it. The 0.2 rule's thresholds are set per model set
@@ -107,6 +107,10 @@ eye next to the CT (Known false alarms).
 
 ## 0.2.1: one bug fix and a test on new text
 
+**0.2.2 is a packaging fix of 0.2.1.** The repository had an old `build/` copy of the package checked in; an install
+of the `stroke-score-v0.2.1` tag from git could package that copy, without the speck fix below. 0.2.2 removes it and is
+otherwise the same code. If you installed 0.2.1 from git, reinstall from `stroke-score-v0.2.2`.
+
 **The bug.** `valid_mask` let isolated invalid pixels grow, through the row score's 0.5 mm edge margin, into holes that
 could zero the row score: renders with many one-pixel specks (our new control renders had about 30,000) scored rows 0.
 Invalid specks of 100 pixels or less now count as valid (`fill_specks`, test added). The thresholds did not change; they
@@ -169,7 +173,7 @@ PHerc. 0841 dense_native 0.800, Reader v2 0.824, d9v4C 0.830, ink_9um 0.733 (hum
 ## Install
 
 ```
-pip install "git+https://github.com/skuzbucket1/scroll-prize@stroke-score-v0.2.1#subdirectory=tools/stroke-score"
+pip install "git+https://github.com/skuzbucket1/scroll-prize@stroke-score-v0.2.2#subdirectory=tools/stroke-score"
 pip install ./tools/stroke-score        # from a clone; or: pip install -e ./tools/stroke-score[test]
 ```
 
