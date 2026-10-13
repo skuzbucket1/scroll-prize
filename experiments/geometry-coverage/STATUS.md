@@ -16,8 +16,12 @@ draws the check on a CT slice: overlapping dots on one bright band mean two wind
 - PHerc0813 z10500: 76 windings, 2,108 cm², 77 %
 - PHerc0813 z8000: 76 windings, 2,022 cm², 76 %
 
-So roughly a fifth of the fitted area repeats a sheet that another winding already covers. These numbers have not yet
-been checked by eye (the two `view_*.jpg` pictures).
+So roughly a fifth of the fitted area repeats a sheet that another winding already covers.
+
+A first look at the two pictures (PHerc0813 z12000 around w070 and w096) shows neighbouring windings converging onto
+one line in places, for example w070–w073 at the lower left of the w070 view, as the numbers say. Elsewhere the windings
+cross the visible sheets at a shallow angle. With nine windings drawn, the pictures are too dense to confirm the figure.
+Next: a close-up with two windings on either side.
 
 **What decides it.** If the pictures confirm it, the search counts only unique area, triage stops reporting the same
 sheet twice, and the sheets between stacked windings become a target for new geometry. If they don't, the threshold is
