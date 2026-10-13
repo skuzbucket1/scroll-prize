@@ -2,7 +2,7 @@
 
 This file lists every script in the repository and what it does. That covers the GPU-box scripts mirrored in `box/bin/` (including Erwin Nieuwlaar's scripts in `box/bin/ink343/`), the AWS scripts in `aws/`, and the Mac helpers in `scripts/`. Each entry is taken from the script's own header comment or argument parser and was then checked by hand against the code. Where a header and the code disagree, the entry follows the code, and the disagreement is listed at the end. The mirror in `box/bin/` was compared with the box copy (`~/scroll-prizes/bin/`) by checksum. The two copies are identical except for two box-only scripts, listed under "Not yet mirrored". The `aws/` entries describe the working tree on this date, including changes not yet committed (on-worker flattening, Scan-Quality-Map, `SNAPPED_DIR` staging).
 
-Date: 2026-10-10
+Date: 2026-10-10; section 9 (scripts added on 2026-10-11 and 2026-10-12) on 2026-10-13. The tracked `build/` copies inside `tools/ink-first` and `tools/stroke-score` are packaging leftovers and are not listed.
 
 **The main path today** (updated 2026-10-10 midday; any scroll):
 1. Assemble the spiral dataset (`assemble_spiral_dataset.sh` with `smooth_umbilicus.py`, `ray_peaks.py`).
@@ -933,9 +933,380 @@ Prints the top-level keys and config-like entries of a PyTorch checkpoint. It ha
 
 ---
 
+## 9. Added on 2026-10-11 and 2026-10-12
+
+Entries in this section are taken from each script's header comment (written with the code), with the usage line as given there; they were spot-checked against the code, not line by line like sections 1–8. Box scripts were compared with the box copies by checksum on 2026-10-13: identical, except the six marked "not in the box's `bin/`" (they ran from their run folders).
+
+### Cloud: the ink-first sweep
+
+The AWS pilot and four-worker sweep of PHerc0175A (2026-10-12): on-demand g5.4xlarge (g6.4xlarge fallback), NVMe scratch, teardown on every exit.
+
+#### `aws/inkfirst_pilot.sh`
+Ink-first pilot on AWS (Ted approved 2026-10-12, ~$2.50): one on-demand g5.4xlarge (A10G 24 GB, 16 vCPU), or g6.4xlarge (L4 24 GB, 16 vCPU; Ted OK'd it as the fallback) when g5 has no capacity, blocks of PHerc0175A read straight from the public bucket, Reader v2, then fetch the small results and TERMINATE the instance (trap on every exit). Results: data/PHerc0175A/runs-aws/<date>_inkfirst-pilot/ (progress.log, …
+- **Usage:** `aws/inkfirst_pilot.sh <blocks.tsv> [models=readerv2] [par=4]`
+- **Runs on:** Mac (orchestration).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `aws/inkfirst_sweep.sh`
+Ink-first sweep of PHerc0175A on AWS (Ted approved 2026-10-12: Reader v2 only, ~$20): N on-demand workers, each a g5.4xlarge (A10G 24 GB, 16 vCPU) or, when g5 has no capacity, a g6.4xlarge (L4 24 GB, 16 vCPU; Ted OK'd it), each running inkfirst_blocks.sh on every N-th block. Small results come home every 10 min; a worker is terminated as soon as its blocks are done; a trap fetches and terminates every worker on …
+- **Usage:** `aws/inkfirst_sweep.sh <blocks.tsv> [workers=4] [models=readerv2] [par=4]`
+- **Runs on:** Mac (orchestration).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `aws/remote/inkfirst_blocks.sh`
+Ink first over a list of blocks of one scroll, on an AWS worker or the GPU box. For each block: fetch the CT and the surface-prediction block from the public bucket, cut patches along the sheets (CPU; PAR blocks at once), ink them (GPU; one block at a time, as soon as it is cut), stitch, keep a small summary (inkfirst_block_summary.py) and a glow figure, then delete the big inputs.
+- **Usage:** `inkfirst_blocks.sh <blocks.tsv> <CT zarr URL> <prediction zarr URL> <um> <models,> [stride=96] [size=256] [par=4]`
+- **Runs on:** AWS worker (and the GPU box).
+- **Status:** current. **Origin:** ours (MIT).
+
+### Ink first (no mesh)
+
+Looking for ink without a mesh: patches cut along the sheets of the published surface prediction, inked, summarised and mapped. Package: `tools/ink-first` (README); box scripts use it through `bin/ink-first-src`.
+
+#### `box/bin/fetch_block.py`
+Download the chunks of one pyramid level of a remote zarr v2 array that cover a bounding box (dimension_separator '/'), into a local copy of the store (same layout, so zarr opens it and reads the box). Stdlib only.
+- **Usage:** `fetch_block.py <zarr base url> <out store> <level> <z0> <z1> <y0> <y1> <x0> <x1> [threads=24]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_back.py`
+Ink first, step 2: map the ink-first patch predictions back to 3D and onto a test mesh (where the text is known), for evaluation. Every pixel in the centre --centre x --centre of a patch sits at centre + (i - c) u + (j - c) v in the volume; each mesh point (the tifxyz grid upsampled to full resolution over a window) takes the mean ink of the patch pixels within --radius voxels.
+- **Usage:** `inkfirst_back.py <patches.npz> <maps dir> <mesh.tifxyz> <row0 row1 col0 col1 (tifxyz grid)> <out.npz> [--centre 128] [--radius 3] [--blend]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_block_summary.py`
+Keep the small part of one ink-first block: per-patch geometry and ink statistics, a compact 64 x 64 thumbnail of each patch (CT surface layer and ink, both layer orders), the hottest patches at full resolution, and a gallery image of them. The big inputs (CT and prediction blocks, the 66-layer mosaic, full ink maps) can be deleted afterwards.
+- **Usage:** `inkfirst_block_summary.py <block dir with patches.npz, mosaic.zarr, maps/> <out dir> <id> <model,...> [--top 24] [--centre 128]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_cluster_view.py`
+Sheet view of ink-first clusters. A patch's centre is 1.1 mm across and a letter 2-4 mm, so no single patch can show a letter; this lays the patches around a cluster that lie on the same sheet out flat, from their 64 px thumbnails, into one picture of about a centimetre: CT surface layer | ink on this side | ink on the other side.
+- **Usage:** `inkfirst_cluster_view.py <results dir (*/summary.npz)> <clusters_<order>.tsv> <out dir> [--order fwd] [--top 12] [--radius 5] [--step 1.8] [--plane 14] [--angle 25] [--hot 0.5] [--model readerv2] [--um 8.64] [--label PHerc0175A]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_compare.py`
+Ink-first vs mesh-based vs known text on the w047 window (grid rows 32-96, cols 128-192 = full-res rows 640-1920, cols 2560-3840).
+- **Runs on:** GPU box. Not in the box's `bin/`.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_letters_test.py`
+Does ink first see known letters? Maps every ink-first patch of a block back onto a known-text tifxyz segment and compares the patches that land on the letters with the rest.
+- **Usage:** `inkfirst_letters_test.py <summary.npz> <letters3d.npz> <letter_boxes.json> <out dir> [--near 10] [--maps <dir of the segment's ink maps>] [--render control343_66] [--layer s26]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_nulltest.py`
+(no header comment)
+- **Runs on:** GPU box. Not in the box's `bin/`.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_patches.py`
+Ink first, geometry second (prototype): cut 66-layer patches along the local sheet normal at points sampled on a surface prediction, with no mesh, and tile them into one mosaic "render" that run_ink.sh can ink unchanged. - surface points: voxels of the prediction >= --thr, one per --stride^3 cell (the point nearest the cell's mean) - normal: smallest-variance direction of the prediction's voxels within --radius; …
+- **Usage:** `inkfirst_patches.py <ct.zarr> <pred.zarr> <z0 z1 y0 y1 x0 x1> <out dir> [--thr 128] [--stride 96] [--size 256] [--radius 10] [--flat 0.25]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_plan.py`
+Plan an ink-first sweep of a whole scroll: tile the level-0 volume into blocks, keep the blocks the scroll fills. Occupancy comes from a coarse pyramid level of the masked CT (voxels > 0 are papyrus or air inside the scroll mask).
+- **Usage:** `inkfirst_plan.py <CT zarr URL> <out dir> [--level 5] [--block 1280] [--margin 48] [--min-occ 0.25]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_ref_summary.py`
+Summary of an older ink-first block (the 2026-10-11 prototype: patches.npz and maps/ kept, CT mosaic deleted) in the format of inkfirst_block_summary.py, so the scroll map and the cluster view run on known-text and text-free reference blocks exactly as on a sweep: centre/normal/u/v, ct64 (the surface layer, layer 33, re-cut from the CT at 2 voxel spacing over the central `centre` pixels), air (share of ct64 …
+- **Usage:** `inkfirst_ref_summary.py <block dir with patches.npz and maps/> <CT zarr (level 0 in volume coordinates)> <out dir> [--models readerv2] [--centre 128]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_resort.py`
+Re-sort an ink-first sweep for browsing by eye: the patches that look like the PHerc. 343 letter patches rather than the hottest ones (which are saturated blobs on damage). Rule, on undamaged papyrus (air <= 0.3): partly lit on the reading side (`lo` <= frac50 <= `hi`; frac50 = share of the patch centre at ink >= 0.5) and nearly dark on the other side (frac50 <= `other`); ranked by reading-side mean ink minus …
+- **Usage:** `inkfirst_resort.py <results dir (*/summary.npz)> <out dir> [--model readerv2] [--lo 0.10] [--hi 0.60] [--other 0.05] [--top 48] [--reading fwd]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_scroll_map.py`
+Whole-scroll view of an ink-first sweep: every patch of every block (summary.npz from inkfirst_block_summary.py) placed at its 3D position. Writes map_<order>.png    from above (patches within `slab` of the scroll's middle height) and from the side (patches near the centre plane), coloured by frac50 (share of the patch centre at ink >= 0.5); patches that look like damage (air > 0.3: much of the patch is a gap or …
+- **Usage:** `inkfirst_scroll_map.py <results dir (w*/b*/summary.npz)> <out dir> [--coarse <coarse CT zarr dir from inkfirst_plan.py>] [--model readerv2] [--level 5] [--hot 0.5] [--radius 3.0] [--um 8.64] [--top 60] [--label PHerc0175A] (no --coarse: no map figure, the rest as usual)`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_sheets.py`
+Ink first, step 3: mesh-free sheet views. The recto-surface prediction of the block is split into connected sheets (at 1/--ds resolution, 26-connected); each large sheet is flattened onto its best-fit plane (PCA; the axis closest to the scroll axis z is drawn vertically, so lines of text come out horizontal), and the ink-first patch predictions (per-patch z-score, Hann-weighted centre) are painted onto it: every …
+- **Usage:** `inkfirst_sheets.py <pred.zarr> <z0 z1 y0 y1 x0 x1> <patches.npz> <map.tif> <out dir> [--ds 4] [--px 2] [--top 16] [--centre 192] [--mesh <tifxyz> <r0 r1 c0 c1>]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_split.py`
+Ink first: split a big patch mosaic into quarters for inference (one mosaic of 300+ Mpx runs out of memory), or stitch the quarters' ink maps back into one map with the original name, so inkfirst_back.py works unchanged.
+- **Usage:** `inkfirst_split.py split <dir with mosaic.zarr>            -> <dir>/q0..q3/mosaic.zarr inkfirst_split.py stitch <dir> <model>                    -> <dir>/maps/mosaic__<model>__L66s25[_reverse].tif`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_stats.py`
+Ink first, search test: raw per-patch statistics of an ink-first map (no per-patch normalisation), to compare a block with known text against blocks without: mean ink, contrast (SD), 95th percentile, and the share of pixels above 0.5 and 0.8, over the centre --centre x --centre of every patch. Writes <out>.npz (one row per patch) and prints the medians.
+- **Usage:** `inkfirst_stats.py <patches.npz> <map.tif> <out.npz> [--centre 192] [--label NAME]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/inkfirst_within.py`
+Ink first, within-scroll test: map an ink-first block onto every rendered winding that crosses it, and compare with the mesh pipeline's map of that winding at the same pixels. The winding meshes are the flattened tifxyz that were rendered; every render pixel (at 1/--ds resolution) has a 3D position, and each ink-first patch pixel goes to the nearest render pixel within --radius voxels.
+- **Usage:** `inkfirst_within.py <patches.npz> <ink map dir> <model> <flattened dir> <mesh maps dir> <depth s> <out dir> [--ds 2] [--radius 8]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/letters_to_3d.py`
+Put letter boxes drawn on a tifxyz render back into the scan, and pick the ink-first block that holds the most of them. Boxes are [x0, y0, x1, y1] in render pixels (x = column, y = row; the render at the mesh's own scale: node = pixel * scale).
+- **Usage:** `letters_to_3d.py <mesh.tifxyz> <letter_boxes.json> <out dir> [--size 1280] [--step 20] [--id b343] [--shape Z Y X (volume, to keep the block inside)]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/ink-first/src/ink_first/back.py`
+Map ink-first patch predictions back to 3D: every pixel (i, j) of a patch's centre sits at c + (i - m) u + (j - m) v. onto_mesh    onto a window of a tifxyz mesh (e.g. a known-text segment, for evaluation): each mesh point (the grid upsampled to full resolution) takes the mean of the patch pixels within `radius` voxels onto_renders onto every rendered winding (flattened tifxyz + its ink maps) that crosses the …
+- **Runs on:** any (Python package).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/ink-first/src/ink_first/cli.py`
+ink-first: look for ink without a mesh. Cut patches along the local sheet normal from a published surface prediction, ink them with any 66-layer surface-volume ink model, map the predictions back to 3D. ink-first fetch  --url <zarr> --out <store> --box z0 z1 y0 y1 x0 x1 [--level 0] ink-first sample --ct <zarr> --pred <zarr> --box z0 z1 y0 y1 x0 x1 --out <dir> [--stride 96] [--size 256] [--flat 0.25] [--per-sheet] …
+- **Runs on:** any (Python package).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/ink-first/src/ink_first/evaluate.py`
+Evaluation against known text: correlation and AUC on the covered pixels, a null from shifted references (a single far shift is not a valid null: lines of text repeat, so use many shifts), coarse density-map correlation, and per-patch statistics for comparing blocks with and without text.
+- **Runs on:** any (Python package).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/ink-first/src/ink_first/fetch.py`
+Download only the chunks of one pyramid level of a remote zarr v2 array that cover a bounding box (dimension_separator '/'), into a local copy of the store with the same layout, so zarr opens it and reads the box. Stdlib only.
+- **Runs on:** any (Python package).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/ink-first/src/ink_first/mosaic.py`
+Patch mosaics: split a big mosaic into quarters for inference (a 300+ Mpx mosaic runs out of memory in the ink models' inference), stitch the quarters' ink maps back, and read the central part of every patch from an ink map.
+- **Runs on:** any (Python package).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/ink-first/src/ink_first/sample.py`
+Cut 66-layer patches along the local sheet normal at points sampled on a surface prediction, with no mesh, and tile them into one mosaic "surface volume" that any 66-layer ink model can ink unchanged. surface points  voxels of the prediction >= thr, one per stride^3 cell (the voxel nearest the cell's mean); cell by cell, because a dense block can hold hundreds of millions of surface voxels normal          …
+- **Runs on:** any (Python package).
+- **Status:** current. **Origin:** ours (MIT).
+
+### Scoring, triage and evaluation
+
+Inking whole bands, the stroke-score 0.2 scoring pass and ranking, the triage evaluation against known text, and the 2026-10-12 raw-CT and model-agreement tests. Package: `tools/stroke-score` (README).
+
+#### `box/bin/band_models.sh`
+Ink maps for any model set and depths on the rendered windings of one fit (Nieuwlaar's run_ink.sh; models e.g. readerv2,d9v4c). Units = (winding, model, depth), shared by several GPUs through claim folders in <run dir>/claims-<scroll>-<fit>/.
+- **Usage:** `band_models.sh <scroll> <fit-id> <CUDA GPU UUID> <run dir> <models,comma> <depths,comma> w061 w062 ...`
+- **Runs on:** GPU box. **Markers:** MODELS-EXIT.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/band_nulls.py`
+Row and shape scores of search windings inside the render-valid area (all 66 layers > 0; the row score leaves out its own 0.5 mm edge margin), as in post_models.py: the like-for-like counterpart of the known-text controls cut into 10.3 mm strips.
+- **Usage:** `band_nulls.py <scroll> <fit> <models,> <depths,> w...`
+- **Runs on:** GPU box. Not in the box's `bin/`.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/band_post.sh`
+Scorer for band_models.sh (CPU): whenever every model and depth exists for a winding, run post_models.py (mean-z ensemble, stroke score with the CT void mask, row-structure score, JPEG previews) into <run dir>/post/<scroll>/<w>/, then rank. Stops when <workers> MODELS-EXIT lines for this scroll are in <run dir>/gpu*.log and nothing is left.
+- **Usage:** `band_post.sh <scroll> <fit-id> <run dir> <models,comma> <depths,comma> <workers> w061 w062 ...   Marker: POST-EXIT.`
+- **Runs on:** GPU box. **Markers:** POST-EXIT.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/control_eval.py`
+Score our ink maps on a known-text control against a reference (2.4 um prediction map or human labels). For each model, depth and side: AUC and Pearson r against the reference resized onto the map grid, after a global shift found by maximising r for the strongest map (search +-14 px).
+- **Usage:** `control_eval.py <maps dir> <name> <reference.tif | labels.zarr> [--mask mask.zarr] [--thr 128] [--out prefix]`
+- **Runs on:** GPU box. Not in the box's `bin/`.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/ct_ink_signature.py`
+Is there an ink signal in the raw CT itself, with no model? On a segment with known letters (PHerc. 343: Nieuwlaar's letter boxes), compare the CT brightness profile along the normal (layers 33+d, d = -12..+12 of the 66-layer render): stroke   inside a letter box, where the models' reading-side ensemble is in the top 20 % of the box pixels box bg   inside a letter box, ensemble in the bottom half (the papyrus …
+- **Usage:** `ct_ink_signature.py <render.zarr> <maps dir> <name> <letter_boxes.json> <mesh.tifxyz> <out dir> [--models readerv2,d9v4c,dnative,hybrid_3d2d-seed42,hybrid_3d2d-seed43] [--s 26] [--gap 150]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/model_agreement.py`
+Do the six ink models agree that a spot is one-sided (reading side brighter than the blind side)? On known letters they should all agree; on a false alarm (blobs at a crack or a hole) often only some do.
+- **Usage:** `model_agreement.py <render.zarr> <maps dir> <name> <depth> <out.tsv> [--boxes letter_boxes.json] [--window y0 x0 h w] [--tile 300] [--thr 0.2] [--models dnative,hybrid_3d2d-seed42,hybrid_3d2d-seed43,hecate,readerv2,d9v4c] [--label ...]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/post_models.py`
+On a fleet worker (or anywhere): scores and small previews for ink maps of ANY model set, without the per-model naming rules of stroke_score.py / ensemble_maps.py. Per depth: mean-z ensemble (reading-side normalisation), the stroke score (tools/stroke-score core, standard parameters; CT void mask if the render is given) with the 0.2 row score and the along-winding stroke profiles (for the neighbour-recurrence …
+- **Usage:** `post_models.py <maps dir> <name> <um> <models,comma> <depths,comma> <out dir> [render.zarr]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/rank_post.py`
+Rank post_models.py results (__post.json, any model set) with the stroke-score 0.2 columns: row score, the v0.2 row rule and neighbour recurrence of the along-winding profile (w-2..w+2 of the same series). Sorted by row_R.
+- **Usage:** `rank_post.py <post dir> [--row-thr X] [--row-ratio 1.8] [--shape-thr X] > ranking_v02.tsv  (thresholds default per model set)`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/rerow_post.py`
+Update the row-score fields of post_models.py results (__post.json) to the current stroke-score row score, without redoing the stroke score, tiles and previews (the row score is the only part that changed). Rebuilds the mean-z ensemble from the maps and rewrites row_R, row_B, row_at, row_at_B and row_strips.
+- **Usage:** `rerow_post.py <maps dir> <post dir> [--force]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/rowness.py`
+Row-structure score of an ink-ensemble map: does the reading side show ROWS of stroke-like marks at line spacing? Ensemble (mean of per-model z-scores, reading-side normalisation), background-subtracted (1.5 mm Gaussian), strokes = pixels > thr.
+- **Usage:** `rowness.py <maps dir> <name> <um> <models,comma> <d> [d...]`
+- **Runs on:** GPU box. Not in the box's `bin/`.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/rowness_lib.py`
+Row-structure score (see rowness.py): best 2 x 2.4 cm window of (max autocorrelation of the across-row stroke-density profile at lags 3.5-8 mm) x (profile std) x 100, on the background-subtracted ensemble thresholded at 2.0.
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/shape_features.py`
+Component shape features of the above-background marks of a mean-z ensemble, reading and blind side, for designing a stroke-shape score: area (mm2), length and width (ellipse axes from second moments, mm), elongation (length / width), peak and mean height above the local background (z), edge contrast (mean inside minus mean in a 2-pixel ring outside), and orientation of the long axis (degrees from render x). …
+- **Usage:** `shape_features.py <cases.json> <out.npz>`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/side_check.py`
+Which way does a render's +layer direction point: toward the scroll centre or away from it? For a flattened tifxyz and its 66-layer render (layer k samples the CT at (k-32.5) voxels along the renderer's normal): 1. at ~N interior grid nodes, compute n = normalize(dP/dcol x dP/drow) from the grid, sample the CT along +n and -n, and correlate each with the render column -> the sign s with render(+k) = P + …
+- **Usage:** `side_check.py <name> <tifxyz dir> <render.zarr> <CT zarr path or URL> [umbilicus.json|-] [nodes=60]`
+- **Runs on:** GPU box. Not in the box's `bin/`.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/triage_eval.py`
+Does stroke-score 0.2 triage better than plain ink measures? Known text cut into strips as tall as our search bands and the null windings, every item scored with the same stroke-score functions (ensemble normalised within the item, as for a search winding).
+- **Usage:** `triage_eval.py items <config.json> <out.jsonl> [--workers 3] triage_eval.py report <out.jsonl> [--top 20]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/stroke-score/src/stroke_score/cli.py`
+Command line: `stroke-score score ...` scores one render at one depth; `stroke-score rank ...` ranks many results. stroke-score score --surface <name>.zarr --maps <dir> --um 9.362 --depth 1 --out <dir> [--models ...] [--crops 3] stroke-score score --surface <name>.zarr --map-list maps.json --um 8.64 --depth 1 --out <dir> stroke-score rank <result dirs or json files...> [--out ranking.tsv] stroke-score control …
+- **Runs on:** any (Python package).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/stroke-score/src/stroke_score/control.py`
+Known-text control kit: public segments with known text at the 9 um scan type, and an evaluator that scores ANY ink model's maps on them the same way as on a search winding (stroke score, row score) plus AUC against a reference. stroke-score control list stroke-score control fetch 0841-ag2814 controls/            # mesh + reference map + labels (no CT; < 70 MB) stroke-score control eval --control 0841-ag2814 …
+- **Runs on:** any (Python package).
+- **Status:** current. **Origin:** ours (MIT).
+
+### Review pictures
+
+Pictures for judging a flag by eye: candidate windows, neighbouring turns, deep looks, and the site figures.
+
+#### `box/bin/candidate_view.py`
+Full-resolution look at one row window, in reading orientation (rotated 180 degrees from the render): the reading-side ensemble, the blind side with the same stretch, and the CT layer 33+d, stacked, for judging letters by eye. The same code on a known-text control gives the reference at the same scale.
+- **Usage:** `candidate_view.py <maps dir> <name> <models,> <depth> <y0> <x0> <out.jpg> [render.zarr] [--h-mm 12] [--w-mm 20]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/deep_look_view.py`
+Figures for a deep look (six models x depths, bin/depth_sweep.sh on a cropped 66-layer render), with the display rules of Nieuwlaar's ensemble_maps.py: villa maps v -> clip((v - 64) / 128, 0, 1), Hecate v / 255 resized from its 9.6 um grid; reading side = the _reverse maps, blind side shown with the reading side's statistics; one stretch per model over all depths (never per depth); ensemble = mean of the models' …
+- **Usage:** `deep_look_view.py <crop.zarr> <maps dir> <out dir> [--label ...] [--um 9.362] [--margin 256] [--window y0 x0 h w] [--show -4,-2,-1,0,1,2,3,4,6] [--shrink 2]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/neighbour_view.py`
+Is a bright mark on one winding writing, or structure that runs through the stack? For a window on a winding (full resolution, reading orientation) this shows the reading-side ensemble, the blind side and the CT layer 33+d, and the same place on neighbouring windings, found through the 3D meshes (the neighbour's mesh node nearest to the window's centre).
+- **Usage:** `neighbour_view.py <scroll dir (data/PHercNNNN)> <fit> <winding> <neighbours,> <out dir> [--models readerv2,d9v4c] [--depth 0] [--win y,x ...] [--top 3] [--h-mm 8] [--w-mm 14] [--um 9.362] [--shrink 2]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/review_post.py`
+Review sheet for one winding scored by post_models.py: the whole winding (reading ensemble, blind ensemble with the same stretch, CT layer 33+d) with the best row window marked, the window zoomed (reading | blind | CT), and the reading side of the neighbouring windings w-2..w+2 with the same relative position marked (text does not repeat turn after turn; sheet structure does). Works from the post JPEGs (half …
+- **Usage:** `review_post.py <post dir of the scroll> <w> <depth> <out.jpg>`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/viz_glow.py`
+Ink-first 'glowing sheets': a CT cross-section (a slice across the scroll at height z) through an ink-first block, with the ink-first prediction painted where its patches cut the slice. The patches lie along the sheets of the surface prediction, so the sheets light up where the model sees ink.
+- **Usage:** `viz_glow.py --text <ct zarr> <patches.npz> <ink map tif> <z> --title T --out <png> [--mesh <tifxyz dir> --back <ink-first back npz> --labels <npz with labs, sups aligned to the mesh render> --window r0 r1 c0 c1 (full-res grid)] [--null <ct zarr> <patches.npz> <ink map tif> <z> <label>] [--centre 128] [--um 9.362]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/viz_looked.py`
+'Where we've looked': one scroll from above (a CT slice across the scroll at height z) and from the side (a CT slice along the scroll axis through the centre of that slice). Every fitted winding is drawn where its mesh crosses the slice, coloured by what happened to it: fitted only, searched (rendered, inked, scored), flagged by stroke-score 0.2 and checked by eye, or inked and still being scored.
+- **Usage:** `viz_looked.py --vol <CT zarr> --z <z> --um <um> --title T --out <png> --fitted <snapped dir>                        all windings of a fit (thin grey) --band <flattened dir> <searched|scoring> <w... | all> --flag <fit> <winding> <label>                flagged by stroke-score 0.2, checked by eye (fit: part of the band path) --fitting <z0> <z1>                           a band still being fitted (side view)`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/viz_strokes.py`
+'What stroke-score sees': one row window of a winding, in reading orientation. Left: the CT surface layer in grey with the reading-side ink marks over it, long thin marks (letter-stroke shaped: >= 1 mm, >= 2x as long as wide) in orange and the other marks (blobs) in blue.
+- **Usage:** `viz_strokes.py <surface.zarr> <maps dir> <name> <models,> <depth> <um> <out.png> [--at y0 x0] [--title T]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+### Geometry helpers
+
+Fetching CT around a mesh, snapping a new band, and comparing the organisers' sheet tracer with our meshes.
+
+#### `box/bin/fetch_mesh_chunks.py`
+Download only the level-0 chunks of a remote CT zarr (v2, dimension_separator '/') that a 66-layer render of a tifxyz mesh reads: every chunk within `margin` voxels of a mesh point. Writes a local store with the same layout (.zattrs, .zgroup, 0/.zarray, chunks), so vc_render_tifxyz, which only opens local zarrs, can render the mesh from it.
+- **Usage:** `fetch_mesh_chunks.py <CT zarr URL> <tifxyz dir> <out.zarr> [margin=48] [threads=24]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `box/bin/snap_newband.sh`
+Wait for the exp30k-z11200 fit, then snap every fitted winding onto the m7 surface prediction (Nieuwlaar's snap, MIT). Output: data/PHerc0191/snapped/exp30k-z11200/<winding>/ (tifxyz) + snap_report.tsv; marker SNAPNEW-EXIT in the log.
+- **Runs on:** GPU box. **Markers:** W-EXIT.
+- **Status:** current. **Origin:** ours (MIT). Wraps Nieuwlaar's snap (MIT).
+
+#### `box/bin/tracer_vs_mesh.py`
+How well does a traced surface follow one of our winding meshes? For every valid point of the trace (tifxyz), the distance to the reference winding and to its neighbouring windings (all upsampled 4x), and which of them is nearest: points that end up nearer a neighbour have switched sheets.
+- **Usage:** `tracer_vs_mesh.py <trace tifxyz> <reference winding dir> [<neighbour winding dir> ...]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+### Viewer, catalog and backup
+
+The private local viewer of every inked winding, the generated data catalog and results table (docs/DATA_CATALOG.md), and the private R2 backup.
+
+#### `box/bin/viewer_links.py`
+Links between neighbouring windings for the local viewer (scripts/build_viewer.py). For points on each winding (every `step` render pixels), the same place on the previous and the next winding of the list, found through the 3D flattened meshes (the neighbour's nearest node), and the distance between the two surfaces there: a few hundredths of a mm means the same sheet (the fit put both windings on it).
+- **Usage:** `viewer_links.py <out.json> <group> <scroll dir> <fit> <um> <w,w,...> [<group> <scroll dir> <fit> <um> <w,...> ...] [--step 400] [--preview 2]`
+- **Runs on:** GPU box.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `scripts/backup_r2.sh`
+Back up the critical set to Ted's private S3-compatible backup bucket with rclone. mac (run on the Mac, repo root): memory/, data/<scroll>/reviews, data/<scroll>/runs-aws, data/aws-results, data/controls9um, data/catalog, data/results, data/ref. Credentials from .secrets via scripts/r2_env.sh (never printed). box (run on the GPU box, from /mnt/nvme/scroll-prizes): data/<scroll>/geometry (fits, snapped and …
+- **Usage:** `scripts/backup_r2.sh mac|box [--dry-run]`
+- **Runs on:** Mac.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `scripts/build_viewer.py`
+Build a local, offline viewer of every inked winding: data/viewer/index.html (open it by double-click). Inputs: data/viewer/img/<set>/<group>/<w>/ with <w>__{ct,ens_reading,ens_blind}__d+NN.jpg and <w>__post.json (stroke-score numbers per depth).
+- **Usage:** `python3 scripts/build_viewer.py [viewer dir]`
+- **Runs on:** Mac.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `scripts/catalog.py`
+Artifact catalog: walk the project's data on this host and write one row per artifact into SQLite. A zarr store or tifxyz mesh directory is one artifact; public scan inputs under <scroll>/source/ are listed per top-level store without walking their chunks.
+- **Usage:** `catalog.py <host: mac|box> <root> <out.sqlite>      (stdlib only; the Mac's system python works)`
+- **Runs on:** Mac.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `scripts/catalog_report.py`
+Write docs/DATA_CATALOG.md from data/catalog/{catalog,results}.sqlite (generated; do not edit by hand).
+- **Usage:** `catalog_report.py [catalog.sqlite] [results.sqlite] [out.md]`
+- **Runs on:** Mac.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `scripts/r2_env.sh`
+("access key", "secret access key", "s3 endpoint for bucket"); never prints them. Remote name: r2, bucket: $R2_BUCKET.
+- **Runs on:** Mac.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `scripts/results_db.py`
+One results table: collect every score this host holds into SQLite with provenance. Sources: stroke-score JSONs (*__strokes_d±NN.json, packaged tool and the research script), post_models JSONs (*__post.json: stroke + row scores for any model set), rowness.txt (row scores of three-model maps), control evaluations (eval*.json: AUC/r).
+- **Usage:** `results_db.py <host> <root> <out.sqlite>          Merge: results_db.py --merge <out.sqlite> <in1.sqlite> <in2.sqlite> ...`
+- **Runs on:** Mac.
+- **Status:** current. **Origin:** ours (MIT).
+
+---
+
 ## Not yet mirrored
 
-These two scripts exist only on the GPU box, in `~/scroll-prizes/bin/`, and are not yet in `box/bin/`.
+On 2026-10-13 the box-only files in `~/scroll-prizes/bin/` were `build-vc3d.sh` (box setup) and `inkfirst_blocks.sh` (the deployed copy of `aws/remote/inkfirst_blocks.sh`). The two scripts below were box-only on 2026-10-10 and are now mirrored in `box/bin/`.
 
 #### `~/scroll-prizes/bin/prep_community.sh` (box only)
 Snaps (with Nieuwlaar's `snap_meshes.py`) and flattens (Lasagna) the windings of the community PHerc. 0191 fit (rodriguescarson/eligible-scroll-spiral-fits, z 11600–12400), so that they can go through render + ink like our own windings.

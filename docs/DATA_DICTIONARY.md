@@ -1,5 +1,7 @@
 # Data dictionary
 
+> **2026-10-13: formats added on 2026-10-11 and 2026-10-12** are in the last section, "Ink first, triage and review outputs".
+
 > **2026-10-10:** the data was migrated to the layout in `docs/DATA_LAYOUT.md` (`source/`, `inputs/`, `geometry/<fit-id>/`, `renders/`, `ink/`, `scores/`, `runs/`, `scratch/`, `cache/`). The paths below are the pre-migration names; they still work through symlinks, and the current-to-new table in DATA_LAYOUT.md gives each new location.
 
 > **2026-10-10 11:18:** NVMe cleanup Tier 1 deleted the old-band renders, fibre fields, tracer tests, dropped-experiment fit checkpoints, the old-fitter worktree, old QA renders and smoke runs (details in `docs/DATA_LAYOUT.md`); entries below for those datasets describe what existed before.
@@ -682,3 +684,43 @@ the reading side. Ignore the flag on `s42` rows.
 8. `data/aws-results/fleet/` was renamed to `run1`/`run2` after each run, but `run2/ranking.tsv`,
    `notes/results-2026-10-09.md` (which cites `data/aws-results/fleet-run2-ranking.tsv`) and the fleet scripts still
    use the old path. Settle one naming scheme before the next fleet run.
+
+## Ink first, triage and review outputs (added 2026-10-13)
+
+**Ink-first block summary** `<block>/summary.npz` (`inkfirst_block_summary.py`; one per 1280³ block, about 9 MB):
+`centre`, `normal`, `u`, `v` (per patch, volume zyx; u ≈ the scroll axis, v along the text lines), `box`, `size` (patch, 256 px),
+`centre_px` (128), `models`; `ct64` (the surface layer of each patch centre, 64 × 64); `air` (share of the centre darker than half
+the block's median papyrus: gaps, cracks; plausible = air ≤ 0.3) and `layer_corr` (recorded, not used); per model and layer order
+(`fwd` = reading side on PHerc0841, 0139 and 0343): `stats_<m>_<order>` (mean, SD, frac50 = share of the centre at ink ≥ 0.5),
+`ink64_<m>_<order>`, the hottest patches at full size (`top_*`, `topink_*`, `topct`) and the hottest plausible ones
+(`topplaus_*`, `topplausink_*`, `topplausct_*`). Reference summaries (`inkfirst_ref_summary.py`) hold the per-patch fields only.
+
+**Ink-first tables.** `blocks.tsv` (plan: id, z0 z1 y0 y1 x0 x1, occupancy); `progress.log` and `timings.tsv` (worker: id,
+patches, fetch_s, sample_s, ink_s, summary_s); scroll map `clusters_<order>.tsv` (cluster, patches, mean_frac50, max_frac50,
+other_side, one_sided, z y x, blocks) and `blocks.tsv` (block, plausible, hot_fwd, hot_rev, fwd_minus_rev, z); cluster view
+`sheets_<order>.tsv` (cluster, hot patches, patches on the sheet, area_mm2, hot this side / other side, damaged, z y x, blocks,
+sheets, hot_on_sheet, hot_nearby); re-sort `resort.tsv` (rank, block, patch, z y x, frac50 and mean ink on each side, air),
+`resort_blocks.tsv`, `candidates.tsv` (clusters format).
+
+**Letter test (PHerc. 343).** `letters3d.npz` (`letters_to_3d.py`: letter-box samples `zyx`, `id`, `rowcol`, `inside`, the
+chosen `block`, and the mesh grids); `letters_test.tsv` (model, order, class = on a letter / rest of the segment / other sheets,
+patches, mean_ink, mean_frac50, hot_share, r_with_mesh_map).
+
+**Raw-CT test.** `profile.tsv` (class = stroke / box bg / outside, pixels, raw and per-pixel-centred CT at d −12..+12),
+`phase.tsv` (stroke − box bg by where the surface sits inside a voxel), `masks.npz`, `raw_ct_letters.jpg`.
+
+**Model agreement.** `agree_*.tsv` / `343_d+1.tsv` (set, class, tile y x h w, per-model reading − blind in units of that
+model's spread, models_one_sided, mean).
+
+**Deep look.** `maps/` (run_ink.sh names), `maps/logs/timings.tsv` (model, depth, seconds, rc); `view/profile.tsv` (depth,
+model, reading_z, blind_z, reading_minus_blind, share ≥ 0.5 on each side), `depths.jpg`, `models.jpg`, `profile.png`.
+
+**Triage evaluation.** `items_<set>[_ct|_ct2].jsonl`, one JSON per item: kind (known / null), label, name, depth, strip,
+render_mask, ct_mask, row_R, row_B, shape_R, area_R, area_B, mean_R, mean_B, frac_R, frac_B, px, margin, line_rows,
+line_contrast, flag, set; `report*.txt` (AUCs, matched-flag rates, ranking, scroll effect). Band scoring: `post/<scroll>/<w>/
+<w>__post.json` (`post_models.py`) and `ranking_v02.tsv` (name, depth, set, row_R, row_B, shape_R, shape_B, streak, recur,
+flag_v02, area_R, area_B, window_R, window_B, row_at, tool).
+
+**Viewer links** `data/viewer/links.json` (`viewer_links.py`): {group: {winding: {um_px, prev / next: {w, pts: [[y, x, y2,
+x2, gap in hundredths of a mm], …]}}}}, in preview pixels (half the render).
+

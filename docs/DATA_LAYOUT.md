@@ -4,6 +4,25 @@ Status: **approved by Ted and MIGRATED on 2026-10-10 (02:40 UTC)**, while no job
 (NVMe 91 % → 71 %). Every moved item left an absolute symlink at its old path, so old paths in scripts, notes and memory still
 work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on the box (dry-run output `scratch/migrate-dry.txt`).
 
+**Changes on 2026-10-11 and 2026-10-12** (the rest of this file describes the 2026-10-10 layout, which still holds):
+- **Second NVMe** `/mnt/nvme2/scroll-prizes` (916 G, since 2026-10-11): every scroll's `renders/` (`data/<scroll>/renders` is a
+  symlink to it), `scratch/` (ink-first work folders, `run_ink.sh` temp), the known-text control renders (`controls/`) and
+  `data/PHerc0841/ct-w00.zarr` (CT around the held-out mesh, `fetch_mesh_chunks.py`). The catalog scans it as a second root of
+  host `box` (the scanner does not follow symlinks).
+- **Tall bands, PHerc0813:** `geometry/`, `renders/` and `ink/` for fits `exp30k-z10500` (z 10,500–13,000) and `exp30k-z8000`
+  (z 8,000–10,500); runs in `runs/2026-10-11_tallband-0813-z10500/` and `runs/2026-10-12_tallband-0813-z8000/` (claims, unit
+  logs, `post/` scores, `ranking_v02.tsv`).
+- **Ink first at scale:** plan `data/PHerc0175A/plan/blocks.tsv` (Mac; coarse CT on the box in
+  `runs/2026-10-12_inkfirst-0175A/plan/`); AWS results `data/PHerc0175A/runs-aws/2026-10-12_inkfirst-{pilot,sweep}/w<i>/<block>/`
+  (summary.npz, galleries, logs; Mac, copied to the box); whole-scroll products in `runs/2026-10-12_inkfirst-0175A/`
+  (`map-interim/`, `map-final/`, `refs/`, `resort/`) with Mac copies in `data/PHerc0175A/`.
+- **Tests and controls (box `runs/`, Mac copies in `data/results/` or `data/PHerc0343/`):** `2026-10-12_triage-eval/`,
+  `2026-10-12_heldout-0841-w00/`, `2026-10-12_controls-render/`, `2026-10-12_inkfirst-343/` (results, results_persheet,
+  letters, maps, views), `2026-10-12_ct-ink-signature/`, `2026-10-12_model-agreement/`, `2026-10-12_agreement-null/`,
+  `2026-10-12_deeplook-0813-w079/`, `2026-10-12_ted-picks/` (neighbour views), `2026-10-12_sheet-tracer/`,
+  `2026-10-12_viz-looked/`, `2026-10-12_viz-glow/`.
+- **Mac only, private:** `data/viewer/` (preview images, `index.html`, `links.json`; built by `scripts/build_viewer.py`).
+
 **Cleanup Tier 1 done 2026-10-10 11:18 UTC** (approved by Ted; script and log in `runs/2026-10-10_cleanup-tier1/` on the box):
 NVMe 825 G → 701 G (89 % → 76 %). Deleted: old-band renders `data/PHerc0191/renders/exp30k-z9000` (88 G; maps and scores
 kept, renders regenerable), fibre fields `inputs/fields/fiber` (11 G), tracer tests (`geometry/tracer-tests`,
