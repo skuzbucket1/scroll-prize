@@ -1,0 +1,100 @@
+{
+ "description": "8.64 µm fine-tune v1 (2026-10-13): dense_native init (Nieuwlaar, step 16000), PHerc. 343 Nieuwlaar concat segment (8.64 µm / 116 keV), pseudo-labels = five-model reading-side ensemble inside his letter boxes; train letters 8-13 and 15-18, validate on 1-6, 7 and 14 left out.",
+ "mode": "flat",
+ "model_type": "vesuvius_unet_3d_stem_2d",
+ "model_config": {
+  "autoconfigure": true,
+  "basic_encoder_block": "BasicBlockD",
+  "basic_decoder_block": "ConvBlock",
+  "stem_channels": 16,
+  "z_projection_mode": "none"
+ },
+ "targets": {
+  "ink": {
+   "activation": "none",
+   "out_channels": 1,
+   "z_projection_mode": "none"
+  }
+ },
+ "in_channels": 1,
+ "patch_size": [
+  17,
+  128,
+  128
+ ],
+ "patch_overlap": 0.25,
+ "patch_min_labeled_coverage": 0.1,
+ "flat_z_window_jitter": {
+  "enabled": true,
+  "window_depth": 17,
+  "max_offset": 2,
+  "probability": 1.0,
+  "padding": "forbidden"
+ },
+ "image_normalization": {
+  "mode": "robust_mad",
+  "percentile_lower": 1.0,
+  "percentile_upper": 99.0
+ },
+ "augmentation_preset": "default",
+ "augmentation_rotation_axes": [
+  0
+ ],
+ "loss": {
+  "bce_label_smoothing": 0.5,
+  "dice_label_smoothing": 0.0
+ },
+ "optimizer": "adamw",
+ "learning_rate": 1e-05,
+ "weight_decay": 3e-05,
+ "scheduler": {
+  "name": "diffusers_cosine_warmup"
+ },
+ "warmup_steps": 100,
+ "grad_clip": 1.0,
+ "mixed_precision": "fp16",
+ "batch_size": 32,
+ "num_iterations": 3000,
+ "seed": 42,
+ "sampling_strategy": "fixed_scroll_prior_stratified",
+ "fixed_scroll_prior": {
+  "seed": 42,
+  "target_batch_counts": {
+   "0343": 32
+  }
+ },
+ "sampling_audit_every": 200,
+ "best_checkpoint_metric": "val_balanced_accuracy",
+ "save_every": 500,
+ "val_every": 250,
+ "val_steps": 16,
+ "val_preview_batches": 1,
+ "log_every": 25,
+ "dataloader_workers": 3,
+ "pin_memory": true,
+ "verify_finite_gradients_steps": 0,
+ "max_amp_overflow_events": 0,
+ "out_dir": "/mnt/nvme/scroll-prizes/runs/2026-10-13_model-8um/out_v1",
+ "datasets": [
+  {
+   "segments_path": "/mnt/nvme/scroll-prizes/data/train8um/labels",
+   "segments": [
+    "pherc0343-nieuwlaar"
+   ],
+   "surface_volume_paths": {
+    "pherc0343-nieuwlaar": "/mnt/nvme/scroll-prizes/data/train8um/labels/pherc0343-nieuwlaar/surface-volume.zarr"
+   },
+   "volume_scale": 0,
+   "source_family": "native_8p64_level0_ens5",
+   "sampling_scroll": "0343",
+   "sampling_physical_segment_keys": {
+    "pherc0343-nieuwlaar": "0343:concat_w047-w048"
+   },
+   "sampling_representation_keys": {
+    "pherc0343-nieuwlaar": "native_8p64_level0_ens5:pherc0343-nieuwlaar"
+   }
+  }
+ ],
+ "checkpoint": "/home/tbienapfl/scroll-prizes/checkpoints/ckpt343/dense_native-016000.pth",
+ "weights_only": true
+}

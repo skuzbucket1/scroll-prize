@@ -23,6 +23,21 @@ work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on 
   `2026-10-12_viz-looked/`, `2026-10-12_viz-glow/`.
 - **Mac only, private:** `data/viewer/` (preview images, `index.html`, `links.json`; built by `scripts/build_viewer.py`).
 
+**Changes on 2026-10-13:**
+- **Cleanup** (approved by Ted). Tier 1, about 21 G: the torch compile cache in `/mnt/nvme2/scroll-prizes/scratch/`, the
+  CT and prediction copies of the PHerc. 343 ink-first block, `scratch/inkfirst-dry2` and old `run_ink.sh` temp folders.
+  Tier 2, 413 G (log `runs/2026-10-13_cleanup-tier2/log.txt`): the PHerc0191 CT mirror
+  `data/PHerc0191/source/volume/20250821151635-9.362um-1.2m-113keV-masked.zarr` (410 G) and the old-phase renders
+  `data/PHerc0191/renders/oldphase30k-z9000` (2.8 G); the dangling `data/PHerc0191/volumes` symlink went with them, and
+  `data/PHerc0191/source/VOLUME_DELETED.txt` says where to re-download the CT. Kept: every band render (PHerc0813
+  exp30k-z8000, z10500, z12000; PHerc0191 exp30k-z11200), ink maps, scores, meshes, fit inputs and the PHerc0813 CT mirror.
+  NVMe 84 % → 40 % (562 G free); NVMe2 75 % (224 G free). New PHerc0191 renders now need the CT re-fetched, or only the
+  chunks around a mesh (`box/bin/fetch_mesh_chunks.py`).
+- **8.64 µm ink model:** training set `data/train8um/labels/pherc0343-nieuwlaar/` (villa's flat layout: 65-layer reversed
+  `surface-volume.zarr`, ink labels, supervision and validation masks); run `runs/2026-10-13_model-8um/` (`build_dataset.py`,
+  `train_v1.json`, checkpoints in `out_v1/`, evaluation in `eval_v1/`).
+- **Damage map:** `runs/2026-10-13_damage-map/` (`tiles/*.npz` per render, `png/` pictures, `report.txt`).
+
 **Cleanup Tier 1 done 2026-10-10 11:18 UTC** (approved by Ted; script and log in `runs/2026-10-10_cleanup-tier1/` on the box):
 NVMe 825 G → 701 G (89 % → 76 %). Deleted: old-band renders `data/PHerc0191/renders/exp30k-z9000` (88 G; maps and scores
 kept, renders regenerable), fibre fields `inputs/fields/fiber` (11 G), tracer tests (`geometry/tracer-tests`,

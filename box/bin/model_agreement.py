@@ -4,8 +4,12 @@ reading-minus-blind map value in units of that model's own reading-side spread o
 rules: villa maps v -> clip((v - 64) / 128, 0, 1), Hecate v / 255 resized to the render grid; reading = _reverse maps),
 and the number of models above `thr`.
 Tiles: with --boxes, every letter box is a tile ('letter') and a grid of `tile`-pixel squares away from the boxes gives
-'background' tiles; with --window y0 x0 h w, a grid of tiles inside the window ('window').
-Usage: model_agreement.py <render.zarr> <maps dir> <name> <depth> <out.tsv> [--boxes letter_boxes.json] [--window y0 x0 h w]
+'background' tiles; with --bare, every box of that file is a 'bare' tile (known bare papyrus, e.g. tiles inside a
+supervision mask with no labelled ink); with --window y0 x0 h w, a grid of tiles inside the window ('window').
+--swap treats the plain maps as the reading side (for a render whose mesh normal points into the papyrus).
+--relative subtracts each model's median reading - blind over the render before scaling, so that a render whose blind
+face is globally brighter (PHerc0841 ag2814) is judged on local one-sidedness only.
+Usage: model_agreement.py <render.zarr> <maps dir> <name> <depth> <out.tsv> [--boxes letter_boxes.json] [--bare bare_boxes.json] [--swap] [--relative] [--window y0 x0 h w]
        [--tile 300] [--thr 0.2] [--models dnative,hybrid_3d2d-seed42,hybrid_3d2d-seed43,hecate,readerv2,d9v4c] [--label ...]"""
 import argparse, json, os
 import cv2, numpy as np, tifffile, zarr
@@ -13,7 +17,8 @@ import cv2, numpy as np, tifffile, zarr
 ap = argparse.ArgumentParser()
 for k in ('render', 'maps', 'name'):
     ap.add_argument(k)
-ap.add_argument('depth', type=int); ap.add_argument('out'); ap.add_argument('--boxes'); ap.add_argument('--window', type=int, nargs=4)
+ap.add_argument('depth', type=int); ap.add_argument('out'); ap.add_argument('--boxes'); ap.add_argument('--bare'); ap.add_argument('--swap', action='store_true'); ap.add_argument('--relative', action='store_true')
+ap.add_argument('--window', type=int, nargs=4)
 ap.add_argument('--tile', type=int, default=300); ap.add_argument('--thr', type=float, default=0.2); ap.add_argument('--label', default='')
 ap.add_argument('--models', default='dnative,hybrid_3d2d-seed42,hybrid_3d2d-seed43,hecate,readerv2,d9v4c')
 a = ap.parse_args()
@@ -34,11 +39,11 @@ def load(m, rev):
 
 Z = {}
 for m in a.models.split(','):
-    r, b = load(m, True), load(m, False)
+    r, b = load(m, not a.swap), load(m, a.swap)
     if r is None or b is None:
         print('missing', m); continue
-    sd = r[valid].std() or 1.0
-    Z[m] = (r - b) / sd
+    sd = r[valid].std() or 1.0; off = float(np.median((r - b)[valid])) if a.relative else 0.0
+    Z[m] = (r - b - off) / sd
 tiles = []
 if a.boxes:
     boxes = np.array([l['box'] for l in json.load(open(a.boxes))['letters']]).round().astype(int)
@@ -49,6 +54,9 @@ if a.boxes:
         for x in range(0, W - a.tile, a.tile):
             if not near[y:y + a.tile, x:x + a.tile].any() and valid[y:y + a.tile, x:x + a.tile].mean() > 0.8:
                 tiles.append(('background', y, x, a.tile, a.tile))
+if a.bare:
+    for l in json.load(open(a.bare))['letters']:
+        x0, y0, x1, y1 = (int(round(v)) for v in l['box']); tiles.append(('bare', y0, x0, y1 - y0, x1 - x0))
 if a.window:
     wy, wx, wh, ww = a.window
     for y in range(wy, wy + wh - a.tile + 1, a.tile):
