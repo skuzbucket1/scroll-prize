@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use stroke-score, its control kit or the results in this repository, please cite it as below."
+title: "stroke-score: triage of ink-model maps for Herculaneum scroll segments"
+abstract: >-
+  Ranks Herculaneum-scroll segments by how much stroke-shaped ink an ink-model ensemble shows on the reading side of a sheet,
+  compared with the other face of the same sheet, and writes review crops for a human look. Includes a known-text control
+  kit that scores known text the way a search band of a given height sees it.
+authors:
+  - family-names: Bienapfl
+    given-names: Ted
+    alias: skuzbucket1
+type: software
+version: 0.2.2
+date-released: 2026-10-13
+license: MIT
+repository-code: "https://github.com/skuzbucket1/scroll-prize"
+url: "https://skuzbucket1.github.io/scroll-prize/stroke-score-0.2.html"
+keywords:
+  - Vesuvius Challenge
+  - Herculaneum papyri
+  - ink detection
+  - virtual unwrapping

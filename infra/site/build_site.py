@@ -678,7 +678,7 @@ page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name
 <div class="layout">
 <aside aria-label="Research navigation">
   <div class="brand"><b>{esc(p['title'])}</b><span>{len(exps)} runs · updated {now}</span></div>
-  <nav class="topnav"><a href="#overview" data-view="overview">Overview</a><a href="#findings" data-view="findings">Findings</a><a href="#next" data-view="next">Next</a><a href="#credits" data-view="credits">Credits</a></nav>
+  <nav class="topnav"><a href="#overview" data-view="overview">Overview</a><a href="#findings" data-view="findings">Findings</a><a href="#next" data-view="next">Next</a><a href="#credits" data-view="credits">Credits</a><a href="stroke-score-0.2.html">stroke-score 0.2</a></nav>
   <div class="filter"><input id="filter" type="search" placeholder="Filter runs (e.g. tracer, shell, ink)" aria-label="Filter runs"></div>
   <div class="navscroll">{''.join(nav_groups)}</div>
   <div class="sidefoot"><span>← → step through runs</span><button id="theme" type="button">Light / dark</button></div>

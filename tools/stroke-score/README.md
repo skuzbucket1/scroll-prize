@@ -8,7 +8,8 @@ Status: version 0.2.2, October 2026. Tested on three known-text segments at two 
 PHerc. 0139 and PHerc. 0841 at 9.36 µm) and several hundred windings of PHerc. 0191 and PHerc. 0813 with no text found.
 New in 0.2: a row score, a stroke-shape score, a neighbour-recurrence check, any set of ink models, and a known-text control
 kit that scores known text the way a search band of your height would see it. The 0.2 rule's thresholds are set per model set
-from known text cut to band height and 294 null winding-depths; see "The 0.2 rule".
+from known text cut to band height and 294 null winding-depths, then checked on held-out text and on 304 held-out null
+winding-depths; see "The 0.2 rule".
 
 ## Why
 
@@ -121,6 +122,12 @@ on and that 0.2 was not tuned on. With Reader v2 + d9v4C the 0.2 rule flags 14 o
 line 4, contrast line 14); with ink_9um ×2 + dense_native, 6 of 15 (contrast line). On the null windings the rule flags
 8 of 294 winding-depths with Reader v2 + d9v4C and 0 of 194 with the three models, every flag checked by eye (table above).
 
+**Held-out nulls.** After the freeze, two more bands of PHerc. 0813 (z 8,000–10,500 and 10,500–13,000; 152 winding-depths
+each, Reader v2 + d9v4C at d 0 and +1) were searched and scored with the frozen rule. It flagged 6 of 304 (2.0 %, against
+2.7 % on the nulls it was set on). All six were checked by eye and none is writing: blobs along cracks and along the edges
+of the band (w083, w043, w066 of z 10,500), the long parallel bands of a crushed fold (w047 of z 8,000) and a streak along
+a mesh edge next to a vertical band (w088 of z 8,000, both depths).
+
 **Against simpler scores.** Separating known-text strips from null windings, the 0.2 margin reaches AUC 0.895 (Reader v2
 + d9v4C, 28 strips against 294 nulls) and 0.968 (three models, 51 against 200). Plain ink amounts score as high or higher
 (up to 0.99), but they also tell the two text-free scrolls apart (mean ink: AUC 0.95 between the PHerc. 0191 and PHerc.
@@ -224,7 +231,7 @@ The render is a zarr group whose array `0` has shape (layers, H, W) with depth 0
 The packaged tool reproduces the original research script exactly on these data (identical scores and top tiles).
 
 For 0.2 see "The 0.2 rule" and the control kit above: three known-text segments (PHerc. 0343 at 8.64 µm; PHerc. 0139 w047
-and PHerc. 0841 at 9.36 µm), 294 null winding-depths from two scrolls and two model sets. Still wanted: more known text at
+and PHerc. 0841 at 9.36 µm), 294 null winding-depths from two scrolls and two model sets, and 304 held-out null winding-depths. Still wanted: more known text at
 8–9.4 µm, especially in short bands, and nulls from other scrolls.
 
 ## Known false alarms
@@ -291,6 +298,18 @@ Others published tools for the same job before us. We built stroke-score indepen
 - **vesuvius-reports** by Chris Scheirer, Shribyr Labs (github.com/ShribyrLabs/vesuvius-reports, MIT): a letter-scale
   benchmark of 9 µm ink readers. Its nulls include depth-reversed reads, the same idea as our blind side.
 
+## How to credit this
+
+stroke-score is by Ted Bienapfl. If you use the tool, its control kit, the false-alarm list or the band-height result,
+please credit it:
+
+> Ted Bienapfl, *stroke-score 0.2: sorting through a 9 µm ink search*, October 2026.
+> https://github.com/skuzbucket1/scroll-prize (tools/stroke-score, version 0.2.2)
+
+GitHub's "Cite this repository" button (from `CITATION.cff`) gives the same in BibTeX and APA. The write-up with the
+pictures and the held-out tests is at https://skuzbucket1.github.io/scroll-prize/stroke-score-0.2.html.
+
 ## Licence
 
-MIT
+MIT (keep the copyright notice). The write-up text is CC BY 4.0; figures contain Vesuvius Challenge / EduceLab scan data,
+which is CC BY-NC 4.0.

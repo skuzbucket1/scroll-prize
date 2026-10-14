@@ -92,7 +92,7 @@ S = grey(side[sz0:sz1 + 1, sx0:sx1])
 axS.imshow(S, cmap='gray', vmin=0, vmax=1, extent=(sx0 * fs, sx1 * fs, sz1 * fs, sz0 * fs), interpolation='lanczos', aspect='equal')
 axS.invert_yaxis()                                                                                          # height up
 
-counts, spans, nflag = {}, [], 0
+counts, spans, nflag, nside = {}, [], 0, 0
 if a.fitted:
     for w, G in windings(a.fitted).items():
         for L in top_lines(G, a.z):
@@ -112,9 +112,15 @@ for b in sorted(a.band, key=lambda b: b[1] == 'searched'):                      
         for L in top_lines(G, a.z):
             axT.plot(L[:, 0], L[:, 1], color=ORANGE if w in flags else BLUE, lw=2.0 if w in flags else 0.7, alpha=1 if w in flags else 0.9)
         if w in flags:
-            L = max(top_lines(G, a.z), key=len); p = L[np.argmin(L[:, 1])]                                    # its top-most point
-            axT.annotate(f'{w}: {flags[w]}', p[:2], xytext=(tx0 * ft + 0.62 * (tx1 - tx0) * ft, ty0 * ft + (0.04 + 0.045 * nflag) * (ty1 - ty0) * ft),
-                         color='#eeeeee', fontsize=10, va='center', arrowprops=dict(arrowstyle='-', color=ORANGE, lw=1.2)); nflag += 1
+            TL = top_lines(G, a.z)
+            if TL:                                                                                            # label in the top view
+                L = max(TL, key=len); p = L[np.argmin(L[:, 1])]                                               # its top-most point
+                axT.annotate(f'{w}: {flags[w]}', p[:2], xytext=(tx0 * ft + 0.62 * (tx1 - tx0) * ft, ty0 * ft + (0.04 + 0.045 * nflag) * (ty1 - ty0) * ft),
+                             color='#eeeeee', fontsize=10, va='center', arrowprops=dict(arrowstyle='-', color=ORANGE, lw=1.2)); nflag += 1
+            elif len(P):                                                                                      # not at the top-view height: label it in the side view
+                p = P[np.argmax(P[:, 0])]
+                axS.annotate(f'{w}: {flags[w]}', (p[0], p[2]), xytext=(sx0 * fs + 0.02 * (sx1 - sx0) * fs, p[2] + (0.03 + 0.035 * nside) * (sz1 - sz0) * fs),
+                             color='#eeeeee', fontsize=9, va='center', arrowprops=dict(arrowstyle='-', color=ORANGE, lw=1.0)); nside += 1
 for z0, z1 in a.fitting:
     axS.fill_between([sx0 * fs, sx1 * fs], z0, z1, color='#bbbbbb', alpha=0.12, hatch='//', ec='#888888', lw=0)
     axS.text(sx1 * fs + (0.05 + 0.04 * len(a.band)) * (sx1 - sx0) * fs, (z0 + z1) / 2, f'being fitted\n{z0 * mm:.0f}–{z1 * mm:.0f} mm', color='#dddddd', fontsize=9, va='center')
