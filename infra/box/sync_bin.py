@@ -30,10 +30,14 @@ def box_host():
 def repo_files():
     """bin-relative name -> repo path, for every script that belongs on the box."""
     out = {}
+    # private folders kept out of git (.git/info/exclude, lines ending in '/') are not synced to the box's shared bin
+    ex = os.path.join(ROOT, '.git', 'info', 'exclude')
+    private = {l.strip().strip('/') for l in open(ex) if l.strip().endswith('/') and not l.startswith('#')} if os.path.exists(ex) else set()
     for top in FOLDERS:
         for d, dirs, files in os.walk(os.path.join(ROOT, top)):
             rel = os.path.relpath(d, ROOT)
-            dirs[:] = [x for x in dirs if x not in ('runs', '__pycache__', 'build', '.pytest_cache') and not x.endswith('.egg-info')]
+            dirs[:] = [x for x in dirs if x not in ('runs', '__pycache__', 'build', '.pytest_cache') and not x.endswith('.egg-info')
+                       and os.path.join(rel, x) not in private]
             for f in files:
                 if f in MAC_ONLY or f.startswith('.') or not (f.endswith(('.sh', '.py')) or f.startswith('LICENSE') or rel.endswith('ink343')):
                     continue

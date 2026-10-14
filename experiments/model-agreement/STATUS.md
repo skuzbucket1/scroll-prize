@@ -20,6 +20,12 @@ labelled area. The runs are in `runs/` (outputs on the box under `~/scroll-prize
   out): at least four of five agree on **78 %** of letter tiles (all five on 58 %), on 21 % of the other papyrus (which
   may hold faint text the reference misses).
 
+**Where it stands (2026-10-14).** Agreement is a supporting check, not a test. On the hottest crops of our blank bands it
+also scores high: 38–40 % of tiles with five or six models one-sided on the PHerc0813 tall band (w072 88 %, w071 71 %), 21 %
+on PHerc0191, where by eye w072 is soft blobs along a crack. On the official labels (models trained on them left out) letter
+tiles agree 83–100 %, background tiles 30–46 %. So agreement backs up rows, stroke shapes and depth; it cannot replace them.
+Site: https://skuzbucket1.github.io/scroll-prize/#run-agreement-hot-nulls
+
 **Where it stands (2026-10-13, 10:20 am CT).** Three of the four known-text sets pass at the same rate (78 %: PHerc. 343,
 PHerc0841 w00, PHerc0139 w047), against 0–2 % on clean papyrus and 25 % on our best-looking false alarm. One fails
 (PHerc0841 ag2814, 0 %). So the rule catches most text and rarely fires on bare papyrus, but it can miss a whole segment.

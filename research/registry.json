@@ -2431,7 +2431,7 @@
    "title": "Brute force, option 1: tile the scroll with taller bands, starting with 2.3 cm on PHerc0813",
    "question": "We have searched about 1 cm of PHerc0813's 15.9 cm. Does our fit recipe hold on a band 2.5 times taller, so that we can tile the whole scroll, and do taller windings make text easier to see?",
    "technique": "The exp-30k spiral-fit recipe on z 10,500–13,000 (2,500 slices, 2.3 cm), which contains our best 1 cm band (z 12,000–13,000, satisfied tracks 0.557 / 0.182); then snap, flatten, render, ink with Reader v2 + d9v4C and score with stroke-score 0.2. Gate after the snap: fit metrics and QA before anything is inked. On the home GPUs.",
-   "result": "The 2.3 cm fit held: satisfied track points 0.526 and tracks 0.160 (the 1 cm band: 0.557 and 0.182), 88 % of mesh points on a predicted sheet after the snap. All 76 windings (w040–w115) were inked with Reader v2 + d9v4C at depths 0 and +1 (304 runs) and scored with stroke-score 0.2: three flags (w083, w043, w066), none writing. w083 is a diffuse cloud where the fit put three windings (w082–w084) on one sheet; w043 and w066 are bright clusters at the strip's edge, next to cracks that run through the neighbouring turns. The next band, z 8,000–10,500, is rendered and being inked.",
+   "result": "The 2.3 cm fit held: satisfied track points 0.526 and tracks 0.160 (the 1 cm band: 0.557 and 0.182), 88 % of mesh points on a predicted sheet after the snap. All 76 windings (w040–w115) were inked with Reader v2 + d9v4C at depths 0 and +1 (304 runs) and scored with stroke-score 0.2: three flags (w083, w043, w066), none writing. w083 is a diffuse cloud where the fit put three windings (w082–w084) on one sheet; w043 and w066 are bright clusters at the strip's edge, next to cracks that run through the neighbouring turns. The next band down, z 8,000–10,500, is done too (next entry).",
    "verdict": "null",
    "metrics": {},
    "images": [],
@@ -2780,6 +2780,174 @@
    "credits": [
     "ours"
    ]
+  },
+  {
+   "id": "tallband-0813-z8000",
+   "date": "2026-10-14",
+   "phase": "E",
+   "track": "Geometry",
+   "short": "PHerc0813: the next 2.3 cm band",
+   "title": "Brute force, band 2 on PHerc0813: z 8,000–10,500, searched and blank",
+   "question": "Does the tall-band recipe keep working one band further down PHerc0813, and is there writing there?",
+   "technique": "The same exp-30k spiral fit on z 8,000–10,500, snap, Lasagna flatten, 66-layer render, Reader v2 + d9v4C at depths 0 and +1 on all 76 windings (152 winding-depths), scored with stroke-score 0.2 and the flags checked by eye.",
+   "result": "Three flags (w047 at d 0, w088 at d 0 and +1), all false alarms. w047 shows the same diffuse speckle on both faces of the sheet (the brightest blob is on the other face); its rows come from a crushed, folded lower half whose layers run in long parallel bands. w088 is speckle on both faces with a bright streak along the mesh edge and a vertical band. With the band above, our PHerc0813 search now covers 210 windings over 75–122 mm of the scroll's height.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [
+    {
+     "file": "where-we-looked-PHerc0813.jpg",
+     "wide": true,
+     "caption": "PHerc0813: where we have looked. Every fitted winding where it crosses a CT slice, from above and from the side. Blue: rendered, inked, scored, nothing found; orange: flagged by stroke-score 0.2 and checked by eye, not text. 210 windings in three bands, 75–122 mm."
+    }
+   ],
+   "learned": "The tall-band recipe tiles PHerc0813 band after band. Both new bands are blank, and every flag was damage or geometry: folds, cracks, strip and mesh edges. PHerc0813 stops here for now; it is crowded with other teams.",
+   "credits": [
+    "spiral-fitter",
+    "vc-data",
+    "vc-predictions",
+    "nieuwlaar-343",
+    "lasagna",
+    "readerv2",
+    "d9v4c",
+    "ours"
+   ]
+  },
+  {
+   "id": "heldout-nulls",
+   "date": "2026-10-14",
+   "phase": "C",
+   "track": "Ink & render",
+   "short": "stroke-score on 304 new blank windings",
+   "title": "Held out, part 2: the frozen 0.2 rule on 304 blank winding-depths it never saw",
+   "question": "We froze stroke-score's thresholds at the tag stroke-score-v0.2.0 and tested them on new text (PHerc0841 w00). Do they also keep their false-alarm rate on new blank papyrus?",
+   "technique": "The two PHerc0813 bands searched after the freeze (z 8,000–10,500 and 10,500–13,000; 152 winding-depths each, Reader v2 + d9v4C at d 0 and +1), scored with the frozen rule; every flag checked by eye.",
+   "result": "6 of 304 winding-depths flagged (2.0 %), against 2.7 % on the 294 null winding-depths the rule was set on. None of the six is writing: blobs along cracks and strip edges, the bands of a fold, a streak along a mesh edge. The write-up of stroke-score 0.2 with both held-out tests is on its own page (stroke-score-0.2.html), and it went in for the October Progress Prize.",
+   "verdict": "pass",
+   "metrics": {},
+   "images": [],
+   "learned": "The false-alarm rate held on new blank papyrus, and the flags it raises are the known kinds. The rule is a triage line, not a detector: every flag still needs a look next to the CT.",
+   "credits": [
+    "vc-data",
+    "vc-known-text",
+    "readerv2",
+    "d9v4c",
+    "ours"
+   ]
+  },
+  {
+   "id": "control343-endtoend",
+   "date": "2026-10-14",
+   "phase": "P0",
+   "track": "Controls",
+   "short": "Our whole pipeline finds the 343 letters",
+   "title": "End to end on PHerc. 343: our own geometry and read put all 18 of Erwin Nieuwlaar's letters where they should be",
+   "question": "Our controls so far started from other people's meshes. If we run our whole recipe from scratch on a scroll with known letters, do the letters land on our windings and show in our read?",
+   "technique": "On AWS (one NVIDIA L4, about 3.6 h): our centre (VC3D vc_gen_umbilicus + smoothing), sheet tracks with the organisers' PHerc0813 parameters, the exp-30k spiral fit on z 9,300–11,300 of PHerc. 343 (8.64 µm), Nieuwlaar's snap (120 windings, 94 % of mesh points on the sheet), Lasagna flatten. Then Nieuwlaar's 18 letters, placed in 3D from his published segment, matched to our windings (within 4 voxels along the normal), and our read of those windings with Reader v2 + d9v4C at d 0 and +1, letter areas against the rest of the winding.",
+   "result": "All 18 letters lie on four of our windings (w047–w050), a median 0.7 voxel from our surface. On our read they show as rows of strokes on the reading side. Letters against the rest of the winding: AUC 0.78 (Reader v2) and 0.74 (d9v4C) on w047, 0.73 and 0.71 on w048, 0.62–0.63 on w049 and 0.52–0.57 on w050 (few, faint letters); the other face lower (0.65–0.72 on w047–w048). Neither model was trained on PHerc0343 (Reader v2 and d9v4C trained on PHerc0343P, a separately scanned object).",
+   "verdict": "pass",
+   "metrics": {},
+   "images": [
+    {
+     "file": "control343-endtoend-w047.jpg",
+     "wide": true,
+     "caption": "PHerc. 343, our winding w047, Reader v2 + d9v4C at d 0. Left: the reading side and the other face; right: the same with the areas of Erwin Nieuwlaar's letters outlined. The letters sit where our read shows strokes."
+    }
+   ],
+   "learned": "The whole chain works on known text: our own centre, tracks, fit, snap and flatten reach the inked sheet, and our read shows the letters. Our blank results elsewhere are not a geometry failure in disguise.",
+   "credits": [
+    "nieuwlaar-343",
+    "spiral-fitter",
+    "vc-data",
+    "vc-predictions",
+    "lasagna",
+    "villa",
+    "readerv2",
+    "d9v4c",
+    "ours"
+   ]
+  },
+  {
+   "id": "agreement-hot-nulls",
+   "date": "2026-10-14",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "Six-model agreement on hot blank crops",
+   "title": "Six models agreeing is a supporting check, not a test: it also scores high on the hottest blank crops",
+   "question": "On clean blank papyrus five or six of our models almost never agree on one face (1.6 % of tiles) while on known letters they do (78 %). Does that hold on the hottest crops of our blank bands, the places a search would look at first?",
+   "technique": "The six models (ink_9um ×2, dense_native, Hecate, Reader v2, d9v4C) at d 0 and +1 on crops around the top-ranked spot of the 15 best windings of the PHerc0813 tall band and of PHerc0191 z11200; the share of 2.8 mm tiles where at least 5 of 6 are one-sided. Also the official ink labels of PHerc0841 ag144 and PHerc0139 w030/w045, with models trained on them left out.",
+   "result": "On the hot blank crops, 38–40 % of tiles (PHerc0813; w072 88 %, w071 71 %) and 21 % (PHerc0191) have five or six models agreeing. By eye PHerc0813 w072 is soft one-sided blobs along a crack, with no rows and no stroke shapes. On the official labels, letter tiles agree 83–100 %, but background tiles 30–46 %.",
+   "verdict": "finding",
+   "metrics": {},
+   "images": [
+    {
+     "file": "agreement-hot-null-PHerc0813-w072.jpg",
+     "caption": "PHerc0813 w072, the hot blank crop where 88 % of tiles had five or six models agreeing: the CT, the reading side (four-model mean) and the other face, in reading orientation. Soft blobs along a crack, not rows of strokes. 1 cm bar."
+    }
+   ],
+   "learned": "The models agree on whatever lights them up, including crack zones, so agreement cannot tell text from the hottest blank crops. Use it to back up rows, stroke shapes and depth, not instead of them.",
+   "credits": [
+    "vc-data",
+    "vc-known-text",
+    "ink9um",
+    "dense-native",
+    "hecate",
+    "readerv2",
+    "d9v4c",
+    "ours"
+   ]
+  },
+  {
+   "id": "letter-reader-9um",
+   "date": "2026-10-14",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "A machine letter reader on 9 µm maps",
+   "title": "A Greek letter reader on our 9 µm ink maps of known text: not yet",
+   "question": "Chase Hendrick published a small line reader that names Greek capitals on ink maps, with its own scrambled-copy controls. Can it read known letters on our 9 µm maps, as a first machine check before human readers?",
+   "technique": "Run locally on CPU (letters-v2-real weights, checked by sha256) on our maps of known text: PHerc. 343 w047 and w048 (14–15 of Nieuwlaar's letters each; Reader v2 + d9v4C, d 0 and +1) and PHerc0841 ag144 (official labels; five models), in four orientations, with the letter height measured from the known letters and estimated by the reader; the other face as a control.",
+   "result": "It kept 1–5 letters on windings with 14–15 known letters, about as many as on its own scrambled copies, and as many on the other face of the sheet; 0–3 on PHerc0841. Its letter-height estimate fell back to a default on our maps.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [
+    {
+     "file": "letter-reader-PHerc0343-w048.jpg",
+     "wide": true,
+     "caption": "The reader on our PHerc. 343 w048 map (render orientation): it names four letters (Ω, Φ, Ι, Δ) among the roughly 15 there. Model output, not a reading."
+    }
+   ],
+   "learned": "The reader is shown to work on 2.4 µm maps; our 9 µm maps are softer and it does not read them yet, as its author says. It would need training on 9 µm maps of transcribed text.",
+   "credits": [
+    "chase-letter-reader",
+    "nieuwlaar-343",
+    "vc-data",
+    "vc-known-text",
+    "readerv2",
+    "d9v4c",
+    "ours"
+   ]
+  },
+  {
+   "id": "inkfirst-0841",
+   "date": "2026-10-14",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "Ink first on PHerc0841's labelled text",
+   "title": "Ink first, with a point on every sheet, on two labelled PHerc0841 blocks: one passes, one does not",
+   "question": "Ink first reads 3D blocks without meshes. On known 9.36 µm text with human labels, do the patches on the letters light up more than the rest of the block?",
+   "technique": "Two 1,280³ blocks around PHerc0841's labelled segments ag2814 and w00; sheet-like points from the surface prediction (about 5,000 per block), a 256-voxel patch at each, Reader v2 and d9v4C both ways; patches on letters against patches on the segment outside the letters and elsewhere in the block.",
+   "result": "ag2814: on the letters the d9v4C hot fraction is 0.20 against 0.09 elsewhere in the block (2.3×). w00: 0.05 on the letters against 0.09 elsewhere: no signal.",
+   "verdict": "partial",
+   "metrics": {},
+   "images": [],
+   "learned": "Ink first can find labelled text, but not reliably: on one of two segments it misses. It stays a tool for picking places to look, behind the mesh pipeline.",
+   "credits": [
+    "vc-data",
+    "vc-known-text",
+    "vc-predictions",
+    "readerv2",
+    "d9v4c",
+    "ours"
+   ]
   }
  ],
  "findings": [
@@ -2915,12 +3083,12 @@
   }
  ],
  "next": [
-  "Six-model agreement on known 9.36 µm text: PHerc0841 is split (one segment 78 %, the other 0 %); PHerc0139 decides whether it becomes a filter before deep looks.",
   "What the models respond to: the ablation on PHerc0841's letters (which layers, weave or brightness), before any try at synthetic training letters.",
   "Geometry coverage: about a fifth of each fitted band repeats a sheet another winding covers; check it by eye, then count only unique area and look for the sheets in between.",
   "Ink first with a point on every sheet: rank clusters of hot patches against the other face before a second PHerc0175A sweep.",
   "A better 8.64 µm model needs real human labels; collect published 8.64 µm text first.",
-  "Write-up for the October Progress Prize (stroke-score 0.2.2)."
+  "Try the organisers' new neural sheet and fibre tracers (Sean Johnson's) to grow our meshes past their edges and to check them for jumps between sheets.",
+  "Choose the next scroll for a full search."
  ],
  "credits": [
   {
@@ -3096,6 +3264,12 @@
    "who": "Carson Rodrigues (rodriguescarson), with meshes by pscamillo",
    "what": "eligible-scroll-atlas-renders: surface volumes and both-direction ink_9um and Hecate maps for 340 public meshes on eight eligible scrolls, including 75 on PHerc. 0813.",
    "link": "https://huggingface.co/datasets/rodriguescarson/eligible-scroll-atlas-renders"
+  },
+  {
+   "id": "chase-letter-reader",
+   "who": "Chase Hendrick",
+   "what": "A Greek letter reader for ink maps (kit/letterread.py, Apache-2.0; weights letters-v2-real, CC BY-NC 4.0), with scrambled-copy controls.",
+   "link": "https://github.com/ChaseHendrick/Scrolls/blob/main/docs/letter-reader.md"
   },
   {
    "id": "ours",

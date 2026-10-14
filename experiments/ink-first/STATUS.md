@@ -28,3 +28,8 @@ test that on 343 at home. If 343's letters come out on top, a second PHerc0175A 
 quoting. That is paid AWS time, so it is a separate decision. If they don't, ink first stays a coarse pre-filter.
 
 Site: https://skuzbucket1.github.io/scroll-prize/#run-inkfirst-343-control
+
+**Update 2026-10-14: PHerc0841.** Per-sheet ink first on two 1,280³ blocks around labelled segments (runs/2026-10-13_inkfirst-0841):
+on ag2814 the patches on letters light up (d9v4C hot fraction 0.20 against 0.09 elsewhere in the block); on w00 they do not
+(0.05 against 0.09). One pass, one miss: ink first stays a coarse way to pick places, behind the mesh pipeline.
+Site: https://skuzbucket1.github.io/scroll-prize/#run-inkfirst-0841

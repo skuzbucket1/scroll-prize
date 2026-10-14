@@ -2,6 +2,9 @@
 # On the instance: 66-layer render of one tifxyz segment straight from the public S3 volume, then ink maps for the given
 # models and depths with Nieuwlaar's run_ink.sh, then quick previews. Resumable (existing renders/maps are skipped).
 # Usage: run_segment.sh <name> <segment.tifxyz dir> <volume zarr URL> <native_um> <models,comma> <depths,comma>
+# The VC3D release of 2026-10 streams a remote --volume itself (chunks kept in ~/.VC3D/remote_cache) and refuses the old
+# --volume <cache dir> --remote-url <URL> pair, so the URL is passed as --volume, with the chunks prefetched first.
+# GROUP_IDX=<level> renders from that pyramid level of the volume (default 0); native_um is then that level's voxel size.
 set -uo pipefail
 NAME=$1; SEG=$2; URL=$3; UM=$4; MODELS=${5//,/ }; DEPTHS=${6//,/ }
 R=/opt/scroll/results/$NAME; W=/opt/scroll/work; mkdir -p $R/maps $R/previews $W /opt/scroll/cache/$NAME
@@ -22,8 +25,8 @@ fi
 Z=$W/${NAME}_66.zarr
 if [ ! -d $Z/0 ]; then
   t0=$(date +%s)
-  QT_QPA_PLATFORM=offscreen OMP_NUM_THREADS=$(nproc) /opt/scroll/vc3d/AppRun vc_render_tifxyz --volume /opt/scroll/cache/$NAME --remote-url "$URL" \
-     --group-idx 0 --scale 1 --segmentation "$SEG" --num-slices 66 --slice-step 1 --cache-gb 8 --zarr-output "$Z" > $R/render.log 2>&1
+  QT_QPA_PLATFORM=offscreen OMP_NUM_THREADS=$(nproc) /opt/scroll/vc3d/AppRun vc_render_tifxyz --volume "$URL" --prefetch-remote \
+     --group-idx ${GROUP_IDX:-0} --scale 1 --segmentation "$SEG" --num-slices 66 --slice-step 1 --cache-gb 8 --zarr-output "$Z" > $R/render.log 2>&1
   rc=$?; printf 'render66\t%s\t%s\n' $(( $(date +%s)-t0 )) $rc >> $TIM; [ $rc -eq 0 ] || { tail -5 $R/render.log; echo "RUN-EXIT: 1"; exit 1; }
 fi
 export CKPT_DIR=/opt/scroll/ckpt343 PY=/opt/scroll/villa/vesuvius/.venv/bin/python HECATE_PY=/opt/scroll/ckpt343/hecate.py PREP_PY=/opt/scroll/bin/ink343/hecate_prep.py

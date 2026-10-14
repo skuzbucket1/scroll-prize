@@ -17,6 +17,10 @@ GROUPS = {
     'tier23/PHerc0191': ('PHerc0191', 'z 11,200–12,200', 'Reader v2 + d9v4C'),
     'v02nulls/PHerc0191-three': ('PHerc0191', 'z 11,200–12,200', 'three models (ink_9um ×2 + dense_native)'),
 }
+# more labels in data/viewer/groups.json ({"<set>/<group>": [scroll, band, models]}; private, not versioned)
+GJ = os.path.join(VIEW, 'groups.json')
+if os.path.exists(GJ):
+    GROUPS.update({k: tuple(v) for k, v in json.load(open(GJ)).items()})
 KINDS = {'ct': 'ct', 'ens_reading': 'reading', 'ens_blind': 'blind'}
 FILE = re.compile(r'^(w\d+)__(ct|ens_reading|ens_blind)__d([+-]\d+)\.jpg$')
 
@@ -111,6 +115,10 @@ for g in groups:
             it['links'] = {k: e[k] for k in ('prev', 'next') if k in e}
 
 manifest = json.dumps({'groups': groups}, separators=(',', ':')).replace('</', '<\\/')
+GALLERY = (('<a href="findings.html" style="color:var(--acc);margin-left:10px"><b>Findings</b> &rarr;</a>'
+            if os.path.exists(os.path.join(VIEW, 'findings.html')) else '') +
+           ('<a href="gallery.html" style="color:var(--acc);margin-left:10px">Gallery: 3D views and every other result image &rarr;</a>'
+            if os.path.exists(os.path.join(VIEW, 'gallery.html')) else ''))
 HTML = r'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Inked windings</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -152,7 +160,7 @@ main{display:flex;flex-direction:column;min-width:0;min-height:0}
 .sbar{position:absolute;left:10px;bottom:8px;color:#fff;font-size:11px;text-shadow:0 0 3px #000,0 0 2px #000;pointer-events:none}
 .sbar i{display:block;height:3px;background:#fff;box-shadow:0 0 2px #000;margin-bottom:3px}
 </style></head><body>
-<header><b>Ink previews, half resolution.</b> Bright = the models see ink. Real writing shows on the reading side only, in rows of thin strokes; cracks and damage often show on both sides. Letters are about 2–4 mm tall.</header>
+<header><b>Ink previews, half resolution.</b> Bright = the models see ink. Real writing shows on the reading side only, in rows of thin strokes; cracks and damage often show on both sides. Letters are about 2–4 mm tall. GALLERY</header>
 <aside>
   <div class="tools"><input id="q" placeholder="filter, e.g. w09 or 0813" autocomplete="off">
     <select id="sort" title="sort"><option value="w">winding</option><option value="rows">rows ↓</option><option value="rb">R−B ↓</option></select></div>
@@ -355,7 +363,7 @@ if (location.hash === '#selftest') {
 '''
 out = os.path.join(VIEW, 'index.html')
 with open(out, 'w') as f:
-    f.write(HTML.replace('__MANIFEST__', manifest))
+    f.write(HTML.replace('__MANIFEST__', manifest).replace(' GALLERY</header>', ' ' + GALLERY + '</header>'))
 for g in groups:
     n_img = sum(sum(1 for k in ('ct', 'reading', 'blind') if k in d) for it in g['items'] for d in it['depths'].values())
     print(f"{g['id']}: {len(g['items'])} windings, {n_img} images ({g['scroll']}, {g['models']})")

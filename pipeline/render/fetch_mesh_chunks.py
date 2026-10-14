@@ -26,9 +26,10 @@ def get(base, out, rel):
                 raise
         time.sleep(2 * (attempt + 1))
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    with open(dest + '.part', 'wb') as f:
+    part = f'{dest}.part{os.getpid()}'                           # per process: several fetches may share one store
+    with open(part, 'wb') as f:
         f.write(data)
-    os.replace(dest + '.part', dest)
+    os.replace(part, dest)
     return len(data)
 
 
