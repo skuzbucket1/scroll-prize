@@ -13,7 +13,7 @@ import hashlib, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 FOLDERS = ('pipeline', 'experiments', 'dead-ends', 'archive', 'infra/box')
-MAC_ONLY = {'inkfirst_pilot.sh', 'inkfirst_sweep.sh', 'sync_bin.py'}   # launchers that run on the Mac
+MAC_ONLY = {'inkfirst_pilot.sh', 'inkfirst_sweep.sh', 'sync_bin.py', 'sync_control.sh'}   # launchers that run on the Mac
 
 
 def box_host():
