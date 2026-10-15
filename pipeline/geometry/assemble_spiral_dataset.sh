@@ -3,19 +3,28 @@
 # into data/<scroll>/source/: links to the tracks and Lasagna stores, spiral-scroll.json, an umbilicus from the published normal
 # grids (vc_gen_umbilicus, every 16th slice, 5 seeded repeats, then smooth_umbilicus.py, as for PHerc0191), a ray audit of the
 # umbilicus on one CT slice with a preview image, and the resident pools (normals + grad_mag, group 2, CT-masked at group 2).
-# Usage: assemble_spiral_dataset.sh <scroll> <audit z> [left_handed=false] [z_top_to_bottom=false] [um=9.362]
+# Usage: [FIT=<fit-id>] [VOL=..] [LA=..] [TR=..] assemble_spiral_dataset.sh <scroll> <audit z> <left_handed> <z_top_to_bottom> <um>
 # Marker: ASSEMBLE-EXIT (0 when the umbilicus and the resident pools exist).
+# 2026-10-15 (audit B3/B5): the orientation flags and the voxel size are required (um used to default to 9.362, the flags to
+# false); the volume, Lasagna and tracks inputs are taken from VOL / LA / TR, else from FIT (tracks/<FIT>/tracks), else they
+# must be the only candidate (it used to take the first of several); stale track links are cleared; the Lasagna normals must
+# have group 2 (the fit reads group 2 at scale 4).
 set -uo pipefail
-SC=$1; ZA=$2; LH=${3:-false}; ZTB=${4:-false}; UM=${5:-9.362}
+[ $# -eq 5 ] || { echo "usage: assemble_spiral_dataset.sh <scroll> <audit z> <left_handed> <z_top_to_bottom> <um>"; echo "ASSEMBLE-EXIT: 1"; exit 1; }
+SC=$1; ZA=$2; LH=$3; ZTB=$4; UM=$5
+for v in "$LH" "$ZTB"; do case $v in true|false) ;; *) echo "flags must be true or false"; echo "ASSEMBLE-EXIT: 1"; exit 1;; esac; done
 D=/mnt/nvme/scroll-prizes/data/$SC; SRC=$D/source; S=$D/inputs/spiral-dataset; B=~/scroll-prizes/bin
 PYV=~/scroll-prizes/villa/vesuvius/.venv/bin/python; export PATH=$HOME/.local/bin:$PATH
-VOL=$(ls -d $SRC/volume/*.zarr | head -1); LA=$(ls -d $SRC/lasagna/*/ | head -1); TR=$(ls -d $SRC/tracks/*/tracks | head -1)
+one(){ local n; n=$(ls -d $1 2>/dev/null | wc -l); [ "$n" -eq 1 ] || { echo "need exactly one $1 (found $n): set $2" >&2; echo "ASSEMBLE-EXIT: 1"; exit 1; }; ls -d $1; }
+VOL=${VOL:-$(one "$SRC/volume/*.zarr" VOL)} || exit 1; LA=${LA:-$(one "$SRC/lasagna/*/" LA)} || exit 1
+TR=${TR:-${FIT:+$SRC/tracks/$FIT/tracks}}; TR=${TR:-$(one "$SRC/tracks/*/tracks" TR)} || exit 1
+[ -d "${LA%/}/${SC}_nx.ome.zarr/2" ] || { echo "no group 2 in ${LA%/}/${SC}_nx.ome.zarr"; echo "ASSEMBLE-EXIT: 1"; exit 1; }
 read NZ NY NX <<< "$(python3 -c "import json; print(*json.load(open('$VOL/0/.zarray'))['shape'])")"
 echo "[$(date -Is)] $SC: volume $NZ x $NY x $NX, lasagna $LA, tracks $TR"
 mkdir -p $S/tracks $S/lasagna_inputs $S/qa
-for f in $TR/*; do ln -sfn $f $S/tracks/; done
+find $S/tracks -maxdepth 1 -type l -delete; for f in $TR/*; do ln -sfn $f $S/tracks/; done
 for k in nx ny grad_mag; do ln -sfn ${LA%/}/${SC}_$k.ome.zarr $S/lasagna_inputs/; done
-DBM=$(cd $S/tracks && ls *.dbm | head -1)
+DBM=$(cd $S/tracks && ls -d *.dbm); [ $(echo "$DBM" | grep -c .) -eq 1 ] || { echo "need one .dbm in $TR"; echo "ASSEMBLE-EXIT: 1"; exit 1; }
 cat > $S/spiral-scroll.json <<EOF
 {
   "schema_version": 1,

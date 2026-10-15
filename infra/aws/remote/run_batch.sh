@@ -2,9 +2,12 @@
 # On a fleet worker: process every line of /opt/scroll/jobs/batch.tsv (name, segment dir, volume URL, native um, models, depths),
 # render + ink via run_segment.sh (resumable), then the four-model ensemble images (Nieuwlaar's ensemble_maps.py).
 # Progress in /opt/scroll/results/progress.txt; BATCH-EXIT marker at the end.
+# 2026-10-15 (audit B1): a segment is DONE only when run_segment.sh exits 0 (every map present) and the ensemble step works;
+# failed segments are listed in failed.txt and retried on the next run; BATCH-EXIT gives the number of failed segments and
+# the script exits non-zero if any failed. KEEP_RENDERS=1 keeps the renders (they used to be deleted regardless).
 set -uo pipefail
 B=/opt/scroll/jobs/batch.tsv; OUT=/opt/scroll/results; mkdir -p $OUT
-N=$(grep -cv '^\s*$' $B); k=0
+N=$(grep -cv '^\s*$' $B); k=0; nfail=0; : > $OUT/failed.txt
 PY=/opt/scroll/villa/vesuvius/.venv/bin/python
 # Scan-Quality-Map in the background (CPU, streams the volume from S3), one segment at a time, while the GPU does ink.
 SQMPID=""
@@ -27,12 +30,16 @@ while IFS=$'\t' read -r NAME SEG URL UM MODELS DEPTHS; do
   [ -n "$NAME" ] || continue; k=$((k + 1))
   echo "$k/$N $NAME start $(date -u +%FT%TZ)" > $OUT/progress.txt
   [ -f $OUT/$NAME/DONE ] && continue
-  bash /opt/scroll/bin/run_segment.sh "$NAME" "$SEG" "$URL" "$UM" "$MODELS" "$DEPTHS" > $OUT/$NAME.run.log 2>&1
+  bash /opt/scroll/bin/run_segment.sh "$NAME" "$SEG" "$URL" "$UM" "$MODELS" "$DEPTHS" > $OUT/$NAME.run.log 2>&1; src=$?
   SD=$(echo "$DEPTHS" | tr ',' ' ')
   mkdir -p $OUT/$NAME/ensemble
+  if [ $src -ne 0 ]; then
+    nfail=$((nfail + 1)); echo "$NAME run_segment rc=$src: $(grep -E 'missing|RUN-EXIT|not' $OUT/$NAME.run.log | tail -2 | tr '\n' ' ')" >> $OUT/failed.txt
+    echo "$k/$N $NAME FAILED $(date -u +%FT%TZ)" > $OUT/progress.txt; continue
+  fi
   (cd /opt/scroll/villa/vesuvius && $PY /opt/scroll/bin/ink343/ensemble_maps.py --surface /opt/scroll/work/${NAME}_66.zarr --name ${NAME}_66 \
       --maps $OUT/$NAME/maps --out $OUT/$NAME/ensemble --stat-depths $SD --write-depths $SD > $OUT/$NAME/ensemble/ensemble.log 2>&1) \
-    && touch $OUT/$NAME/DONE
+    && touch $OUT/$NAME/DONE || { nfail=$((nfail + 1)); echo "$NAME ensemble failed" >> $OUT/failed.txt; }
   # stroke score (bin/stroke_score.py) on the worker, so only small results need fetching: the models this batch ran
   SM=$(echo "$MODELS" | tr ',' '\n' | sed -e 's/^hybrid_3d2d-seed42$/ink9-42/' -e 's/^hybrid_3d2d-seed43$/ink9-43/' | paste -sd, -)
   for d in $SD; do
@@ -42,8 +49,9 @@ while IFS=$'\t' read -r NAME SEG URL UM MODELS DEPTHS; do
   # any model set: mean-z ensemble, stroke score, row-structure score and small JPEG previews (pipeline/rank/post_models.py)
   (cd /opt/scroll/bin && $PY post_models.py $OUT/$NAME/maps ${NAME}_66 "$UM" "$MODELS" "$DEPTHS" $OUT/$NAME/post /opt/scroll/work/${NAME}_66.zarr \
       >> $OUT/$NAME/post.log 2>&1) || true
-  rm -rf /opt/scroll/work/${NAME}_66.zarr          # renders are ~1 GB each; keep the disk small
+  [ "${KEEP_RENDERS:-0}" = 1 ] || rm -rf /opt/scroll/work/${NAME}_66.zarr          # renders are ~1 GB each; keep the disk small
   echo "$k/$N $NAME done $(date -u +%FT%TZ)" > $OUT/progress.txt
 done < $B
 [ -n "$SQMPID" ] && { echo "waiting for sqm $(date -u +%FT%TZ)" >> $OUT/progress.txt; wait $SQMPID; }
-echo "BATCH-EXIT: 0 $(date -u +%FT%TZ)" >> $OUT/progress.txt
+echo "BATCH-EXIT: $nfail $(date -u +%FT%TZ)" >> $OUT/progress.txt
+[ $nfail -eq 0 ]

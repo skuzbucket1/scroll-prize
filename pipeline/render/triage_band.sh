@@ -9,7 +9,8 @@ FIT=$1; GPU=$2; W0=${3:-20}; W1=${4:-119}; S=~/scroll-prizes; P=/mnt/nvme/scroll
 SN=$P/geometry/$FIT/snapped; FL=$P/geometry/$FIT/flattened; R=$P/renders/$FIT; Q=$P/geometry/$FIT/qa/triage
 mkdir -p $FL $R/logs $Q/previews $Q/claims
 export TMPDIR=/mnt/nvme/scroll-prizes/scratch
-[ "${SCROLL:-PHerc0191}" = PHerc0191 ] || export CT=$(ls -d $P/source/volume/*.zarr | head -1)
+if [ "${SCROLL:-PHerc0191}" = PHerc0191 ]; then export CT=${CT:-/mnt/nvme/scroll-prizes/data/PHerc0191/volumes/20250821151635-9.362um-1.2m-113keV-masked.zarr}
+else export CT=${CT:-$(ls -d $P/source/volume/*.zarr | head -1)}; fi   # render66.sh no longer has a default CT (2026-10-15)
 order=$(python3 -c "print(' '.join('w%03d'%w for w in sorted(range($W0, $W1 + 1), key=lambda w: (abs(w - 70), w))))")
 for w in $order; do
   seg=$(ls -d $SN/${w}_* 2>/dev/null | grep -v spliced | head -1); [ -n "$seg" ] || continue

@@ -2,14 +2,19 @@
 For every read winding <results>/<fit>_<w>/maps/: the letter samples that lie on it (letters_on_windings.py rule) are put
 on its render grid (20 px per node), grown into a letter area (discs of 30 px), and compared with the rest of the winding
 (outside a 100 px margin): per model and depth, the mean ink inside the letters and outside on the reading side and on the
-other face, and the reading-side AUC letters-vs-rest (a few random pixels per letter disc; 0.5 = no signal). Writes
+other face, and the AUC letters-vs-rest on each face (0.5 = no signal) with a 95 % interval from resampling letters and
+100 px blocks of the rest (conventions.auc_bootstrap). Pixels count only where the mesh has a valid node (not where the
+map is > 0: that drops quiet papyrus). 2026-10-15: ties now average (was argsort ranks), all pixels instead of a random
+subsample, mesh-based valid mask (audit A2/A7). Writes
 <out>/eval.tsv and <out>/<w>_letters.jpg (reading side and other face of the two-model mean around the letters, letter
 area outlined). Usage: letters_eval.py <letters3d.npz> <flattened root> <results root> <fit> <models,> <out dir>"""
 import glob, os, sys
 import cv2, numpy as np, tifffile
 from scipy.spatial import cKDTree
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path[:0] = [HERE, os.path.join(HERE, '..', '..', 'common')]      # box: bin/conventions.py; repo: pipeline/common/
+import conventions as C
 L = np.load(sys.argv[1]); P = L['zyx'].astype(np.float64); ids = L['id']
 froot, rroot, fit, models, out = sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5].split(','), sys.argv[6]
 os.makedirs(out, exist_ok=True)
@@ -23,20 +28,16 @@ def place(d):
     dist, j = cKDTree(V).query(P, distance_upper_bound=60); m = np.isfinite(dist); j = np.where(m, j, 0)
     off = P - V[j]; nn = np.abs((off * N[j]).sum(1)); ip = np.sqrt(np.maximum((off ** 2).sum(1) - nn ** 2, 0))
     hit = m & (nn <= 4) & (ip <= 15)
-    return rc[j][hit] * 20, ids[hit]
+    return rc[j][hit] * 20, ids[hit], ok
 
 
-def auc(a, b):
-    r = np.argsort(np.argsort(np.concatenate([a, b]))); return (r[:len(a)].sum() - len(a) * (len(a) - 1) / 2) / (len(a) * len(b))
-
-
-rng = np.random.default_rng(1); lines = ['winding\tmodel\tdepth\tletters_px\tread_in\tread_out\tblind_in\tblind_out\tAUC_read\tAUC_blind']
+lines = ['winding\tmodel\tdepth\tletters_px\tread_in\tread_out\tblind_in\tblind_out\tAUC_read\tAUC_read_lo\tAUC_read_hi\tAUC_blind\tletters\tblocks']
 for rd in sorted(glob.glob(os.path.join(rroot, f'{fit}_w*'))):
     name = os.path.basename(rd); w = name[len(fit) + 1:]
     fl = os.path.join(froot, w, 'tifxyz', 'flatten.tifxyz')
     if not os.path.isdir(os.path.join(rd, 'maps')) or not os.path.isdir(fl):
         continue
-    px, pid = place(fl)
+    px, pid, ok = place(fl)
     if len(px) == 0:
         continue
     ens = {}
@@ -46,7 +47,7 @@ for rd in sorted(glob.glob(os.path.join(rroot, f'{fit}_w*'))):
             if not (os.path.exists(fr) and os.path.exists(fb)):
                 continue
             R = tifffile.imread(fr).astype(np.float32); B = tifffile.imread(fb).astype(np.float32)
-            H, W = R.shape; valid = (R > 0) | (B > 0)
+            H, W = R.shape; valid = C.resize_mask(ok, (H, W))
             Lm = np.zeros((H, W), np.uint8)
             for (y, x) in px:
                 if 0 <= y < H and 0 <= x < W:
@@ -55,10 +56,9 @@ for rd in sorted(glob.glob(os.path.join(rroot, f'{fit}_w*'))):
             far = ~cv2.dilate(Lm.astype(np.uint8), np.ones((201, 201), np.uint8)).astype(bool) & valid
             if Lm.sum() < 100 or far.sum() < 1000:
                 continue
-            ai = rng.choice(np.flatnonzero(Lm), min(20000, Lm.sum()), replace=False); ao = rng.choice(np.flatnonzero(far), min(200000, far.sum()), replace=False)
-            Rf, Bf = R.ravel(), B.ravel()
-            lines.append(f'{w}\t{m}\t{d}\t{int(Lm.sum())}\t{Rf[ai].mean():.1f}\t{Rf[ao].mean():.1f}\t{Bf[ai].mean():.1f}\t{Bf[ao].mean():.1f}\t'
-                         f'{auc(Rf[ai], Rf[ao]):.3f}\t{auc(Bf[ai], Bf[ao]):.3f}')
+            ar, lo, hi, nl, nb = C.auc_bootstrap(R, Lm, valid, neg_mask=far, n=1000, block=100, seed=1)
+            lines.append(f'{w}\t{m}\t{d}\t{int(Lm.sum())}\t{R[Lm].mean():.1f}\t{R[far].mean():.1f}\t{B[Lm].mean():.1f}\t{B[far].mean():.1f}\t'
+                         f'{ar:.3f}\t{lo:.3f}\t{hi:.3f}\t{C.auc(B[Lm], B[far]):.3f}\t{nl}\t{nb}')
             e = ens.setdefault(d, [np.zeros_like(R), np.zeros_like(B), 0, Lm]); e[0] += R; e[1] += B; e[2] += 1
     if 0 in ens:
         R, B, k, Lm = ens[0]; R /= k; B /= k
