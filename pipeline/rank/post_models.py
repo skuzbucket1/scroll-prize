@@ -29,7 +29,7 @@ for d in depths:
     sc, _ = score(E, valid, use, p)
     R, B = sc['sides']['reading'], sc['sides']['blind']
     rr, rw, rb = R['row']['score'], R['row']['at'], B['row']['score']
-    res_all['depths'][d] = {'area_R': R['stroke_frac'], 'area_B': B['stroke_frac'], 'window_R': R['window']['max'], 'window_B': B['window']['max'],
+    res_all['depths'][d] = {'area_R': R['stroke_frac'], 'area_B': B['stroke_frac'], 'window_R': R['window'].get('max'), 'window_B': B['window'].get('max'),   # no window score on windings shorter than the window
                             'row_R': rr, 'row_B': rb, 'row_at': rw, 'row_at_B': B['row']['at'], 'top_tiles': sc['top_reading_tiles'][:5],
                             'profile_R': R['profile'], 'profile_B': B['profile'], 'row_strips': p.row_strips,
                             'shape_R': R['shape']['score'], 'shape_B': B['shape']['score'], 'shape_marks': R['shape']['marks'],
