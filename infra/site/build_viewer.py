@@ -10,6 +10,8 @@ import json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 VIEW = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'data', 'viewer')
+if os.path.realpath(VIEW).startswith(os.path.realpath(os.path.join(ROOT, 'docs'))):   # privacy (2026-10-15): the viewer holds private reads
+    sys.exit('refusing: the viewer is private and must not be written under docs/')
 IMG = os.path.join(VIEW, 'img')
 # known groups: folder -> (scroll, band, model set); any other <set>/<group> folder is picked up with its folder name
 GROUPS = {

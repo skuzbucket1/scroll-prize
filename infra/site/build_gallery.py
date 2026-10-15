@@ -8,6 +8,8 @@ import html, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 VIEW = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'data', 'viewer')
+if os.path.realpath(VIEW).startswith(os.path.realpath(os.path.join(ROOT, 'docs'))):   # privacy (2026-10-15): the viewer holds private reads
+    sys.exit('refusing: the viewer is private and must not be written under docs/')
 RES = os.path.join(ROOT, 'data', 'results')
 IMG = re.compile(r'\.(jpe?g|png)$', re.I)
 

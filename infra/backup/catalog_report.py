@@ -5,6 +5,14 @@ import sqlite3, sys, time
 cat = sys.argv[1] if len(sys.argv) > 1 else 'data/catalog/catalog.sqlite'
 res = sys.argv[2] if len(sys.argv) > 2 else 'data/catalog/results.sqlite'
 out = sys.argv[3] if len(sys.argv) > 3 else 'docs/DATA_CATALOG.md'
+# Privacy (2026-10-15): scrolls we don't publish yet are listed in pipeline/common/scrolls_private.json (not in git). Their
+# rows never reach the report; without that list the report refuses to run, so a fresh checkout cannot leak them.
+import json, os
+_pv = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'pipeline', 'common', 'scrolls_private.json')
+if not os.path.exists(_pv):
+    sys.exit(f'refusing: no private scroll list at {_pv}')
+PRIVATE = set(json.load(open(_pv)))
+pub = lambda *vals: not any(p in str(v) for v in vals if v is not None for p in PRIVATE | {p.replace('PHerc', '') for p in PRIVATE})
 c, r = sqlite3.connect(cat), sqlite3.connect(res); G = 1073741824.0
 L = ['# Data catalog (generated)', '',
      f'Generated {time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())} by `infra/backup/catalog.py` (one scan per host) and `infra/backup/results_db.py`, '
@@ -19,13 +27,15 @@ q = '''select scroll, fit,
   count(distinct case when kind='mesh-snapped' then winding end), count(distinct case when kind='mesh-flattened' then winding end),
   sum(kind='render'), sum(kind='ink-map'), sum(kind='ensemble-image')
   from artifacts where scroll is not null and fit is not null group by 1,2 having sum(kind in ('mesh-snapped','mesh-flattened','render','ink-map','ensemble-image')) > 0 order by 1,2'''
-for sc, fit, ms, mf, rn, im, ei in c.execute(q): L.append(f'| {sc} | {fit} | {ms} / {mf} | {rn} | {im} | {ei} |')
+for sc, fit, ms, mf, rn, im, ei in c.execute(q):
+    if pub(sc, fit): L.append(f'| {sc} | {fit} | {ms} / {mf} | {rn} | {im} | {ei} |')
 L += ['', '## Scores (results table)', '', '| scroll | fit | source | models | rows | v0.1 LOOK | max row_R |', '|---|---|---|---|---:|---:|---:|']
 for row in r.execute('select scroll, fit, source, models, count(*), sum(flag_v01), max(row_R) from scores group by 1,2,3,4 order by 1,2,3,4'):
     sc, fit, src, ms, n, fl, mr = row
+    if not pub(sc, fit, src): continue
     L.append(f'| {sc or ""} | {fit or ""} | {src} | {ms} | {n} | {"" if fl is None else fl} | {"" if mr is None else f"{mr:.2f}"} |')
 L += ['', '## Known-text control AUCs (best depth per model, reading side)', '', '| control | model | best depth | AUC | r |', '|---|---|---:|---:|---:|']
 for ctl, m, d, a, rr in r.execute('''select control, model, depth, auc, r from control_auc a where side='reading' and auc = (select max(auc) from control_auc b
                                      where b.control=a.control and b.model=a.model and b.side='reading') order by control, auc desc'''):
-    L.append(f'| {ctl} | {m} | {d:+d} | {a:.3f} | {rr:.3f} |')
+    if pub(ctl): L.append(f'| {ctl} | {m} | {d:+d} | {a:.3f} | {rr:.3f} |')
 open(out, 'w').write('\n'.join(L) + '\n'); print(out, len(L), 'lines')
