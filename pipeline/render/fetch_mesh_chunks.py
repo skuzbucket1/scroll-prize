@@ -2,15 +2,22 @@
 reads: every chunk within `margin` voxels of a mesh point. Writes a local store with the same layout (.zattrs, .zgroup,
 0/.zarray, chunks), so vc_render_tifxyz, which only opens local zarrs, can render the mesh from it.
 Usage: fetch_mesh_chunks.py <CT zarr URL> <tifxyz dir> <out.zarr> [margin=48] [threads=24] [level=0]
-(level L > 0: the chunks of pyramid level L instead, for a render with --group-idx L; the margin is in level-L voxels.)"""
+(level L > 0: the chunks of pyramid level L instead, for a render with --group-idx L; the margin is in level-L voxels.)
+2026-10-15 (audit B13): a cached file is trusted only if it is not empty and, for uncompressed chunks, has the exact chunk
+size; otherwise it is fetched again (a full disk once left empty files behind)."""
 import concurrent.futures as cf, json, os, sys, time, urllib.error, urllib.request
 import numpy as np, tifffile, cv2
+
+
+EXPECT = None                                                   # bytes per chunk when the store is uncompressed
 
 
 def get(base, out, rel):
     dest = os.path.join(out, rel)
     if os.path.exists(dest):
-        return 0
+        n = os.path.getsize(dest)
+        if n > 0 and (EXPECT is None or rel.rsplit('/', 1)[-1].startswith('.') or n == EXPECT):
+            return 0
     for attempt in range(4):
         try:
             with urllib.request.urlopen(f'{base}/{rel}', timeout=90) as r:
@@ -43,7 +50,9 @@ try:                                                           # the other level
         get(base, out, f"{d['path']}/.zarray")
 except (KeyError, IndexError, FileNotFoundError):
     pass
-c = json.load(open(os.path.join(out, str(lv), '.zarray')))['chunks']
+za = json.load(open(os.path.join(out, str(lv), '.zarray'))); c = za['chunks']
+if za.get('compressor') is None:
+    EXPECT = int(np.prod(c)) * np.dtype(za['dtype']).itemsize
 X, Y, Z = (tifffile.imread(os.path.join(mesh, f'{k}.tif')).astype(np.float32) for k in 'xyz')
 f = 4                                                          # grid cells are ~20 voxels: sample every ~5 voxels
 up = lambda A: cv2.resize(A, (A.shape[1] * f, A.shape[0] * f), interpolation=cv2.INTER_LINEAR)

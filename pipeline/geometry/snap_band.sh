@@ -7,12 +7,15 @@
 # downstream), which halves the memory.
 set -uo pipefail
 SC=$1; FIT=$2; Z0=$3; Z1=$4; S=~/scroll-prizes; D=/mnt/nvme/scroll-prizes/data/$SC; G=$D/geometry/$FIT
-export TMPDIR=/mnt/nvme/scroll-prizes/scratch SURF_ZARR=$(ls -d $D/source/surface-m7/*.zarr | head -1)
-MESHES=$(ls -d $G/fit/meshes/fitted_*/ | head -1); OUT=$G/snapped; mkdir -p $OUT
+export TMPDIR=${TMPDIR_WORK:-/mnt/nvme/scroll-prizes/work/tmp} SURF_ZARR=$(ls -d $D/source/surface-m7/*.zarr | head -1)
+MESHES=$(ls -d $G/fit/meshes/fitted_*/ | head -1); OUT=$G/snapped; mkdir -p $OUT $TMPDIR
 ls $MESHES | grep -E "^w[0-9]+" | { [ "${SNAP_SKIP_SPLICED:-0}" = 1 ] && grep -v spliced || cat; } > $OUT/windings.txt
 echo "[$(date -Is)] snap $(wc -l < $OUT/windings.txt) windings from $MESHES onto $SURF_ZARR"; t0=$(date +%s)
 cd $S && $S/villa/vesuvius/.venv/bin/python -I bin/snap_meshes_nieuwlaar.py "$MESHES" $SC "$OUT" --windings $OUT/windings.txt \
    --z0 $Z0 --z1 $Z1 --level 0 --procs ${SNAP_PROCS:-3} > $OUT/snap.log 2>&1; rc=$?
 echo "[$(date -Is)] snap rc=$rc in $(( $(date +%s)-t0 ))s"; tail -2 $OUT/snap.log | cut -c1-160
+# the snap script appends to snap_report.tsv, so a rerun lists windings twice (audit B7): keep the last row per winding
+[ -s $OUT/snap_report.tsv ] && awk -F'\t' 'NR == 1 {h = $0; next} {row[$1] = $0; if (!($1 in seen)) {seen[$1] = 1; ord[++n] = $1}}
+  END {print h; for (i = 1; i <= n; i++) print row[ord[i]]}' $OUT/snap_report.tsv > $OUT/snap_report.tmp && mv $OUT/snap_report.tmp $OUT/snap_report.tsv
 awk -F'\t' 'NR>1 {s+=$3; n++} END {if (n) printf "windings %d, mean frac_with_sheet %.3f\n", n, s/n}' $OUT/snap_report.tsv 2>/dev/null
 echo "SNAP-EXIT: $rc"

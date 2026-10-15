@@ -20,7 +20,7 @@ export FIT_SPIRAL_CONFIG_OVERRIDES=$OV
   echo "FIT-EXIT: 3"; exit 3; }
 echo "overrides: $FIT_SPIRAL_CONFIG_OVERRIDES"
 export FIT_SPIRAL_OUT_DIR=$G/fit-runs FIT_SPIRAL_CACHE_DIR=/mnt/nvme/scroll-prizes/cache/spiral-$SC FIT_SPIRAL_RUN_TAG=$FIT CUDA_VISIBLE_DEVICES=$GPU
-export TMPDIR=/mnt/nvme/scroll-prizes/scratch
+export TMPDIR=${TMPDIR_WORK:-/mnt/nvme/scroll-prizes/work/tmp}; mkdir -p $TMPDIR
 echo "[$(date -Is)] start fit $SC $FIT (z $Z0-$Z1, $STEPS steps) on $GPU"; t0=$(date +%s)
 ~/.local/bin/uv run python fit_spiral.py --dataset "$S" > $G/fit-full.log 2>&1; rc=$?
 grep -E "^step [0-9]+: loss" $G/fit-full.log | tail -2 | cut -c1-160

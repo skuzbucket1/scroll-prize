@@ -41,14 +41,15 @@ cpq(){ aws s3 cp --no-sign-request --only-show-errors "$@"; }
 if [ ! -f $SRC/inputs.ok ]; then
   V=$SRC/volume/$VN
   for f in .zattrs .zgroup metadata.json 0/.zarray 1/.zarray; do cpq $B/volumes/$VN/$f $V/$f; done
-  for l in 2 3 4 5; do cpq --recursive $B/volumes/$VN/$l/ $V/$l/; done
+  for l in 2 3 4 5; do cpq --recursive $B/volumes/$VN/$l/ $V/$l/ || { log "CT level $l fetch FAILED"; finish 1; }; done   # audit B8: fetch errors are fatal
   M=$SRC/surface-m7/$SN
   for f in .zattrs .zgroup 0/.zarray 1/.zarray; do cpq $B/representations/predictions/surfaces/$SN/$f $M/$f; done
-  for r in $(seq $(( Z0 / 192 > 0 ? Z0 / 192 - 1 : 0 )) $(( (Z1 - 1) / 192 + 1 ))); do cpq --recursive $B/representations/predictions/surfaces/$SN/0/$r/ $M/0/$r/; done
+  CM=$(python3 -c "import json; print(json.load(open('$M/0/.zarray'))['chunks'][0])")   # the m7 z chunk (was assumed 192)
+  for r in $(seq $(( Z0 / CM > 0 ? Z0 / CM - 1 : 0 )) $(( (Z1 - 1) / CM + 1 ))); do cpq --recursive $B/representations/predictions/surfaces/$SN/0/$r/ $M/0/$r/ || { log "m7 row $r FAILED"; finish 1; }; done
   L=$SRC/lasagna/$LN; cpq $B/representations/predictions/lasagna/$LN/$SC.lasagna.json $L/$SC.lasagna.json
   for k in nx ny grad_mag; do Z=${SC}_$k.ome.zarr
     for f in .zattrs .zgroup 0/.zarray 1/.zarray 2/.zarray 3/.zarray 4/.zarray; do cpq $B/representations/predictions/lasagna/$LN/$Z/$f $L/$Z/$f 2>/dev/null; done
-    for l in 2 3 4; do cpq --recursive $B/representations/predictions/lasagna/$LN/$Z/$l/ $L/$Z/$l/; done
+    for l in 2 3 4; do cpq --recursive $B/representations/predictions/lasagna/$LN/$Z/$l/ $L/$Z/$l/ || { log "Lasagna $k level $l FAILED"; finish 1; }; done
   done
   touch $SRC/inputs.ok; log "inputs: $(du -sh $SRC | cut -f1)"
 fi
