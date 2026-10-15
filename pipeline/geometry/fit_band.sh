@@ -9,10 +9,15 @@ case "$GPU" in 1|GPU-33b8aac6*) echo "REFUSED: GPU 1 (GTX 1660 SUPER) is not usa
 D=/mnt/nvme/scroll-prizes/data/$SC; S=$D/inputs/spiral-dataset; G=$D/geometry/$FIT; mkdir -p $G/fit-runs
 cd ~/scroll-prizes/villa/spiral-fitting
 WANT='{"z_begin":'$Z0',"z_end":'$Z1',"optimizer_num_training_steps":'$STEPS',"input_use_verified_patches":false,"input_use_tracks":true,"input_use_outer_shell":false,"input_use_winding_inference":false,"input_use_fibers":false,"input_use_pcl_absolute":false,"input_use_pcl_relative":false,"input_use_pcl_same_winding":false,"input_use_pcl_drawn_control_points":false,"dense_spacing_mode":"grad_mag","loss_weight_shell_outer":0,"output_save_png_visualizations":true}'
-export FIT_SPIRAL_CONFIG_OVERRIDES=$(python3 -c '
+OV=$(python3 -c '
 import json,re,sys; want=json.loads(sys.argv[1]); src=open("config.py").read()
 keep={k:v for k,v in want.items() if re.search(r"[\x22\x27]%s[\x22\x27]|self\.%s\b" % (k,k), src)}
-print(json.dumps(keep)); print("dropped unknown keys:", [k for k in want if k not in keep], file=sys.stderr)' "$WANT")
+print(json.dumps(keep)); print("dropped unknown keys:", [k for k in want if k not in keep], file=sys.stderr)
+sys.exit(3 if len(keep) < len(want) else 0)' "$WANT"); orc=$?   # (export VAR=$(..) would hide the exit code)
+export FIT_SPIRAL_CONFIG_OVERRIDES=$OV
+[ $orc -eq 0 ] || [ "${FIT_ALLOW_DROPPED:-0}" = 1 ] || {
+  echo "REFUSED: villa's config.py does not know every key of the recipe, so the fit would silently differ (audit B9; FIT_ALLOW_DROPPED=1 to run anyway)"
+  echo "FIT-EXIT: 3"; exit 3; }
 echo "overrides: $FIT_SPIRAL_CONFIG_OVERRIDES"
 export FIT_SPIRAL_OUT_DIR=$G/fit-runs FIT_SPIRAL_CACHE_DIR=/mnt/nvme/scroll-prizes/cache/spiral-$SC FIT_SPIRAL_RUN_TAG=$FIT CUDA_VISIBLE_DEVICES=$GPU
 export TMPDIR=/mnt/nvme/scroll-prizes/scratch
