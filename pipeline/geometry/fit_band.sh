@@ -19,7 +19,7 @@ export FIT_SPIRAL_CONFIG_OVERRIDES=$OV
   echo "REFUSED: villa's config.py does not know every key of the recipe, so the fit would silently differ (audit B9; FIT_ALLOW_DROPPED=1 to run anyway)"
   echo "FIT-EXIT: 3"; exit 3; }
 echo "overrides: $FIT_SPIRAL_CONFIG_OVERRIDES"
-export FIT_SPIRAL_OUT_DIR=$G/fit-runs FIT_SPIRAL_CACHE_DIR=/mnt/nvme/scroll-prizes/cache/spiral-$SC FIT_SPIRAL_RUN_TAG=$FIT CUDA_VISIBLE_DEVICES=$GPU
+export FIT_SPIRAL_OUT_DIR=$G/fit-runs FIT_SPIRAL_CACHE_DIR=/mnt/nvme/scroll-prizes/cache/spiral-$SC-$FIT FIT_SPIRAL_RUN_TAG=$FIT CUDA_VISIBLE_DEVICES=$GPU
 export TMPDIR=${TMPDIR_WORK:-/mnt/nvme/scroll-prizes/work/tmp}; mkdir -p $TMPDIR
 echo "[$(date -Is)] start fit $SC $FIT (z $Z0-$Z1, $STEPS steps) on $GPU"; t0=$(date +%s)
 ~/.local/bin/uv run python fit_spiral.py --dataset "$S" > $G/fit-full.log 2>&1; rc=$?

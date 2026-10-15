@@ -41,8 +41,9 @@ NAME="$PROJECT_TAG-${WORKER_NAME:-spot}-$(date -u +%Y%m%d-%H%M%S)"
 # MARKET: spot (ceiling MAX_PRICE) | ondemand | spot-then-ondemand: every type on spot first, cheapest zone first, and only
 # where its spot price is at most SPOT_MAX_FRACTION (default 0.6) of the on-demand price (that is also the bid ceiling;
 # 2026-10-13 the first zone tried gave g5.4xlarge spot at $1.48 against $1.62 on-demand), then the same list on-demand.
-# An interrupted spot instance is terminated, not resumed.
-case ${MARKET:-spot} in spot) MARKETS=spot;; ondemand) MARKETS=ondemand;; spot-then-ondemand) MARKETS="spot ondemand";;
+# spot-fraction: spot only, with the same fraction ceiling (the caller falls back to on-demand itself, e.g. after waiting
+# RETRY_MINUTES for spot capacity). An interrupted spot instance is terminated, not resumed.
+case ${MARKET:-spot} in spot|spot-fraction) MARKETS=spot;; ondemand) MARKETS=ondemand;; spot-then-ondemand) MARKETS="spot ondemand";;
   *) echo "MARKET must be spot, ondemand or spot-then-ondemand (got $MARKET)" >&2; exit 2;; esac
 log "requesting ${MARKETS// / then } (types: ${INSTANCE_TYPES:-$INSTANCE_TYPE}; hard limit ${FLEET_MAX_HOURS:-$MAX_HOURS}h)"
 ondemand_price(){ case $1 in g5.4xlarge) echo 1.624;; g6.4xlarge) echo 1.323;; g5.2xlarge) echo 1.212;; g6.2xlarge) echo 0.9776;;
@@ -90,7 +91,7 @@ done
 done
 [ -n "$IID" ] && break
 [ "$(date +%s)" -lt "$DEADLINE" ] || break
-log "no capacity in any type/subnet; retrying in 2 min (until $(date -u -r $DEADLINE +%H:%M) UTC)"; sleep 120
+log "no capacity in any type/subnet; retrying in 2 min (until $(date -u -d @$DEADLINE +%H:%M 2>/dev/null || date -u -r $DEADLINE +%H:%M) UTC)"; sleep 120
 done
 [ -n "$IID" ] || { echo "request failed for every market/type/subnet (see infra/aws/state/run-instances.err)" >&2; exit 7; }
 log "got $INSTANCE_TYPE $MK in $SUBNET"
