@@ -1,9 +1,8 @@
 #!/bin/bash
 # Second 8.64 µm positive control for ink first (Ted 2026-10-13 ~10:10 am CT: "yes - do that next", home box, free):
-# one 1280^3 block of PHerc1447 centred on the text the organisers announced on 2026-09-24 "around (4144, 2742, 12557) in
-# the public 8.64um volume" (x, y, z; volume shape z 24297, y 8343, x 8343), run like the PHerc. 343 per-sheet control
-# (stride 96, size 256, m7 surface prediction, per-sheet sampler) with Reader v2 and d9v4C. Text found by Youssef Nader
-# (recipe not yet released) and earlier by LimeGS; we only test whether our tools see it. Waits for ABLATION-EXIT (GPU 2; the other session's
+# one 1280^3 block of PHerc1447 centred on a place with known text in the public 8.64 um volume (the block in blocks.tsv;
+# volume shape z 24297, y 8343, x 8343), run like the PHerc. 343 per-sheet control (stride 96, size 256, m7 surface
+# prediction, per-sheet sampler) with Reader v2 and d9v4C. We only test whether our tools see it. Waits for ABLATION-EXIT (GPU 2; the other session's
 # top30 run yielded GPU 2 and runs on GPU 0 only).
 # Markers in results/progress.log: BLOCKS-EXIT, then INKFIRST1447-EXIT after the maps and cluster views.
 S=~/scroll-prizes; R=$S/runs/2026-10-13_inkfirst-1447; PY=$S/villa/vesuvius/.venv/bin/python
