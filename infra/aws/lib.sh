@@ -24,4 +24,4 @@ rsync_to(){ rsync -a -e "ssh ${SSH_OPTS[*]}" "$1" "ubuntu@$(instance_ip):$2"; }
 rsync_from(){ rsync -a -e "ssh ${SSH_OPTS[*]}" "${@:3}" "ubuntu@$(instance_ip):$1" "$2"; }
 
 require_net(){ [ -n "${VPC_ID:-}" ] && [ -n "${SUBNET_IDS:-}" ] || { echo "VPC_ID and SUBNET_IDS must be set in infra/aws/spot.env (run infra/aws/vpc_up.sh)" >&2; exit 2; }; }
-set_env(){ local k=$1 v=$2; if grep -q "^$k=" "$HERE/spot.env"; then sed -i "" "s|^$k=.*|$k=\"$v\"|" "$HERE/spot.env"; else echo "$k=\"$v\"" >> "$HERE/spot.env"; fi; }
+set_env(){ local k=$1 v=$2; if grep -q "^$k=" "$HERE/spot.env"; then sed -i.bak "s|^$k=.*|$k=\"$v\"|" "$HERE/spot.env" && rm -f "$HERE/spot.env.bak"; else echo "$k=\"$v\"" >> "$HERE/spot.env"; fi; }
