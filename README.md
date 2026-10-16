@@ -65,13 +65,12 @@ Kept so that nobody, us included, repeats them. Each README gives what we tried,
 
 - `archive/`: one-off setup steps that are done, and scripts that newer ones replaced (the README says which replaced which).
 - `infra/`: plumbing. This is data mirroring, the AWS fleet, backup and the artifact catalog, and the site and viewer
-  builders. It also holds `infra/box/sync_bin.py`, which maps these folders to the GPU box, where every script lives flat
+  builders. It also holds `infra/box/sync_bin.py`, which maps these folders to the GPU machine, where every script lives flat
   in `~/scroll-prizes/bin/`.
 - `research/registry.json` drives the site in `docs/` (`python3 infra/site/build_site.py`). `docs/` also holds the code
   dictionary, the data layout and the data dictionary.
-- `notes/`: dated working notes, the friction log of tooling problems, and drafts of our pull requests to villa.
 
-The large data (CT copies, meshes, renders, ink maps) lives on the GPU box and is not versioned. `docs/img/` holds
+The large data (CT copies, meshes, renders, ink maps) lives on the GPU machine and is not versioned. `docs/img/` holds
 downsampled previews only. `infra/moved-2026-10-13.tsv` lists where every file went when the repo was sorted this way.
 
 ## License

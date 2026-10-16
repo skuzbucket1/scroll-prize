@@ -77,7 +77,7 @@ winding r 0.2–0.6 on PHerc0813 and PHerc0191). There the shared features are d
 
 - Coverage. Flat patches cut gently curved sheets at a slant: about half of a test window is covered at stride 0.6 mm,
   three quarters with blending. Per-patch surface snapping and curved patches are the next step
-  (`notes/inkfirst-next-angles.md`).
+  (in our working notes).
 - The patch statistics are not yet comparable across scrolls; a within-scroll test is needed.
 - At 1/4 resolution the sheets of a block fuse into one connected component, so ink first does not separate sheets.
   Reading text still needs a mesh where ink shows up.

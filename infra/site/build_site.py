@@ -92,8 +92,11 @@ for ph in d["phases"]:
         f'<span class="meta">{esc(e.get("track",""))} · {esc(e["date"][5:])}</span></span>'
         f'<span class="dot {VERDICT.get(e.get("verdict"), ("", "neutral"))[1]}" title="{esc(VERDICT.get(e.get("verdict"), (e.get("verdict",""),))[0])}"></span></a></li>'
         for e in items)
+    closed = " closed" if ph["status"] == "done" else ""
     nav_groups.append(
-        f'<div class="navgroup"><div class="navphase"><span>{esc(ph["id"])} · {esc(ph["title"])}</span>{badge(ph["status"])}</div><ul>{lis}</ul></div>')
+        f'<div class="navgroup{closed}"><button type="button" class="navphase" aria-expanded="{"false" if closed else "true"}">'
+        f'<span><span class="caret" aria-hidden="true">▸</span>{esc(ph["id"])} · {esc(ph["title"])} <span class="cnt">{len(items)}</span></span>'
+        f'{badge(ph["status"])}</button><ul>{lis}</ul></div>')
 
 # ---------------------------------------------------------------- progression chart (dot plot + baseline line)
 fit_runs = [e for e in exps if METRIC in e.get("metrics", {})]
@@ -351,8 +354,8 @@ overview = f"""
   <p class="lede">{esc(p['subtitle'])}</p>
   <div class="grid3">
     <div class="card"><h3>Goal</h3><p>{esc(p['goal'])}</p></div>
-    <div class="card"><h3>Scroll</h3><p>{esc(p['scroll'])}</p></div>
-    <div class="card"><h3>Hardware</h3><p>{esc(p['hardware'])}</p></div>
+    <div class="card"><h3>Scrolls</h3><p>{esc(p['scroll'])}</p></div>
+    <div class="card"><h3>Community index</h3><p>Looking for the models, datasets, code and write-ups people share on the Vesuvius Challenge Discord? <a href="community.html">Every shared link and forum thread, searchable, with who shared it first</a>.</p></div>
   </div>
   {pipeline_html}
   <h2>Latest</h2>
@@ -490,12 +493,17 @@ aside{background:var(--surface);border-right:1px solid var(--border);display:fle
 .brand{padding:16px 16px 10px;border-bottom:1px solid var(--border)}
 .brand b{display:block;font-size:15px;line-height:1.3}.brand span{color:var(--muted);font-size:12px}
 .topnav{display:flex;gap:4px;padding:10px 12px 6px}
-.topnav a{flex:1;text-align:center;text-decoration:none;color:var(--ink2);padding:6px 4px;border-radius:6px;font-size:13px;border:1px solid var(--border)}
+.topnav a{flex:1;min-width:0;text-align:center;text-decoration:none;color:var(--ink2);padding:6px 4px;border-radius:6px;font-size:13px;border:1px solid var(--border);white-space:nowrap}
+.pagelinks{display:flex;gap:14px;padding:2px 14px 4px;font-size:12.5px}.pagelinks a{text-decoration:none;color:var(--ink2)}.pagelinks a:hover{color:var(--accent)}
 .topnav a.active{background:var(--accent-wash);color:var(--ink);border-color:var(--accent)}
 .filter{padding:6px 12px 8px}.filter input{width:100%;padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--page);color:var(--ink);font:inherit;font-size:13px}
 .navscroll{overflow-y:auto;flex:1;padding:0 6px 12px}
 .navgroup{margin-top:10px}
-.navphase{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 8px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);position:sticky;top:0;background:var(--surface);z-index:1}
+.navphase{display:flex;width:100%;justify-content:space-between;align-items:center;gap:6px;padding:7px 8px;font:inherit;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);position:sticky;top:0;background:var(--surface);z-index:1;border:0;border-radius:6px;cursor:pointer;text-align:left}
+.navphase:hover{color:var(--ink);background:var(--accent-wash)}.navphase .cnt{font-variant-numeric:tabular-nums;opacity:.7;margin-left:2px}
+.navphase .caret{display:inline-block;width:12px;transition:transform .15s}.navgroup:not(.closed) .caret{transform:rotate(90deg)}
+.navgroup.closed ul{display:none}.filtering .navgroup.closed ul{display:block}
+.runlist{display:flex;flex-direction:column;min-height:0;flex:1}.navtoggle{display:none}
 .navphase .badge{text-transform:none;letter-spacing:0}
 .navgroup ul{list-style:none;margin:0;padding:0}
 .navgroup a{display:grid;grid-template-columns:26px 1fr 12px;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;text-decoration:none;color:var(--ink)}
@@ -603,7 +611,11 @@ button.thumb{cursor:zoom-in}.thumb img{display:block;width:100%;height:100%;obje
 }
 @container (max-width:519px){.stbody{flex-direction:column;gap:8px}.thumb{width:100%;height:100px}}
 @container (max-width:420px){.lanebody{flex-direction:column}.thumb.wide{width:100%;height:90px}}
-@media (max-width:860px){.layout{grid-template-columns:1fr;height:auto}aside{position:static;max-height:none}.navscroll{max-height:45vh}main{overflow:visible}.view{padding:20px 16px 40px}}
+@media (max-width:860px){.layout{grid-template-columns:1fr;height:auto}aside{position:sticky;top:0;z-index:5;max-height:none;border-right:0;border-bottom:1px solid var(--border)}
+.brand{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}.brand b{flex:1 1 60%}.brand span{order:3;flex-basis:100%}
+.navtoggle{display:inline-block;border:1px solid var(--border);background:var(--page);color:var(--ink);border-radius:6px;padding:5px 10px;font:inherit;font-size:13px;cursor:pointer}
+.runlist{display:none}aside.navopen .runlist{display:flex}aside.navopen .navscroll{max-height:60vh}.sidefoot span{display:none}
+main{overflow:visible}.view{padding:20px 16px 40px}}
 """
 
 JS = """
@@ -616,9 +628,17 @@ JS = """
     if(!document.getElementById(id)) id='overview';
     views.forEach(function(v){v.classList.toggle('shown', v.id===id);});
     links.forEach(function(a){a.classList.toggle('active', a.getAttribute('data-view')===id);});
-    var act=document.querySelector('.navgroup a.active'); if(act) act.scrollIntoView({block:'nearest'});
-    main.scrollTop=0; var h=document.getElementById(id).querySelector('h1'); if(h) document.title=h.textContent+' — PHerc0191 research log';
+    var act=document.querySelector('.navgroup a.active'), g=act&&act.closest('.navgroup');
+    if(g&&g.classList.contains('closed')){g.classList.remove('closed');g.querySelector('.navphase').setAttribute('aria-expanded','true');}
+    if(act) act.scrollIntoView({block:'nearest'});
+    main.scrollTop=0; var h=document.getElementById(id).querySelector('h1'); if(h) document.title=h.textContent+' — Vesuvius Challenge research log';
+    if(aside.classList.contains('navopen')&&id.indexOf('run-')===0) setNav(false);
   }
+  var aside=document.querySelector('aside'), tog=document.querySelector('.navtoggle');
+  function setNav(open){aside.classList.toggle('navopen',open);tog.setAttribute('aria-expanded',open?'true':'false');}
+  tog.addEventListener('click',function(){setNav(!aside.classList.contains('navopen'));});
+  document.querySelectorAll('.navphase').forEach(function(b){b.addEventListener('click',function(){
+    var g=b.parentNode; var c=g.classList.toggle('closed'); b.setAttribute('aria-expanded',c?'false':'true');});});
   window.addEventListener('hashchange', function(){show(location.hash.slice(1));});
   show(location.hash.slice(1)||'overview');
   // keyboard: left/right to step through runs
@@ -632,7 +652,7 @@ JS = """
   // filter
   var f=document.getElementById('filter');
   f.addEventListener('input', function(){
-    var q=f.value.trim().toLowerCase();
+    var q=f.value.trim().toLowerCase(); aside.classList.toggle('filtering', !!q);
     document.querySelectorAll('.navgroup').forEach(function(g){
       var any=false;
       g.querySelectorAll('li').forEach(function(li){var a=li.querySelector('a');var ok=!q||a.getAttribute('data-search').indexOf(q)>=0;li.hidden=!ok;any=any||ok;});
@@ -677,14 +697,15 @@ page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name
 <title>{esc(p['title'])}</title><style>{CSS}</style></head><body>
 <div class="layout">
 <aside aria-label="Research navigation">
-  <div class="brand"><b>{esc(p['title'])}</b><span>{len(exps)} runs · updated {now}</span></div>
-  <nav class="topnav"><a href="#overview" data-view="overview">Overview</a><a href="#findings" data-view="findings">Findings</a><a href="#next" data-view="next">Next</a><a href="#credits" data-view="credits">Credits</a><a href="stroke-score-0.2.html">stroke-score 0.2</a></nav>
-  <div class="filter"><input id="filter" type="search" placeholder="Filter runs (e.g. tracer, shell, ink)" aria-label="Filter runs"></div>
-  <div class="navscroll">{''.join(nav_groups)}</div>
+  <div class="brand"><b>{esc(p['title'])}</b><span>{len(exps)} runs · updated {now}</span><button type="button" class="navtoggle" aria-expanded="false" aria-controls="runlist">Runs ☰</button></div>
+  <nav class="topnav"><a href="#overview" data-view="overview">Overview</a><a href="#findings" data-view="findings">Findings</a><a href="#next" data-view="next">Next</a><a href="#credits" data-view="credits">Credits</a></nav>
+  <nav class="pagelinks" aria-label="Other pages"><a href="stroke-score-0.2.html">stroke-score 0.2 <span aria-hidden="true">↗</span></a><a href="community.html">Community index <span aria-hidden="true">↗</span></a></nav>
+  <div class="runlist" id="runlist"><div class="filter"><input id="filter" type="search" placeholder="Filter runs (e.g. tracer, shell, ink)" aria-label="Filter runs"></div>
+  <div class="navscroll">{''.join(nav_groups)}</div></div>
   <div class="sidefoot"><span>← → step through runs</span><button id="theme" type="button">Light / dark</button></div>
 </aside>
 <main>{overview}{findings}{nextview}{creditsview}{''.join(run_views)}
-<footer class="foot">Scan data and derived images: Vesuvius Challenge / EduceLab, CC BY-NC 4.0. Tools, models and methods by others are credited on each run and on the <a href="#credits">Credits</a> page. Generated {now} from research/registry.json by infra/site/build_site.py. Images are downsampled previews; full-resolution outputs live on the GPU box.</footer>
+<footer class="foot">Scan data and derived images: Vesuvius Challenge / EduceLab, CC BY-NC 4.0. Tools, models and methods by others are credited on each run and on the <a href="#credits">Credits</a> page. Generated {now} from research/registry.json by infra/site/build_site.py. Images are downsampled previews of the full-resolution outputs.</footer>
 </main></div>
 <div class="lightbox" id="lightbox" hidden><button type="button" aria-label="Close">✕</button><img alt=""><div class="cap"></div></div>
 <script>{JS}</script></body></html>"""

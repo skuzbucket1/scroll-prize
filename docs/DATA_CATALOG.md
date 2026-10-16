@@ -1,56 +1,56 @@
 # Data catalog (generated)
 
-Generated 2026-10-13 03:47 UTC by `scripts/catalog.py` (one scan per host) and `scripts/results_db.py`, merged on the Mac into `data/catalog/catalog.sqlite` and `data/catalog/results.sqlite`. Do not edit by hand: re-run the scans. Layout and rules: `docs/DATA_LAYOUT.md`. Backup set: `scripts/backup_r2.sh` (private object storage).
+Generated 2026-10-13 03:47 UTC by `scripts/catalog.py` (one scan per host) and `scripts/results_db.py`, merged on the laptop into `data/catalog/catalog.sqlite` and `data/catalog/results.sqlite`. Do not edit by hand: re-run the scans. Layout and rules: `docs/DATA_LAYOUT.md`. Backup set: `scripts/backup_r2.sh` (private object storage).
 
 ## Artifacts by host and kind
 
 | host | kind | items | GiB | critical items |
 |---|---|---:|---:|---:|
-| box | render | 316 | 569.31 | 0 |
-| box | other | 2182 | 41.82 | 204 |
-| box | ink-map | 4058 | 27.02 | 640 |
-| box | fit-input | 61 | 18.35 | 10 |
-| box | ensemble-image | 2889 | 11.52 | 766 |
-| box | mesh-flattened | 5126 | 10.86 | 5126 |
-| box | fit | 14324 | 8.24 | 14324 |
-| box | score-figure | 3439 | 2.44 | 3439 |
-| box | geometry-qa | 482 | 2.01 | 482 |
-| box | control-ink-map | 45 | 0.63 | 45 |
-| box | mesh-snapped | 4221 | 0.35 | 4221 |
-| box | control-ensemble-image | 13 | 0.23 | 0 |
-| box | control-other | 12 | 0.10 | 12 |
-| box | control-reference | 5 | 0.08 | 5 |
-| box | reference | 53 | 0.04 | 53 |
-| box | log | 3908 | 0.01 | 862 |
-| box | preview-image | 16 | 0.01 | 0 |
-| box | score | 847 | 0.01 | 847 |
-| box | control-mesh | 3 | 0.00 | 0 |
-| box | mesh | 2 | 0.00 | 0 |
-| box | ranking | 11 | 0.00 | 11 |
-| box | run-record | 15 | 0.00 | 15 |
-| box | geometry | 1 | 0.00 | 0 |
-| box | control-score | 1 | 0.00 | 1 |
-| box | public-input | 24 | 0.00 | 0 |
-| mac | ensemble-image | 830 | 3.93 | 830 |
-| mac | other | 3282 | 3.02 | 1507 |
-| mac | ink-map | 170 | 1.38 | 170 |
-| mac | control-ink-map | 72 | 0.85 | 72 |
-| mac | score-figure | 902 | 0.57 | 902 |
-| mac | control-ensemble-image | 26 | 0.32 | 0 |
-| mac | review-image | 133 | 0.15 | 133 |
-| mac | control-ranking | 8 | 0.13 | 8 |
-| mac | control-other | 71 | 0.08 | 71 |
-| mac | control-reference | 5 | 0.08 | 5 |
-| mac | preview-image | 26 | 0.03 | 26 |
-| mac | scan-quality | 338 | 0.03 | 338 |
-| mac | reference | 57 | 0.02 | 57 |
-| mac | log | 2165 | 0.00 | 2141 |
-| mac | score | 577 | 0.00 | 577 |
-| mac | control-score-figure | 2 | 0.00 | 0 |
-| mac | memory | 26 | 0.00 | 26 |
-| mac | ranking | 3 | 0.00 | 3 |
-| mac | control-score | 11 | 0.00 | 11 |
-| mac | run-record | 8 | 0.00 | 8 |
+| GPU machine | render | 316 | 569.31 | 0 |
+| GPU machine | other | 2182 | 41.82 | 204 |
+| GPU machine | ink-map | 4058 | 27.02 | 640 |
+| GPU machine | fit-input | 61 | 18.35 | 10 |
+| GPU machine | ensemble-image | 2889 | 11.52 | 766 |
+| GPU machine | mesh-flattened | 5126 | 10.86 | 5126 |
+| GPU machine | fit | 14324 | 8.24 | 14324 |
+| GPU machine | score-figure | 3439 | 2.44 | 3439 |
+| GPU machine | geometry-qa | 482 | 2.01 | 482 |
+| GPU machine | control-ink-map | 45 | 0.63 | 45 |
+| GPU machine | mesh-snapped | 4221 | 0.35 | 4221 |
+| GPU machine | control-ensemble-image | 13 | 0.23 | 0 |
+| GPU machine | control-other | 12 | 0.10 | 12 |
+| GPU machine | control-reference | 5 | 0.08 | 5 |
+| GPU machine | reference | 53 | 0.04 | 53 |
+| GPU machine | log | 3908 | 0.01 | 862 |
+| GPU machine | preview-image | 16 | 0.01 | 0 |
+| GPU machine | score | 847 | 0.01 | 847 |
+| GPU machine | control-mesh | 3 | 0.00 | 0 |
+| GPU machine | mesh | 2 | 0.00 | 0 |
+| GPU machine | ranking | 11 | 0.00 | 11 |
+| GPU machine | run-record | 15 | 0.00 | 15 |
+| GPU machine | geometry | 1 | 0.00 | 0 |
+| GPU machine | control-score | 1 | 0.00 | 1 |
+| GPU machine | public-input | 24 | 0.00 | 0 |
+| laptop | ensemble-image | 830 | 3.93 | 830 |
+| laptop | other | 3282 | 3.02 | 1507 |
+| laptop | ink-map | 170 | 1.38 | 170 |
+| laptop | control-ink-map | 72 | 0.85 | 72 |
+| laptop | score-figure | 902 | 0.57 | 902 |
+| laptop | control-ensemble-image | 26 | 0.32 | 0 |
+| laptop | review-image | 133 | 0.15 | 133 |
+| laptop | control-ranking | 8 | 0.13 | 8 |
+| laptop | control-other | 71 | 0.08 | 71 |
+| laptop | control-reference | 5 | 0.08 | 5 |
+| laptop | preview-image | 26 | 0.03 | 26 |
+| laptop | scan-quality | 338 | 0.03 | 338 |
+| laptop | reference | 57 | 0.02 | 57 |
+| laptop | log | 2165 | 0.00 | 2141 |
+| laptop | score | 577 | 0.00 | 577 |
+| laptop | control-score-figure | 2 | 0.00 | 0 |
+| laptop | memory | 26 | 0.00 | 26 |
+| laptop | ranking | 3 | 0.00 | 3 |
+| laptop | control-score | 11 | 0.00 | 11 |
+| laptop | run-record | 8 | 0.00 | 8 |
 
 Public inputs (scan volumes, Lasagna, tracks, surface predictions, normal grids) are listed per store without sizes; they are re-downloadable.
 

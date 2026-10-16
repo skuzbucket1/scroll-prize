@@ -4,26 +4,26 @@
 
 > **2026-10-10:** the data was migrated to the layout in `docs/DATA_LAYOUT.md` (`source/`, `inputs/`, `geometry/<fit-id>/`, `renders/`, `ink/`, `scores/`, `runs/`, `scratch/`, `cache/`). The paths below are the pre-migration names; they still work through symlinks, and the current-to-new table in DATA_LAYOUT.md gives each new location.
 
-> **2026-10-10 11:18:** NVMe cleanup Tier 1 deleted the old-band renders, fibre fields, tracer tests, dropped-experiment fit checkpoints, the old-fitter worktree, old QA renders and smoke runs (details in `docs/DATA_LAYOUT.md`); entries below for those datasets describe what existed before.
+> **2026-10-10 11:18:** disk cleanup Tier 1 deleted the old-band renders, fibre fields, tracer tests, dropped-experiment fit checkpoints, the old-fitter worktree, old QA renders and smoke runs (details in `docs/DATA_LAYOUT.md`); entries below for those datasets describe what existed before.
 
 2026-10-10
 
-This document describes the datasets the project keeps on the GPU box `llm` and on Ted's Mac: what each one is, where
+This document describes the datasets the project keeps on the GPU machine and on Ted's laptop: what each one is, where
 it lives, its format and size, which script produced it, and whether it can be deleted. It exists so that disk space
-can be freed without losing results (the box NVMe was 91 % full on 2026-10-10), so that the inputs and outputs of any
+can be freed without losing results (the GPU machine disk was 91 % full on 2026-10-10), so that the inputs and outputs of any
 step can be found, and so that ink maps and scores are read with the right conventions. The raw directory listing
-behind it is `notes/data-inventory-2026-10-10.md`. Sizes are `du` figures taken read-only on 2026-10-10.
+behind it is our data inventory of 2026-10-10. Sizes are `du` figures taken read-only on 2026-10-10.
 
 ## Conventions
 
 ### Locations
 
 - Box: `~/scroll-prizes` is a symlink to `/mnt/nvme/scroll-prizes`. Box paths below are relative to it unless absolute.
-  In the dataset sections, `0191/` stands for `data/PHerc0191/` on the box.
-- Mac: the repository root `/Users/tbienapfl/dev/vscode/scroll-prizes`. `data/`, `villa/`, `memory/`, `infra/aws/state/`,
+  In the dataset sections, `0191/` stands for `data/PHerc0191/` on the GPU machine.
+- laptop: the repository root `/Users/tbienapfl/dev/vscode/scroll-prizes`. `data/`, `villa/`, `memory/`, `infra/aws/state/`,
   `infra/aws/spot.env` and all `*.tif` files are git-ignored.
-- Scripts: box `bin/`, copied into the repository's status folders (`pipeline/`, `experiments/`, `dead-ends/`, `archive/`, `infra/box/`; `infra/box/sync_bin.py` maps them by file name). `bin/ink343/` holds Erwin
-  Nieuwlaar's ink scripts from the PHerc. 343 First Letters repository (MIT), unchanged. AWS scripts are in `aws/` (run on the Mac) and `infra/aws/remote/` (run on the instances).
+- Scripts: GPU machine `bin/`, copied into the repository's status folders (`pipeline/`, `experiments/`, `dead-ends/`, `archive/`, `infra/box/`; `infra/box/sync_bin.py` maps them by file name). `bin/ink343/` holds Erwin
+  Nieuwlaar's ink scripts from the PHerc. 343 First Letters repository (MIT), unchanged. AWS scripts are in `aws/` (run on the laptop) and `infra/aws/remote/` (run on the instances).
 - Every job writes a log that ends with a marker `<NAME>-EXIT: <rc>`; waiter scripts poll for these markers.
 
 ### Names
@@ -172,7 +172,7 @@ Ranking tables:
 - Box `data/strokes/ranking.tsv` (`bin/stroke_rank.sh`, incremental; `FORCE=1` re-scores all): `name, set (s42 | ens4),
   depth, area_R, area_B, R-B, window_R, window_B, max_tile_R, max_tile_B, top_read_y, top_read_x, top_damage, flag`,
   sorted by area_R. Reference rows: the PHerc. 343 control.
-- Mac `data/aws-results/run2/ranking.tsv` (`infra/aws/fleet_rank.sh`): `winding, depth, models, area_R, area_B, R-B,
+- laptop `data/aws-results/run2/ranking.tsv` (`infra/aws/fleet_rank.sh`): `winding, depth, models, area_R, area_B, R-B,
   window_R, window_B, top_read_y, top_read_x, top_damage, flag, crops`.
 
 LOOK flag (identical in `stroke_rank.sh` and `fleet_rank.sh`): area_R ≥ 0.015, or R−B ≥ 0.010, or (window_R ≥ 0.030
@@ -209,7 +209,7 @@ the reading side. Ignore the flag on `s42` rows.
 | KEEP | results, reviews, paid runs, or anything expensive or impossible to recreate |
 | SCRATCH | safe to delete once no running job uses it |
 
-## Disk use on the box (2026-10-10)
+## Disk use on the GPU machine (2026-10-10)
 
 | area | size | main content |
 |---|---|---|
@@ -222,7 +222,7 @@ the reading side. Ignore the flag on `s42` rows.
 | `runs/` | 1.1 G | day-1 smoke tests |
 | `bin/`, `cache/`, 105 top-level logs | 2.5 M | |
 | `/mnt/nvme/vc3d-remote-cache/` (outside the project) | 29 G | VC3D remote-chunk cache |
-| NVMe total | 840 G used of 938 G | 89 G free |
+| disk total | 840 G used of 938 G | 89 G free |
 
 ## Datasets
 
@@ -230,17 +230,17 @@ the reading side. Ignore the flag on `s42` rows.
 
 **PHerc0191 CT volume**
 - What: the full CT scan of PHerc0191, all six pyramid levels.
-- Where: box `0191/volumes/20250821151635-9.362um-1.2m-113keV-masked.zarr/`.
+- Where: GPU machine `0191/volumes/20250821151635-9.362um-1.2m-113keV-masked.zarr/`.
 - Format, size: OME-Zarr v2 (see Conventions), 410 G (level 0 353 G, level 1 49 G, level 2 7.3 G, levels 3–5 1.6 G),
   209,814 objects.
 - Made by: `bin/mirror_s3_v2.py`; log `0191/mirror-volume.log` (440 GB in 8.9 h). Read by `render66.sh`,
   `winding_band.sh`, `fiber_band.sh`, `make_outer_shell.py`, `assemble_pherc0191.sh`.
 - Class: SOURCE. A re-download takes about 9 h. Without the local copy every render streams from S3 (the streamed
-  control render took 280 s on the box; local winding renders take 21–107 s).
+  control render took 280 s on the GPU machine; local winding renders take 21–107 s).
 
 **Lasagna normal and gradient stores**
 - What: the published Lasagna representation of PHerc0191: sheet normals (nx, ny) and gradient magnitude.
-- Where: box `0191/lasagna/20250821151635-lasagna-20260419180421/PHerc0191_{nx,ny,grad_mag}.ome.zarr`, manifest
+- Where: GPU machine `0191/lasagna/20250821151635-lasagna-20260419180421/PHerc0191_{nx,ny,grad_mag}.ome.zarr`, manifest
   `PHerc0191.lasagna.json`.
 - Format, size: OME-Zarr uint8, levels 2–4 only (the manifest also names a `cos` group that was not mirrored);
   18.1 G.
@@ -250,14 +250,14 @@ the reading side. Ignore the flag on `s42` rows.
 
 **Normal grids**
 - What: published xy-plane normal grids, one file per z slice; required by the tracer and by `vc_gen_umbilicus`.
-- Where: box `0191/normal-grids/` (`metadata.json`, `xy/NNNNNN.grid` × 18,977).
+- Where: GPU machine `0191/normal-grids/` (`metadata.json`, `xy/NNNNNN.grid` × 18,977).
 - Size: 5.6 G.
 - Made by: mirror, log `0191/mirror-normalgrids.log` (5.9 GB in 0.97 h).
 - Class: SOURCE.
 
 **m7 surface prediction (partial)**
 - What: the published surface-segmentation prediction for PHerc0191 (`…surface-m7-L0-th0.2.zarr`), only the bands we use.
-- Where: box `0191/surf-m7/20250821151635-surface-20260413222639-surface-m7-L0-th0.2.zarr/`.
+- Where: GPU machine `0191/surf-m7/20250821151635-surface-20260413222639-surface-m7-L0-th0.2.zarr/`.
 - Format, size: OME-Zarr uint8; level 0 z chunk rows 46–52 (z 8832–10176) and 57–65 (z 10944–12672), level 1 rows
   22–27; 5.0 G.
 - Made by: `bin/mirror_surf_band.sh`, `bin/mirror_surf_band_z11k.sh`, `bin/mirror_surf_band_l1.sh`. Read by
@@ -266,7 +266,7 @@ the reading side. Ignore the flag on `s42` rows.
 
 **Surface tracks**
 - What: track graph extracted from the m7 prediction (z 4500–17500); the main input of the spiral fitter.
-- Where: box `0191/spiral/20250821151635/tracks/` (`PHerc0191_20250821151635_surface_m7_L0_th0.2.dbm` 9.9 G,
+- Where: GPU machine `0191/spiral/20250821151635/tracks/` (`PHerc0191_20250821151635_surface_m7_L0_th0.2.dbm` 9.9 G,
   `.dbm.crossings.npz` 2.4 G, `.dbm.vctracks/`, `.extract.json`). `0191/spiral-dataset/tracks` is a symlink to it.
 - Size: 21 G.
 - Made by: download, log `0191/tracks-download.log` (no URL recorded).
@@ -274,28 +274,28 @@ the reading side. Ignore the flag on `s42` rows.
 
 **PHerc0343 control mesh**
 - What: Erwin Nieuwlaar's published PHerc. 343 winning segment (MIT), our positive control.
-- Where: box `data/PHerc0343/control/concat_w047-w048_R5B2_z9500-11000.tifxyz/`; also inside Mac
+- Where: GPU machine `data/PHerc0343/control/concat_w047-w048_R5B2_z9500-11000.tifxyz/`; also inside laptop
   `data/prior-art/pherc343-first-letters/`.
 - Size: 528 K.
 - Class: SOURCE.
 
 **Community spiral-fit windings**
 - What: ten windings w000–w009 (z 11600–12400) of the community PHerc0191 fit `rodriguescarson/eligible-scroll-spiral-fits`.
-- Where: box `0191/community-fit/wNNN/` (tifxyz).
+- Where: GPU machine `0191/community-fit/wNNN/` (tifxyz).
 - Size: 312 K.
 - Made by: download; the command is not in `bin/` (`prep_community.sh` only consumes it).
 - Class: SOURCE.
 
 **PHercParis4 segment 20231016151002**
 - What: day-1 test data: the segment's meshes on three volumes and its 7.91 µm surface volume.
-- Where: box `data/PHercParis4/segments/20231016151002/` (`mesh/` with three tifxyz, `surface-volumes/7.91um-54keV-volume-20230205180739.zarr`).
+- Where: GPU machine `data/PHercParis4/segments/20231016151002/` (`mesh/` with three tifxyz, `surface-volumes/7.91um-54keV-volume-20230205180739.zarr`).
 - Size: 4.6 G.
 - Made by: surface volume by `bin/fetch_zarr.py` (log `dl-surfvol-7.91um.log`); the meshes were downloaded by hand.
 - Class: SOURCE.
 
 **PHerc0800 segments**
 - What: six public auto-grown segments' 8.64 µm surface volumes (31 layers), used for a day-1 ink test.
-- Where: box `data/PHerc0800/segments/<TS14>-auto_grown_<TS17>/surface-volumes/8.64um-1.2m-116keV-volume-20250521135224.zarr`.
+- Where: GPU machine `data/PHerc0800/segments/<TS14>-auto_grown_<TS17>/surface-volumes/8.64um-1.2m-116keV-volume-20250521135224.zarr`.
 - Size: 665 M (chunks missing on the server are absent here too).
 - Made by: `bin/dl_pherc0800.sh`.
 - Class: SOURCE.
@@ -303,14 +303,14 @@ the reading side. Ignore the flag on `s42` rows.
 **Model checkpoints**
 - What: ink models (ink_9um seed 42 at steps 75000 and 40000, seed 43 at step 75000, dense_native, Hecate 9.6 µm and
   2.4 µm), the winding model `winding_model_9um`, and the Lasagna fiber model.
-- Where: box `checkpoints/{ink_9um,dense_native,hecate,winding_model_9um,lasagna-fiber}/`. `checkpoints/ckpt343/` is
+- Where: GPU machine `checkpoints/{ink_9um,dense_native,hecate,winding_model_9um,lasagna-fiber}/`. `checkpoints/ckpt343/` is
   the layout `run_ink.sh` expects: symlinks into the other folders plus `dense_native-016000.pth`.
 - Size: 2.8 G, 70 files.
 - Made by: Hugging Face downloads (`hf-*.log`, `bin/hf_ink_extra.sh`, `bin/hf_winding.sh`).
   `ckpt343/dense_native-016000.pth` was rebuilt from the safetensors by `bin/ink343/rebuild_dense_native_pth.py`.
 - Class: SOURCE; the rebuilt `.pth` is REGENERABLE (seconds).
 
-**Open-data catalog and prior art (Mac)**
+**Open-data catalog and prior art (laptop)**
 - What: `data/catalog/metadata.json` (open-data metadata catalog, 17 M); `data/prior-art/` (Substack posts as HTML,
   text and API JSON, Nieuwlaar's `pherc343-first-letters` repository, the `scrollfiesta_public` repository, `sqm/`;
   256 M, 5,864 files).
@@ -321,7 +321,7 @@ the reading side. Ignore the flag on `s42` rows.
 **Spiral-fit dataset and umbilicus**
 - What: the fitter's dataset directory: `spiral-scroll.json`, `umbilicus.json`, `umbilicus_raw.json`,
   `umbilicus_estimates.csv`, symlinks to the Lasagna stores and tracks, outer shell, surface SDT, winding supervision.
-- Where: box `0191/spiral-dataset/`. `0191/spiral-dataset-old/` is a symlink farm for the old fitter whose
+- Where: GPU machine `0191/spiral-dataset/`. `0191/spiral-dataset-old/` is a symlink farm for the old fitter whose
   `spiral-scroll.json` adds the surface SDT ("old" = old fitter, not old data).
 - Made by: `bin/assemble_pherc0191.sh` (`vc_gen_umbilicus` from the normal grids, seed 1).
 - Class: REGENERABLE (minutes). Keep: under 1 MB and referenced by every fit.
@@ -329,10 +329,10 @@ the reading side. Ignore the flag on `s42` rows.
 **Resident-pool sidecars (two copies)**
 - What: packed bricks of the Lasagna normals (nx+ny pair) and gradient magnitude at level 2, loaded into memory by the fitter.
 - Where and size:
-  - box `0191/lasagna/<id>/PHerc0191_nx.ome.zarr.respool_g2_pair/` (12 G) and `PHerc0191_grad_mag.ome.zarr.respool_g2/`
+  - GPU machine `0191/lasagna/<id>/PHerc0191_nx.ome.zarr.respool_g2_pair/` (12 G) and `PHerc0191_grad_mag.ome.zarr.respool_g2/`
     (5.6 G): no CT mask, built by the pilot fit on 2026-10-08 22:23 because the fitter looks for the sidecar next to
     the symlink target. The fits load this copy.
-  - box `0191/spiral-dataset/lasagna_inputs/*.respool*` (17.6 G): CT-masked copy packed by `assemble_pherc0191.sh`
+  - GPU machine `0191/spiral-dataset/lasagna_inputs/*.respool*` (17.6 G): CT-masked copy packed by `assemble_pherc0191.sh`
     at 22:17. No fit log shows it being loaded.
 - Format: `brick_coords.npy`, `table.npy`, `channel_N.u8`, `meta.json`; zero-byte `.lock` files beside them.
 - Class: the `lasagna/` copy is REGENERABLE (138 s to pack; a fit rebuilds it if missing). The
@@ -341,7 +341,7 @@ the reading side. Ignore the flag on `s42` rows.
 **Outer shells**
 - What: scroll outer boundary as a tifxyz-like grid (`x/y/z.tif`, `meta.json`, `shell_stats.json`), used by the fitter's
   shell loss.
-- Where: box `0191/spiral-dataset/outer_shell/` (160 M, full scroll, dz = 1; the one the fitter reads),
+- Where: GPU machine `0191/spiral-dataset/outer_shell/` (160 M, full scroll, dz = 1; the one the fitter reads),
   `outer_shell_dz1/` (160 M, identical copy), `outer_shell_band8500-10500/` (17 M), `outer_shell_dz8/` (20 M, the shell
   of exp-shell105), `outer_shell.v0/` (20 M, superseded).
 - Made by: `bin/make_outer_shell.py` (445 s for the full scroll at dz 8), `bin/shell_dense_and_rerun.sh`.
@@ -349,7 +349,7 @@ the reading side. Ignore the flag on `s42` rows.
 
 **Surface SDT**
 - What: signed distance to the m7 surface for z 8936–10064, input of the old fitter's `phase` spacing mode.
-- Where: box `0191/spiral-dataset/surf_sdt_band9000-10000.ome.zarr/` (1.4 G, levels 1–3, partial by design),
+- Where: GPU machine `0191/spiral-dataset/surf_sdt_band9000-10000.ome.zarr/` (1.4 G, levels 1–3, partial by design),
   `….respool_g1/` (4.6 G sidecar), `….done_tiles.json`, `….respool_g1.lock`.
 - Made by: the old fitter's SDT builder, run by hand; command and output in `surf-sdt.log` (1,313 s). Not in `bin/`.
 - Class: REGENERABLE (about 25 min). In use by the running old-fitter fit.
@@ -357,19 +357,19 @@ the reading side. Ignore the flag on `s42` rows.
 **Winding-model cache and supervision**
 - What: native-phase cache of the public winding model over the band z 9000–10000 (winding step 8, seed spacing 96,
   7,102 slabs), and the compact supervision exported from it.
-- Where: box `0191/winding/band9000-10000/winding_native_phase_ws8_ss96.zarr/` (104 G); export
+- Where: GPU machine `0191/winding/band9000-10000/winding_native_phase_ws8_ss96.zarr/` (104 G); export
   `0191/spiral-dataset/winding_inference/` (1.1 M: `manifest.json`, `shard_0/`, `shard_1/`); smoke test `smoke.zarr/`
   (3.7 G); leftovers `smoke.tmp/`, `winding_native_phase_ws8_ss96.tmp/`; logs and VRAM traces beside them.
 - Made by: `bin/winding_smoke.sh`, `bin/winding_band.sh` (about 10,000 s on GPUs 2 + 3; the launcher's "WINDING-EXIT: 127"
   came from an argument bug after the inference had finished), `bin/export_wm.sh` (106 s).
-- Class: the cache is REGENERABLE (about 2.8 h on two 3060-class GPUs). Its only consumer, the export, is done and
+- Class: the cache is REGENERABLE (about 2.8 h on two consumer GPUs). Its only consumer, the export, is done and
   the winding-model fits were neutral, so it is the largest candidate to drop. The export is KEEP (tiny, input of
   exp-wm and exp-wm2). `smoke.zarr` and the `.tmp` folders are SCRATCH.
 
 **Spiral-fit runs**
 - What: fitted spirals on the band z 9000–10000 (and, running, z 11200–12200): checkpoint, per-winding meshes,
   metrics, diagnostic PNGs.
-- Where: box `0191/spiral-output/` (11 runs): `…_pilot-z9000-10000` (2026-10-08), `exp-30k`, `exp-dirlow`,
+- Where: GPU machine `0191/spiral-output/` (11 runs): `…_pilot-z9000-10000` (2026-10-08), `exp-30k`, `exp-dirlow`,
   `exp-dirlow2`, `exp-dr32`, `exp-shell105`, `exp-shell105b`, `exp-track2x`, `exp-wm`, `exp-wm2` (2026-10-09),
   `exp30k-z11200` (2026-10-10, running).
 - Format, size: per run `checkpoint_fitted.ckpt` (~933 M), `meshes/fitted_<tag>/{wNNN_<tag>, wNNN_spliced_<tag>}`
@@ -379,18 +379,18 @@ the reading side. Ignore the flag on `s42` rows.
   `fit-<tag>.log` (overrides, metrics, FIT-EXIT) and `fit-<tag>-full.log`.
 - Class: `exp-30k` is KEEP in full (every snapped winding derives from its meshes, and its checkpoint bootstraps the
   winding cache). For the other runs, metrics, PNGs and meshes are KEEP (about 70 M each); their checkpoints are
-  REGENERABLE (30–45 min per 10k-step fit on one 3060; about 8.4 G together).
+  REGENERABLE (30–45 min per 10k-step fit on one consumer GPU; about 8.4 G together).
 
 **Old-fitter run**
 - What: the PHerc. 343 winner's fit recipe (surface SDT + phase spacing, 30k steps) with villa commit 0fb38c45.
-- Where: box `0191/spiral-output-old/2026-10-09_…_old-phase-30k/` (empty until the run ends), inputs
+- Where: GPU machine `0191/spiral-output-old/2026-10-09_…_old-phase-30k/` (empty until the run ends), inputs
   `0191/spiral-dataset-old/`, cache dir `cache/spiral-old/`, code and venv `wt/spiral-0fb38c45/`.
 - Made by: `bin/fit_old_phase.sh`; logs `fit-old-phase-30k*.log` (attempts 1–4 failed).
 - Class: running (8 h 15 min at 00:50 UTC); KEEP its output when it finishes.
 
 **Snapped windings**
 - What: fitted windings moved along the normal onto the nearest m7 surface sheet.
-- Where: box `0191/snapped/exp-30k/wNNN_exp-30k/` × 100 (w020–w119, 27 M) and `0191/snapped/community/wNNN/` × 10
+- Where: GPU machine `0191/snapped/exp-30k/wNNN_exp-30k/` × 100 (w020–w119, 27 M) and `0191/snapped/community/wNNN/` × 10
   (324 K), each with `windings.txt`, `snap_report.tsv`, `snap.log`.
 - Made by: `bin/snap_exp30k.sh` and `bin/prep_community.sh`, both running `bin/snap_meshes_nieuwlaar.py` (Nieuwlaar,
   MIT) on level 0 of the m7 band.
@@ -399,27 +399,27 @@ the reading side. Ignore the flag on `s42` rows.
 
 **Flattened windings**
 - What: snapped windings flattened with Lasagna, the meshes that are rendered.
-- Where: box `0191/flatten/exp-30k-snapped-wNNN/` × 100, `community-snapped-wNNN/` × 10, `lasagna150/`. Each holds
+- Where: GPU machine `0191/flatten/exp-30k-snapped-wNNN/` × 100, `community-snapped-wNNN/` × 10, `lasagna150/`. Each holds
   `tifxyz/flatten.tifxyz/` (with `model.pt`), `model_final.pt`, `model_snapshots/` (10 × `model_stage0_NNNNNN.pt`),
   `flatten.log`, `flatten_input.json`.
 - Size: 1.9 G, of which `model_snapshots/` 1.6 G.
 - Made by: `bin/flatten_winding.sh` (Lasagna `fit.py configs/flatten_fast_nofilter.json`, 95–412 s per winding on a
-  3060, median 142 s), called by `bin/triage_windings.sh` and `bin/prep_community.sh`.
+  consumer GPU, median 142 s), called by `bin/triage_windings.sh` and `bin/prep_community.sh`.
 - Class: REGENERABLE (about 4 h for all). Keep the `flatten.tifxyz` folders; `model_snapshots/` is SCRATCH.
   `exp-30k-snapped-w116/` is a failed run (rc 1, no mesh) and SCRATCH.
 
 **Fiber outputs and direction fields**
 - What: fibre-direction inference on z 8500–10500 and two direction fields for the tracer.
-- Where: box `0191/fiber/band8500-10500/` (3.5 G: `fiber_{nx,ny,presence}.ome.zarr`, `dirfield.zarr`,
+- Where: GPU machine `0191/fiber/band8500-10500/` (3.5 G: `fiber_{nx,ny,presence}.ome.zarr`, `dirfield.zarr`,
   `fiber.lasagna.json`, `inference.json`, logs) and `0191/fiber/dirfield_lasagna.zarr/` (6.8 G; x and y are symlinks
   to the Lasagna nx/ny, z is computed).
-- Made by: `bin/fiber_band.sh` (about 1.6 h on one 3060), `bin/make_dirfield_zarr.py` (`dirfield-build.log`,
+- Made by: `bin/fiber_band.sh` (about 1.6 h on one consumer GPU), `bin/make_dirfield_zarr.py` (`dirfield-build.log`,
   `dirfield-lasagna-build.log`, 1,389 s).
 - Class: REGENERABLE. The tracer tests that used them are concluded.
 
 **Tracer patches**
 - What: patches grown with `vc_grow_seg_from_seed` under different inputs, with QA renders and ink maps.
-- Where: box `0191/grow-test/`: `out/`, `out2/`, `out3/`, `out_ct/` (one `auto_grown_<TS17>` tifxyz each), `qa/`,
+- Where: GPU machine `0191/grow-test/`: `out/`, `out2/`, `out3/`, `out_ct/` (one `auto_grown_<TS17>` tifxyz each), `qa/`,
   `qa2/`, `qa_ct/`, `dirfield/` (failed first attempt), `dirfield2/` (`out_<v>/`, `qa_<v>/`, `params_<v>.json`,
   `grow_<v>.log` for v ∈ 70, 150, ct70, lasagna70, lasagna150, ng70, ng100w3), `params*.json`, `seeds3.txt`, logs.
 - Size: 5.2 G (patches about 4 M; QA renders and maps the rest).
@@ -430,7 +430,7 @@ the reading side. Ignore the flag on `s42` rows.
 
 **66-layer renders of the windings**
 - What: 66-layer surface volumes of the flattened windings (see Conventions).
-- Where: box `0191/render66/exp30k_snapped_wNNN_66.zarr` × 99 (w020–w119 without w116; 0.27–1.60 G each),
+- Where: GPU machine `0191/render66/exp30k_snapped_wNNN_66.zarr` × 99 (w020–w119 without w116; 0.27–1.60 G each),
   `lasagna150_66.zarr` (3.5 G, the 35.8 cm² Lasagna-field tracer patch), `render_wNNN.log` × 98 (w070's log is
   `render66-w070.log` at the top level).
 - Size: 93 G.
@@ -440,26 +440,26 @@ the reading side. Ignore the flag on `s42` rows.
 
 **Triage previews**
 - What: CT at d = 0 of each render, 2× downsampled.
-- Where: box `0191/triage/previews/wNNN_ct_d0.png` × 99 (202 M).
+- Where: GPU machine `0191/triage/previews/wNNN_ct_d0.png` × 99 (202 M).
 - Made by: `bin/triage_windings.sh`; `bin/ink_triage.sh` uses their presence as the "render finished" signal.
 - Class: REGENERABLE (seconds each).
 
 **QA renders (28 layers)**
 - What: early renders and seed-42/43 ink maps of selected windings and patches.
-- Where: box `0191/pilot-qa/` (w040, w070, w100; 794 M), `0191/winding-qa/{exp-30k,exp-wm}/` (w040, w070; 865 M),
+- Where: GPU machine `0191/pilot-qa/` (w040, w070, w100; 794 M), `0191/winding-qa/{exp-30k,exp-wm}/` (w040, w070; 865 M),
   `0191/snapped/qa_exp-30k_w040_exp-30k/`, `qa_exp-30k_w070_exp-30k/` (410 M, with `selfcross.json`).
 - Made by: `bin/pilot_qa.sh`, `bin/winding_qa.sh`, `bin/patch_qa.sh` (via `bin/snap_exp30k.sh`).
-- Class: REGENERABLE (minutes). The site uses JPEG copies in Mac `data/results/`.
+- Class: REGENERABLE (minutes). The site uses JPEG copies in laptop `data/results/`.
 
 **PHerc. 343 control render**
 - What: 66-layer render of the control mesh, streamed from S3 at 8.64 µm.
-- Where: box `data/PHerc0343/control/control343_66.zarr/` (905 M), `render.log`.
+- Where: GPU machine `data/PHerc0343/control/control343_66.zarr/` (905 M), `render.log`.
 - Made by: `bin/control343.sh`.
 - Class: REGENERABLE (minutes plus about 4 GB streamed).
 
 **Day-1 smoke tests**
 - What: PHercParis4 crop renders and ink predictions, and PHerc0800 ink maps from three checkpoints.
-- Where: box `runs/20231016151002-2.4um-g2-28-crop1/`, `…-crop1b/`, `20231016151002-7.91um-ink9um-s42-075k/`,
+- Where: GPU machine `runs/20231016151002-2.4um-g2-28-crop1/`, `…-crop1b/`, `20231016151002-7.91um-ink9um-s42-075k/`,
   `PHerc0800-ink9um/` (1.1 G).
 - Made by: `bin/render_2p4um_crop1.sh`, `bin/render_2p4um_crop1b.sh`, `bin/infer_7p91_smoke.sh`, `bin/infer_pherc0800.sh`.
 - Class: REGENERABLE. Results are on the site (`sample-*.jpg`, `PHerc0800-*.jpg`).
@@ -468,7 +468,7 @@ the reading side. Ignore the flag on `s42` rows.
 
 **PHerc0191 ink maps**
 - What: ink maps of the windings, both sides.
-- Where: box `0191/ink-triage/maps/` (333 entries, 2.0 G; `logs/` with 9 per-model logs).
+- Where: GPU machine `0191/ink-triage/maps/` (333 entries, 2.0 G; `logs/` with 9 per-model logs).
   - seed 42: 29 windings (w033–w036, w060–w080, w103–w106); d 0 for 29, d +1 for 28, d +2 for 21, d −1 for 20.
   - seed 43 and dnative: 12 windings (w033–w036, w068–w072, w103–w105), d 0 / +1.
   - Hecate: 5 windings (w068–w072), d 0 / +1.
@@ -476,19 +476,19 @@ the reading side. Ignore the flag on `s42` rows.
   `ensemble_wNNN.log`), `bin/three_model_windings.sh` (three models, `three_wNNN.log`), all through `bin/depth_sweep.sh`
   or `run_ink.sh` directly.
 - Class: KEEP. They back the null results and cost GPU hours: about 4–9 min per villa map pair and depth and about
-  31 min per Hecate depth on a 3060 (about 1.5 h per winding for four models at two depths).
+  31 min per Hecate depth on a consumer GPU (about 1.5 h per winding for four models at two depths).
 
 **Seed-42 previews and work claims**
 - What: 2× downsampled seed-42 maps (`wNNN_d{-1,+0,+1,+2}_{read,blind}.png`) and per-winding done markers; claim
   directories that let several GPUs share a winding list.
-- Where: box `0191/ink-triage/previews/` (20 windings, 224 M), `0191/ink-triage/claims/wNNN/` × 21,
+- Where: GPU machine `0191/ink-triage/previews/` (20 windings, 224 M), `0191/ink-triage/claims/wNNN/` × 21,
   `claims3/wNNN/` × 9 (each holds a file `gpu`).
 - Class: previews REGENERABLE (seconds). Claims are SCRATCH after the jobs end; the stale `claims3/w032` and
   `claims3/w106` (job stopped at 00:27 on 2026-10-10) make `three_model_windings.sh` skip those windings until removed.
 
 **Ensemble images**
 - What: ensemble, per-model and CT images per winding at d 0 and +1 (see Conventions).
-- Where: box `0191/ink-triage/ensemble/wNNN/` (four models, w068–w072, 528 M) and `0191/ink-triage/ensemble3/wNNN/`
+- Where: GPU machine `0191/ink-triage/ensemble/wNNN/` (four models, w068–w072, 528 M) and `0191/ink-triage/ensemble3/wNNN/`
   (three models, w033–w036 and w103–w105, 650 M).
 - Made by: `bin/ensemble_windings.sh`, `bin/three_model_windings.sh` → `bin/ink343/ensemble_maps.py`.
 - Class: REGENERABLE from the maps (minutes per winding).
@@ -496,7 +496,7 @@ the reading side. Ignore the flag on `s42` rows.
 **Depth sweeps (paused)**
 - What: all four models over a range of depths on w070 (villa d −2 … +2, Hecate d −1 and 0) and on the lasagna150
   patch (partial).
-- Where: box `0191/sweeps/exp30k_snapped_w070/` (236 M, with `logs/timings.tsv` and `images_early/`) and
+- Where: GPU machine `0191/sweeps/exp30k_snapped_w070/` (236 M, with `logs/timings.tsv` and `images_early/`) and
   `0191/sweeps/lasagna150/` (239 M).
 - Made by: `bin/depth_sweep.sh` → `bin/ink343/run_depth_sweep.sh`; the resume commands are in `sweep-w070.log` and
   `sweep-lasagna150.log`.
@@ -505,27 +505,27 @@ the reading side. Ignore the flag on `s42` rows.
 **PHerc. 343 control maps and images**
 - What: seed-42 maps at d −1 … +2, seed 43 / dnative / Hecate at d +1, the ensemble images at d +1, and previews;
   the calibration reference for every score.
-- Where: box `data/PHerc0343/control/maps/` (16 files, 74 M), `images/` (47 M), `preview_d*_{read,blind}.png`, logs.
+- Where: GPU machine `data/PHerc0343/control/maps/` (16 files, 74 M), `images/` (47 M), `preview_d*_{read,blind}.png`, logs.
 - Made by: `bin/control343.sh`, `bin/control343_ensemble.sh`.
 - Class: KEEP.
 
-**Fleet run 1 maps and images on the box**
-- What: copies of the AWS maps and ensemble images of w073 and w074, used for box-side scoring and the
-  AWS-vs-box check.
-- Where: box `0191/aws-maps/{w073,w074}/` (188 M), `0191/aws-ens/{w073,w074}/` (167 M).
-- Made by: `infra/aws/fleet_score.sh` (copy); originals in Mac `data/aws-results/run1/`.
-- Class: KEEP one copy (paid compute). The box copy duplicates the Mac copy.
+**Fleet run 1 maps and images on the GPU machine**
+- What: copies of the AWS maps and ensemble images of w073 and w074, used for home-side scoring and the
+  cloud-vs-home check.
+- Where: GPU machine `0191/aws-maps/{w073,w074}/` (188 M), `0191/aws-ens/{w073,w074}/` (167 M).
+- Made by: `infra/aws/fleet_score.sh` (copy); originals in laptop `data/aws-results/run1/`.
+- Class: KEEP one copy (paid compute). The GPU machine copy duplicates the laptop copy.
 
-**GTX 1660 SUPER benchmark**
-- What: evidence that GPU 1 writes all-zero ink maps (seed-42 maps from the 1660 in fp16 and fp32, plus a 3060 control).
-- Where: box `0191/bench1660/` (9 files, 5.7 M).
+**older GPU benchmark**
+- What: evidence that GPU 1 writes all-zero ink maps (seed-42 maps from the older-GPU in fp16 and fp32, plus a consumer GPU control).
+- Where: GPU machine `0191/bench1660/` (9 files, 5.7 M).
 - Class: KEEP.
 
 ### 5. Scores, rankings and reviews
 
-**Stroke scores on the box**
+**Stroke scores on the GPU machine**
 - What: stroke-score JSON, tile PNGs and review crops per winding and depth, and the ranking table.
-- Where: box `data/strokes/` (355 M, 638 files): `wNNN/` × 23 (w036, w060–w080, w103; tags none, `_s42`, `_3m`,
+- Where: GPU machine `data/strokes/` (355 M, 638 files): `wNNN/` × 23 (w036, w060–w080, w103; tags none, `_s42`, `_3m`,
   `_s4243`, `_pm`), `box3m/wNNN/` × 7 (three models, no tag), `aws/{w073,w074}/` (four models from the AWS maps),
   `c343/` (control), `ranking.tsv` (97 rows), `rank-errors.log`, `rank-force.log`, `rank-last.log`.
 - Made by: `bin/stroke_rank.sh` (via `bin/stroke_watch.sh`), `bin/three_model_windings.sh`, `infra/aws/fleet_score.sh`,
@@ -536,54 +536,54 @@ the reading side. Ignore the flag on `s42` rows.
   and `ink_triage.sh` have ended and does not wait for `three_model_windings.sh`, so the seed-42 rows for maps added
   later (w033–w036 d 0 / +1, w103–w106) are missing. Run `bin/stroke_rank.sh` to bring it up to date.
 
-**Review crops (Mac)**
+**Review crops (laptop)**
 - What: images looked at during the eye checks: `v_wNNN_ensemble[_blind]_d+NN_K.jpg` (full-resolution ensemble
   strips), `m_wNNN_d+NN.jpg` (montages), `z_w083_*.jpg` (reading/blind/CT zoom), `wNNN_ens_d+NN_K.jpg`, copies of
   `__topNN.png` crops, `c343_d+01.png`, `w070_d+00.{json,png}`, `triage-candidates.jpg`.
-- Where: Mac `data/strokes/` (45 files, 19 M). Working copies of the w083/w090/w100–w102 files are in box `tmp/flag/`.
+- Where: laptop `data/strokes/` (45 files, 19 M). Working copies of the w083/w090/w100–w102 files are in GPU machine `tmp/flag/`.
 - Made by: ad hoc commands; the `v_`/`m_`/`z_` prefixes are not produced by any kept script.
 - Class: KEEP.
 
-### 6. Cloud run results (Mac)
+### 6. Cloud run results (laptop)
 
 **AWS proof of concept**
-- What: one on-demand g4dn.2xlarge rendering the PHerc. 343 control and one seed-42 map at d +1; matched the box
+- What: one cloud GPU instance rendering the PHerc. 343 control and one seed-42 map at d +1; matched the GPU machine
   within 1/255.
-- Where: Mac `data/aws-results/i-07316924655570581/` (named by instance id; `control343/` with maps, previews, logs;
+- Where: laptop `data/aws-results/i-07316924655570581/` (named by instance id; `control343/` with maps, previews, logs;
   `instance-info.txt`), 14 M.
 - Made by: `infra/aws/poc.sh`; logs `infra/aws/state/poc-*.log`, `bootstrap-*.log`.
 - Class: KEEP.
 
 **AWS fleet run 1**
 - What: two workers, w073 and w074, four models at d 0 / +1, maps fetched.
-- Where: Mac `data/aws-results/run1/w01/`, `w02/` (maps, ensemble images, previews, logs, `timings.tsv`), 463 M, 146 files.
+- Where: laptop `data/aws-results/run1/w01/`, `w02/` (maps, ensemble images, previews, logs, `timings.tsv`), 463 M, 146 files.
 - Made by: `FETCH_MAPS=1 infra/aws/fleet.sh 2 --yes w073 w074` (written to `data/aws-results/fleet/`, renamed afterwards).
 - Class: KEEP (paid).
 
 **AWS fleet run 2**
 - What: ten workers, 59 windings (w037–w067, w075–w102), three models at d 0 / +1, stroke scores computed on the
   workers; lite fetch, so the raw maps were not copied and are gone with the instances.
-- Where: Mac `data/aws-results/run2/wNN/` × 10 (6 segments each: `ensemble/` with ct/ensemble/ensemble_blind PNGs and
+- Where: laptop `data/aws-results/run2/wNN/` × 10 (6 segments each: `ensemble/` with ct/ensemble/ensemble_blind PNGs and
   `stats.json`, `strokes/`, logs, `timings.tsv`, `DONE`), `run2/ranking.tsv` (118 rows); 2.5 G, 1,855 files.
 - Made by: `infra/aws/fleet.sh 10 --yes …` with `infra/aws/remote/run_batch.sh`, `chain_batch.sh`, `run_segment.sh`;
-  `infra/aws/fleet_rank.sh` for the ranking (its `crops` column still points to `data/aws-results/fleet/…`). Cost about $10.70.
+  `infra/aws/fleet_rank.sh` for the ranking (its `crops` column still points to `data/aws-results/fleet/…`).
 - Class: KEEP (paid; the maps would need a new run).
 
 **Staged meshes**
-- What: copies of the box's flattened windings uploaded to the workers, and the run manifest.
-- Where: Mac `data/aws-stage/segments/exp30k_snapped_wNNN/flatten.tifxyz` × 92, `manifest.tsv` (absolute Mac paths),
+- What: copies of the GPU machine's flattened windings uploaded to the workers, and the run manifest.
+- Where: laptop `data/aws-stage/segments/exp30k_snapped_wNNN/flatten.tifxyz` × 92, `manifest.tsv` (absolute laptop paths),
   `flattest/w005/` (an unflattened community winding); 204 M.
 - Made by: `infra/aws/stage_segments.sh`.
-- Class: SCRATCH between runs (re-staged from the box in minutes).
+- Class: SCRATCH between runs (re-staged from the GPU machine in minutes).
 
 **AWS run state**
 - What: run logs (`poc-*.log`, `fleet-run-*.log`, `bootstrap-*.log`), user-data, `known_hosts`, `fleet/plan.tsv`,
   per-worker records (`fleet/wNN/` with instance id, IP, type, launch time, batch), and one SSH key file.
-- Where: Mac `infra/aws/state/` (376 K, not in git).
+- Where: laptop `infra/aws/state/` (376 K, not in git).
 - Class: KEEP the logs and plan (provenance and cost record). The key file is sensitive and only useful while its
   key pair exists in AWS.
 
-### 7. Site, registry and notes (Mac)
+### 7. Site, registry and notes (laptop)
 
 **Research registry**
 - What: the record of the project: 5 phases, 33 experiments (question, technique, result, verdict, metrics, images,
@@ -600,11 +600,11 @@ the reading side. Ignore the flag on `s42` rows.
 **Result images**
 - What: the images the site and notes cite (JPEG/PNG, plus git-ignored TIFF originals).
 - Where: `data/results/` (94 files, 82 M).
-- Made by: `infra/site/pull_preview.sh` and hand conversions of box previews.
+- Made by: `infra/site/pull_preview.sh` and hand conversions of GPU-machine previews.
 - Class: KEEP.
 
 **Notes and references**
-- What: campaign plan, daily results notes, friction log, PR drafts and patch (`notes/`, 140 K, in git); reference
+- What: campaign plan, daily results notes, friction log, PR drafts and patch (`notes/`, 140 K, kept privately, not in the public repo); reference
   images and the community atlas manifest (`data/ref/`, 12 M).
 - Class: KEEP.
 
@@ -614,52 +614,52 @@ the reading side. Ignore the flag on `s42` rows.
 ### 8. Caches, environments, worktrees and temporary files
 
 **uv package cache**
-- Where: box `cache-root/uv/` (24 G); `~/.cache/uv` on the root disk is a symlink to it.
+- Where: GPU machine `cache-root/uv/` (24 G); `~/.cache/uv` on the root disk is a symlink to it.
 - The project `.venv` folders are full copies, not hardlinks into this cache.
 - Class: SCRATCH (`uv cache clean`; the next `uv sync` downloads again).
 
 **PyTorch compile caches**
-- Where: box `cache-root/torchinductor/` (6.2 G), `tmp/torchinductor_tbienapfl/` (216 M).
+- Where: GPU machine `cache-root/torchinductor/` (6.2 G), `tmp/torchinductor_tbienapfl/` (216 M).
 - Class: SCRATCH (recompiled on the next run; delete only when no GPU job is running).
 
 **VC3D remote-chunk cache**
-- Where: box `/mnt/nvme/vc3d-remote-cache/` (29 G, outside the project tree): PHerc0191 CT chunks (23 G, also in the
+- Where: GPU machine `/mnt/nvme/vc3d-remote-cache/` (29 G, outside the project tree): PHerc0191 CT chunks (23 G, also in the
   local mirror), PHerc0343 CT chunks (4.2 G), PHercParis4 2.4 µm level 2 (2.4 G), m7 surface (42 M), `.vc_cache.lock` files.
 - Made by: `vc_render_tifxyz` and the tracer when streaming from S3. `control343.sh` passed `cache/PHerc0343-l0/` as
   the cache, which stayed empty.
 - Class: SCRATCH (re-filled on the next streamed render).
 
 **Job temporary files**
-- Where: box `tmp/` (1.8 G; `TMPDIR` of the ink jobs): `run_ink.XXXXXX/` × 6 (932 M, left by interrupted
+- Where: GPU machine `tmp/` (1.8 G; `TMPDIR` of the ink jobs): `run_ink.XXXXXX/` × 6 (932 M, left by interrupted
   `run_ink.sh` calls), `appimg/` (486 M, VC3D AppImage test), `flag/` (141 M, review working copies), `t343/`, `w072/`,
   `win/` (old-format score tests), loose scripts (`patch6-8.py`, `airprof.py`, `profile.py`, `permodel.sh`, `win.sh`)
   and JPEGs.
 - Class: SCRATCH (move `permodel.sh` to `bin/` first if the `_pm` scores are kept).
 
 **villa clone and environments**
-- Where: box `villa/` (29 G): branch `fix/install-volcomp` at 12f21236a with three modified files (`vesuvius/uv.lock`,
+- Where: GPU machine `villa/` (29 G): branch `fix/install-volcomp` at 12f21236a with three modified files (`vesuvius/uv.lock`,
   `volume-cartographer/CMakeLists.txt`, an egg-info file); `.venv` of `spiral-fitting` (8.0 G), `vesuvius` (6.9 G),
   `lasagna` (6.4 G); VC3D build tree `volume-cartographer/build/` (4.9 G; binaries installed in `~/.local/bin`);
-  `lasagna/torchinductor_tbienapfl/` (129 M, compile cache inside the repo). Mac `villa/` (1.9 G, branch
+  `lasagna/torchinductor_tbienapfl/` (129 M, compile cache inside the repo). laptop `villa/` (1.9 G, branch
   `fix/install-volcomp`, fork remote).
 - Made by: `villa-clone.log`, `uv-sync-*.log`, `build-vc3d.sh` / `build-vc3d.log`, `lasagna-env.log`.
 - Class: REGENERABLE (clone, `uv sync` per package, VC3D build about 20 min). Keep the local modifications until they
   are upstreamed. `lasagna/torchinductor_tbienapfl/` is SCRATCH.
 
 **Git worktrees**
-- Where: box `wt/` (9.5 G): `fiber-lasagna-import/`, `shell-confidence/`, `track-cache-signature/` (about 890 M each,
+- Where: GPU machine `wt/` (9.5 G): `fiber-lasagna-import/`, `shell-confidence/`, `track-cache-signature/` (about 890 M each,
   detached HEADs carrying the staged PR commits, clean); `spiral-0fb38c45/` (6.9 G including a 6.1 G `.venv`; one
   uncommitted change in `volume-cartographer/scripts/spiral/fit_spiral.py`; used by the running old-fitter fit).
 - Class: KEEP the PR worktrees until the PRs are filed (or the commits are pushed). `spiral-0fb38c45` is in use;
   afterwards REGENERABLE, except its uncommitted change.
 
 **Small caches**
-- Where: box `cache/spiral/` (track-crossing cache pickle, 8 K), `cache/spiral-old/` and `cache/PHerc0343-l0/` (empty);
+- Where: GPU machine `cache/spiral/` (track-crossing cache pickle, 8 K), `cache/spiral-old/` and `cache/PHerc0343-l0/` (empty);
   zero-byte `*.lock` files beside the respool sidecars and in `volumes/…/.dl_cache/`.
 - Class: SCRATCH.
 
 **Job logs and scripts**
-- Where: box top level `*.log` × 105 (2.0 M) and `0191/*.log` × 10 (download logs); scripts in `bin/` (528 K) and
+- Where: GPU machine top level `*.log` × 105 (2.0 M) and `0191/*.log` × 10 (download logs); scripts in `bin/` (528 K) and
   `build-vc3d.sh`.
 - Class: KEEP (provenance and code; scripts are synced into the repository by `infra/box/sync_bin.py`).
 
@@ -674,7 +674,7 @@ the reading side. Ignore the flag on `s42` rows.
    version? No script is kept.
 4. What points VC3D's remote cache at `/mnt/nvme/vc3d-remote-cache/`? It is not set in `~/.bashrc` or `~/.profile`,
    and the `--volume` cache paths given by `control343.sh`, `grow_qa.sh` and `pilot_qa.sh` stayed empty.
-5. The `_3m` and `_s4243` stroke files and the Mac review crops (`v_`, `m_`, `z_` prefixes) have no producer script.
+5. The `_3m` and `_s4243` stroke files and the laptop review crops (`v_`, `m_`, `z_` prefixes) have no producer script.
    Recreate the commands in `bin/` or mark the files as historical.
 6. The three-model pass stopped at 00:27 on 2026-10-10 with w032 and w106 unfinished (stale claims, `tmp/run_ink.nMRWSU`
    empty). Was this a deliberate stop to free GPUs for `exp30k-z11200` and the community flattening?
@@ -682,7 +682,7 @@ the reading side. Ignore the flag on `s42` rows.
    the tracer QA renders (5.1 G) and the day-1 `runs/` (1.1 G). All are regenerable; the decision depends on whether
    those routes will be revisited.
 8. `data/aws-results/fleet/` was renamed to `run1`/`run2` after each run, but `run2/ranking.tsv`,
-   `notes/results-2026-10-09.md` (which cites `data/aws-results/fleet-run2-ranking.tsv`) and the fleet scripts still
+   our results notes of 2026-10-09 (which cite `data/aws-results/fleet-run2-ranking.tsv`) and the fleet scripts still
    use the old path. Settle one naming scheme before the next fleet run.
 
 ## Ink first, triage and review outputs (added 2026-10-13)

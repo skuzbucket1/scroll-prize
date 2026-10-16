@@ -1,27 +1,27 @@
 # Data layout (proposal, 2026-10-10)
 
 Status: **approved by Ted and MIGRATED on 2026-10-10 (02:40 UTC)**, while no job was running. Disk cleanup freed 186 G first
-(NVMe 91 % → 71 %). Every moved item left an absolute symlink at its old path, so old paths in scripts, notes and memory still
-work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on the box (dry-run output `scratch/migrate-dry.txt`).
+(disk 91 % → 71 %). Every moved item left an absolute symlink at its old path, so old paths in scripts, notes and memory still
+work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on the GPU machine (dry-run output `scratch/migrate-dry.txt`).
 
 **Changes on 2026-10-11 and 2026-10-12** (the rest of this file describes the 2026-10-10 layout, which still holds):
-- **Second NVMe** `/mnt/nvme2/scroll-prizes` (916 G, since 2026-10-11): every scroll's `renders/` (`data/<scroll>/renders` is a
+- **Second disk** `/mnt/nvme2/scroll-prizes` (916 G, since 2026-10-11): every scroll's `renders/` (`data/<scroll>/renders` is a
   symlink to it), `scratch/` (ink-first work folders, `run_ink.sh` temp), the known-text control renders (`controls/`) and
   `data/PHerc0841/ct-w00.zarr` (CT around the held-out mesh, `fetch_mesh_chunks.py`). The catalog scans it as a second root of
   host `box` (the scanner does not follow symlinks).
 - **Tall bands, PHerc0813:** `geometry/`, `renders/` and `ink/` for fits `exp30k-z10500` (z 10,500–13,000) and `exp30k-z8000`
   (z 8,000–10,500); runs in `runs/2026-10-11_tallband-0813-z10500/` and `runs/2026-10-12_tallband-0813-z8000/` (claims, unit
   logs, `post/` scores, `ranking_v02.tsv`).
-- **Ink first at scale:** plan `data/PHerc0175A/plan/blocks.tsv` (Mac; coarse CT on the box in
+- **Ink first at scale:** plan `data/PHerc0175A/plan/blocks.tsv` (laptop; coarse CT on the GPU machine in
   `runs/2026-10-12_inkfirst-0175A/plan/`); AWS results `data/PHerc0175A/runs-aws/2026-10-12_inkfirst-{pilot,sweep}/w<i>/<block>/`
-  (summary.npz, galleries, logs; Mac, copied to the box); whole-scroll products in `runs/2026-10-12_inkfirst-0175A/`
-  (`map-interim/`, `map-final/`, `refs/`, `resort/`) with Mac copies in `data/PHerc0175A/`.
-- **Tests and controls (box `runs/`, Mac copies in `data/results/` or `data/PHerc0343/`):** `2026-10-12_triage-eval/`,
+  (summary.npz, galleries, logs; laptop, copied to the GPU machine); whole-scroll products in `runs/2026-10-12_inkfirst-0175A/`
+  (`map-interim/`, `map-final/`, `refs/`, `resort/`) with laptop copies in `data/PHerc0175A/`.
+- **Tests and controls (GPU machine `runs/`, laptop copies in `data/results/` or `data/PHerc0343/`):** `2026-10-12_triage-eval/`,
   `2026-10-12_heldout-0841-w00/`, `2026-10-12_controls-render/`, `2026-10-12_inkfirst-343/` (results, results_persheet,
   letters, maps, views), `2026-10-12_ct-ink-signature/`, `2026-10-12_model-agreement/`, `2026-10-12_agreement-null/`,
   `2026-10-12_deeplook-0813-w079/`, `2026-10-12_ted-picks/` (neighbour views), `2026-10-12_sheet-tracer/`,
   `2026-10-12_viz-looked/`, `2026-10-12_viz-glow/`.
-- **Mac only, private:** `data/viewer/` (preview images, `index.html`, `links.json`; built by `infra/site/build_viewer.py`).
+- **laptop only, private:** `data/viewer/` (preview images, `index.html`, `links.json`; built by `infra/site/build_viewer.py`).
 
 **Changes on 2026-10-13:**
 - **Cleanup** (approved by Ted). Tier 1, about 21 G: the torch compile cache in `/mnt/nvme2/scroll-prizes/scratch/`, the
@@ -31,15 +31,15 @@ work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on 
   `data/PHerc0191/renders/oldphase30k-z9000` (2.8 G); the dangling `data/PHerc0191/volumes` symlink went with them, and
   `data/PHerc0191/source/VOLUME_DELETED.txt` says where to re-download the CT. Kept: every band render (PHerc0813
   exp30k-z8000, z10500, z12000; PHerc0191 exp30k-z11200), ink maps, scores, meshes, fit inputs and the PHerc0813 CT mirror.
-  NVMe 84 % → 40 % (562 G free); NVMe2 75 % (224 G free). New PHerc0191 renders now need the CT re-fetched, or only the
+  disk 84 % → 40 % (562 G free); NVMe2 75 % (224 G free). New PHerc0191 renders now need the CT re-fetched, or only the
   chunks around a mesh (`pipeline/render/fetch_mesh_chunks.py`).
 - **8.64 µm ink model:** training set `data/train8um/labels/pherc0343-nieuwlaar/` (villa's flat layout: 65-layer reversed
   `surface-volume.zarr`, ink labels, supervision and validation masks); run `runs/2026-10-13_model-8um/` (`build_dataset.py`,
   `train_v1.json`, checkpoints in `out_v1/`, evaluation in `eval_v1/`).
 - **Damage map:** `runs/2026-10-13_damage-map/` (`tiles/*.npz` per render, `png/` pictures, `report.txt`).
 
-**Cleanup Tier 1 done 2026-10-10 11:18 UTC** (approved by Ted; script and log in `runs/2026-10-10_cleanup-tier1/` on the box):
-NVMe 825 G → 701 G (89 % → 76 %). Deleted: old-band renders `data/PHerc0191/renders/exp30k-z9000` (88 G; maps and scores
+**Cleanup Tier 1 done 2026-10-10 11:18 UTC** (approved by Ted; script and log in `runs/2026-10-10_cleanup-tier1/` on the GPU machine):
+disk 825 G → 701 G (89 % → 76 %). Deleted: old-band renders `data/PHerc0191/renders/exp30k-z9000` (88 G; maps and scores
 kept, renders regenerable), fibre fields `inputs/fields/fiber` (11 G), tracer tests (`geometry/tracer-tests`,
 `renders/tracer-tests`, 8.7 G), `checkpoint_fitted.ckpt` of the 9 dropped fit experiments (pilot, expdirlow, expdirlow2,
 expdr32, expshell105, expshell105b, exptrack2x, expwm, expwm2; meshes and metrics kept, ~8.5 G), the old-fitter worktree
@@ -57,7 +57,7 @@ Deviations from the plan below, on purpose:
   new fits still write into `spiral-output/` until the scripts are updated.
 - The ~105 top-level job logs went to `runs/archive-2026-10-08_10/logs/` without symlinks (history only). New jobs still write
   `~/scroll-prizes/<job>.log` until their scripts are updated to `runs/<date>_<run-id>/`.
-- Mac: AWS results are in `data/<SCROLL>/runs-aws/<date>_<run-id>/` (old `data/aws-results/runN` are symlinks), review crops in
+- laptop: AWS results are in `data/<SCROLL>/runs-aws/<date>_<run-id>/` (old `data/aws-results/runN` are symlinks), review crops in
   `data/PHerc0191/reviews/2026-10-09_flagged-windings/`, staging in `scratch/aws-stage/`.
 
 ## Why
@@ -70,7 +70,7 @@ which pipeline stage, which run, and which winding, in that order.**
 
 ## The tree
 
-The same logical tree on the GPU box (`/mnt/nvme/scroll-prizes`, alias `~/scroll-prizes`) and on the Mac
+The same logical tree on the GPU machine (`/mnt/nvme/scroll-prizes`, alias `~/scroll-prizes`) and on the laptop
 (`scroll-prizes/`, where only small results are kept). Plain names, no numeric prefixes; the stage order is given here.
 
 ```
@@ -129,7 +129,7 @@ Every job writes one, so a result can always be traced back to the code and inpu
 {
   "run_id": "ink-ens3-aws-run2",
   "started": "2026-10-09T22:50:15Z", "finished": "2026-10-10T00:21:32Z",
-  "where": "aws: 10 x g4dn.2xlarge (T4)",
+  "where": "aws: 10 x cloud GPU instance (cloud GPU)",
   "code": {"repo_commit": "d92a377", "villa_commit": "12f21236a"},
   "command": "infra/aws/fleet.sh 10 --yes ...",
   "params": {"models": "ens3", "depths": [0, 1]},
@@ -155,7 +155,7 @@ Every job writes one, so a result can always be traced back to the code and inpu
 ## How the move would happen
 
 1. Wait for a quiet moment between stages (no job writing to a folder being moved).
-2. Move within the same disk (`mv` on the NVMe is instant, no copying).
+2. Move within the same disk (`mv` on the disk is instant, no copying).
 3. Leave a symlink at every old path, so running jobs, scripts, notes and agent memory keep working.
 4. Update the scripts to the new paths one at a time (atomically: write `<script>.new`, check, rename).
 5. Remove the symlinks only after nothing refers to the old paths for a few days (`grep` the scripts and notes).
@@ -163,7 +163,7 @@ Every job writes one, so a result can always be traced back to the code and inpu
 
 ## Current to new
 
-From `notes/data-inventory-2026-10-10.md` (box paths relative to `/mnt/nvme/scroll-prizes/`, `P` = `data/PHerc0191`).
+From our data inventory of 2026-10-10 (GPU-machine paths relative to `/mnt/nvme/scroll-prizes/`, `P` = `data/PHerc0191`).
 Sizes are as of 2026-10-10 01:30 UTC. Retention class in the last column (S = SOURCE, R = REGENERABLE, K = KEEP, X = SCRATCH).
 
 ### Box: sources and shared inputs
@@ -229,7 +229,7 @@ Sizes are as of 2026-10-10 01:30 UTC. Retention class in the last column (S = SO
 | `villa/lasagna/torchinductor_tbienapfl/` | delete | 129 M | X |
 | `build-vc3d.sh` | `bin/` | – | K |
 
-### Mac
+### laptop
 
 | Current | New | Class |
 |---|---|---|
@@ -240,17 +240,17 @@ Sizes are as of 2026-10-10 01:30 UTC. Retention class in the last column (S = SO
 | `data/results/` (site images) | unchanged (the site builder reads it) | K |
 | `data/prior-art/`, `data/catalog/`, `data/ref/` | unchanged | S |
 
-### Disk this would free on the box
+### Disk this would free on the GPU machine
 
 About 190 G: winding-model cache 104 G, VC3D remote cache 29 G, uv cache 24 G (rebuilds on demand), unused sidecar copy
 17.6 G (after the old-fitter run ends), torch caches 6.4 G, smoke tests 3.7 G, `tmp/` 1.8 G, flatten snapshots 1.6 G,
-small duplicates. The NVMe would go from 840 G to about 650 G used (about 69 %). Nothing is deleted without Ted's go-ahead.
+small duplicates. The disk would go from 840 G to about 650 G used (about 69 %). Nothing is deleted without Ted's go-ahead.
 
 ## Tracking and backup (added 2026-10-11, agreed with Ted)
 
 **One rule.** Every run writes into `runs/<date>_<run-id>/` (with `run.json`). When it is done, its results are promoted into
-the canonical tree (`<scroll>/geometry`, `ink`, `scores`); AWS runs land in `data/<scroll>/runs-aws/<date>_<run-id>/` on the Mac
-and are synced to the box. Folders created since the migration that follow this pattern: `data/controls9um/` (known-text
+the canonical tree (`<scroll>/geometry`, `ink`, `scores`); AWS runs land in `data/<scroll>/runs-aws/<date>_<run-id>/` on the laptop
+and are synced to the GPU machine. Folders created since the migration that follow this pattern: `data/controls9um/` (known-text
 controls at 9 µm: PHerc0139 w047, PHerc0841 auto_grown; maps, references, evaluations), `runs/2026-10-11_tier23-newmodels/post/`
 (scores and previews for any model set, from `pipeline/rank/post_models.py`).
 
@@ -260,7 +260,7 @@ controls at 9 µm: PHerc0139 w047, PHerc0841 auto_grown; maps, references, evalu
   artifact each; public scan inputs are listed per store without walking.
 - `infra/backup/results_db.py <host> <root> <out.sqlite>` collects every score (stroke-score JSONs, post_models JSONs, row scores,
   control AUCs) into one `scores` table with provenance and the v0.1 LOOK flag recomputed; `--merge` combines hosts.
-- Merged copies on the Mac: `data/catalog/catalog.sqlite`, `data/catalog/results.sqlite`; summary `docs/DATA_CATALOG.md`
+- Merged copies on the laptop: `data/catalog/catalog.sqlite`, `data/catalog/results.sqlite`; summary `docs/DATA_CATALOG.md`
   (`infra/backup/catalog_report.py`). Re-run all three after each run.
 
 **Backup.** `infra/backup/backup_r2.sh mac|box` syncs the critical set to Ted's private object-storage bucket (rclone, with dated
