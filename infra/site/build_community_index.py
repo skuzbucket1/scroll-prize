@@ -105,7 +105,8 @@ input{{width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--bord
 .chips{{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}} .chips button{{border:1px solid var(--border);background:var(--surface);color:var(--ink2);border-radius:999px;padding:3px 10px;font:inherit;font-size:12.5px;cursor:pointer}}
 .chips button.on{{background:var(--accent-wash);border-color:var(--accent);color:var(--ink)}}
 table{{width:100%;border-collapse:collapse;font-size:13.5px}} th,td{{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}}
-th{{position:sticky;top:96px;background:var(--page);font-weight:600}} td.num{{text-align:right;font-variant-numeric:tabular-nums}} td:first-child{{word-break:break-all}}
+th{{position:sticky;top:96px;background:var(--page);font-weight:600;white-space:nowrap;cursor:pointer;user-select:none}} th:hover{{color:var(--accent)}}
+th[aria-sort=ascending]::after{{content:" ▲";font-size:10px}} th[aria-sort=descending]::after{{content:" ▼";font-size:10px}} td.num{{text-align:right;font-variant-numeric:tabular-nums}} td:first-child{{word-break:break-all}}
 .count{{font-size:13px;color:var(--muted);margin:6px 0}}
 </style></head><body><main>
 <p class="muted"><a href="index.html">← Ted Bienapfl's Vesuvius Challenge research log</a></p>
@@ -115,6 +116,7 @@ This is an index of them. Every public link shared in the channels and forum thr
 shared it first, the date (linked to the message), how often it came up and by how many people. The forum threads are listed
 with who started them. Nothing here is copied from the messages: only links, names as shown on the server, dates and thread titles.
 Everything belongs to the people who made and shared it; follow the links to their work and credit them.</p>
+<p class="muted">Click a column heading to sort by it; click again to reverse.</p>
 <p class="muted">Built {built} from a Discord export ({total:,} messages, {first_day} to {last_day}): {c_html}; and {len(threads)} forum threads.
 Signed or private-looking links are left out. Tell me on the Discord if you want something added, corrected or removed.</p>
 <div class="bar"><input id="q" type="search" placeholder="Search links, people, threads (e.g. ink_9um, Paris 4, lasagna, fiber, 0841)" autofocus>
@@ -133,6 +135,13 @@ function run(){{const t=q.value.toLowerCase().trim();
    const ok=(!t||tr.textContent.toLowerCase().includes(t))&&(id!=='rt'||!kinds.size||kinds.has(k));tr.hidden=!ok;if(ok)n++;}}
   document.getElementById(cid).textContent=(t||kinds.size)?n+' of '+all+' shown':'';}}}}
 q.addEventListener('input',run);
+for(const th of document.querySelectorAll('th')){{th.addEventListener('click',()=>{{
+ const tb=th.closest('table').tBodies[0], i=[...th.parentNode.children].indexOf(th), num=tb.rows[0]&&tb.rows[0].cells[i].classList.contains('num');
+ const cur=th.getAttribute('aria-sort'), first=tb.rows[0]?tb.rows[0].cells[i].textContent.trim():'', newestFirst=num||/^\\d{{4}}-\\d\\d-\\d\\d$/.test(first);
+ const dir=cur==='ascending'?-1:cur==='descending'?1:(newestFirst?-1:1);
+ for(const h of th.parentNode.children)h.removeAttribute('aria-sort'); th.setAttribute('aria-sort',dir===1?'ascending':'descending');
+ const key=r=>{{const t=r.cells[i].textContent.trim();return num?parseFloat(t)||0:t.toLowerCase();}};
+ [...tb.rows].sort((a,b)=>{{const x=key(a),y=key(b);return (x<y?-1:x>y?1:0)*dir;}}).forEach(r=>tb.appendChild(r));}});}}
 for(const b of document.querySelectorAll('.chips button'))b.addEventListener('click',()=>{{const k=b.dataset.kind;
  kinds.has(k)?kinds.delete(k):kinds.add(k);b.classList.toggle('on');run();}});
 </script></body></html>
