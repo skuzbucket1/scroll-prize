@@ -21,6 +21,7 @@
 # Environment: CKPT_DIR (/opt/ckpt), PY (/opt/venv/bin/python), HECATE_PY ($CKPT_DIR/hecate.py),
 #              PREP_PY (hecate_prep.py next to this script), N_LAYERS (66), NATIVE_UM (8.64),
 #              VILLA_BATCH (4), HEC_BATCH (4), HEC_DEVICE (cuda), TMPDIR (needs ~10 bytes per output pixel).
+#              VILLA_WORKERS (2: data-loader workers per read; fewer keeps several GPUs from starving a small CPU).
 set -euo pipefail
 export LC_ALL=C          # decimal point in awk output, whatever the host locale
 [[ $# -eq 4 ]] || { awk 'NR > 1 && /^#/ {print; next} NR > 1 {exit}' "$0"; exit 2; }
@@ -61,7 +62,7 @@ if [[ $MODEL != hecate ]]; then
   S=$(( N / 2 + D - 8 )); E=$(( S + 17 ))
   (( S >= 0 && E <= N )) || { echo "d=$D gives layers $S..$((E - 1)), outside 0..$((N - 1))"; exit 2; }
   (cd "$T" && TMPDIR=$T "$PY" -m vesuvius.ink_detection.inference.infer "$ZIN" "$CK" "$T/out.tif" \
-      --overlap 0.5 --blend-mode hann --batch-size "${VILLA_BATCH:-4}" --direction both \
+      --overlap 0.5 --blend-mode hann --batch-size "${VILLA_BATCH:-4}" --num-workers "${VILLA_WORKERS:-2}" --direction both \
       --layer-start "$S" --layer-end "$E" --amp-dtype "${VILLA_AMP:-fp16}")
   [[ -s $T/out.tif && -s $T/out_reverse.tif ]] || { echo "infer produced no output"; exit 4; }
   mv -f "$T/out.tif" "$OUT/${NAME}__${MODEL}__L${N}s${S}.tif"
