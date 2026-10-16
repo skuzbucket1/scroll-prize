@@ -3032,6 +3032,49 @@
     "vc-known-text",
     "ours"
    ]
+  },
+  {
+   "id": "ink9um-checkpoints",
+   "date": "2026-10-16",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "Earlier ink_9um checkpoints, and an ensemble of them",
+   "title": "Earlier ink_9um checkpoints, and an average of all of them, read known text only slightly better than the last one",
+   "question": "The ink_9um hybrid models (seeds 42 and 43) are published every 10k steps up to 75k, and we had been running the last step. Do earlier steps, or an ensemble of several, read held-out text more clearly?",
+   "technique": "All published steps of both seeds (10k to 75k) and each seed's average of them, at depth +1, on two held-out PHerc0841 segments with the official human ink labels (w00 and auto_grown 20260221022814), and on two windings where no writing was found (PHerc0191 w060, PHerc0813 w102) for false alarms. A combination is chosen on one 0841 segment and judged on the other, both ways. Pass line, fixed before the run: Dice at least 1.10 times the plain pair (both seeds at 75k) and AUC no lower than the plain pair's minus 0.005, both ways, with false alarms no higher than the larger of 1.2 times plain and plain plus 0.01.",
+   "result": "Fail. The best combination, both seeds at all seven steps, raised Dice only 1.08 and 1.03 times (0.548 against 0.507, 0.578 against 0.559), with AUC 0.774 against 0.762 and 0.800 against 0.798; false alarms stayed at the plain pair's level. On the same segments Reader v2 reaches Dice 0.59 and 0.63 and AUC 0.82 and 0.85.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [],
+   "learned": "Averaging the published ink_9um steps is a small gain at best. Reader v2 stays the stronger reader on held-out 9 µm text.",
+   "credits": [
+    "ink9um",
+    "readerv2",
+    "vc-known-text",
+    "ours"
+   ]
+  },
+  {
+   "id": "finetune-one-segment",
+   "date": "2026-10-16",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "A short fine-tune of Reader v2 on one labelled segment",
+   "title": "A short fine-tune of Reader v2 on one labelled segment makes it worse everywhere else, with either optimizer",
+   "question": "Can Reader v2 learn from a handful of new human labels without losing what it already reads? We tested the recipe on official labels of a scroll it never saw.",
+   "technique": "Reader v2 (step 40000) fine-tuned with villa's flat ink training on the official human labels of PHerc0841 w00 (dense: 23 % of the checked area is ink), 1,000 steps, checkpoints every 250, with two recipes: AdamW at 1e-5 with BCE plus Dice, and SGD (Nesterov, momentum 0.99, as in Reader v2's own training) at 1e-3 with BCE only. Judged on the neighbouring 0841 sheet auto_grown 20260221022814 (different text, never trained on), on PHerc. 343 (Erwin Nieuwlaar's letters), and on six blank crops from windings with no writing, by the share of the window read at 0.5 or more. Pass lines, written before the run: the unseen sheet's AUC at least Reader v2's minus 0.01, 343 at least minus 0.02, blank papyrus no more than 0.5 points above Reader v2 and no crop above 2 %.",
+   "result": "Both recipes fail, already after 250 steps. The segment it trained on gets better (AUC 0.86 to 0.92-0.93), while the unseen sheet drops (0.818 to 0.787), 343 drops (0.981 to 0.93-0.94) and blank papyrus read as ink rises from 0.3 % to 17-19 % (24-27 % by step 1,000). The optimizer makes no difference. The model has no running normalisation statistics, so this is not a statistics drift.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [],
+   "learned": "Fine-tuning a model trained on many scrolls with one segment over-fits it to that segment and costs it everywhere else. New labels need to be mixed with labelled data from many scrolls in every batch, the way Reader v2 itself was trained, or added in far smaller steps.",
+   "credits": [
+    "readerv2",
+    "villa",
+    "vc-known-text",
+    "nieuwlaar-343",
+    "ours"
+   ]
   }
  ],
  "findings": [
