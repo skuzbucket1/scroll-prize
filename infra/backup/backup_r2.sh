@@ -6,7 +6,8 @@
 #   box (run on the GPU box, from /mnt/nvme/scroll-prizes): data/<scroll>/geometry (fits, snapped and flattened meshes),
 #       the spiral-dataset umbilicus/scroll files, data/<scroll>/scores, runs/, and the ink maps + ensemble images of the windings
 #       listed in infra/backup/windings_of_interest.tsv, and the ink-first results (patches, ink maps, back-projections; not the
-#       re-downloadable CT and prediction blocks). Credentials from ~/.config/rclone/rclone.conf (remote "r2"); bucket name from $R2_BUCKET or ~/.config/rclone/r2_bucket.
+#       re-downloadable CT and prediction blocks), plus the patterns in infra/backup/box_private_paths.txt if present (untracked).
+#       Credentials from ~/.config/rclone/rclone.conf (remote "r2"); bucket name from $R2_BUCKET or ~/.config/rclone/r2_bucket.
 # Never backed up: .secrets, scan data and other public inputs, renders, resident pools, caches (all re-creatable).
 # rclone sync with --backup-dir r2:<bucket>/_archive/<UTC stamp>/<host>/: files changed or deleted locally are kept in R2.
 set -euo pipefail
@@ -39,6 +40,7 @@ else
     echo "+ /data/*/geometry/**"
     echo "+ /data/*/inputs/spiral-dataset/umbilicus*"; echo "+ /data/*/inputs/spiral-dataset/spiral-scroll.json"; echo "+ /data/*/inputs/spiral-dataset/qa/**"
     echo "+ /data/*/scores/**"; echo "+ /runs/**"
+    if [ -f $HERE/box_private_paths.txt ]; then { grep -v '^#' $HERE/box_private_paths.txt || true; } | sed '/^$/d; s|^|+ |'; fi   # untracked, box only
     grep -v '^#' $HERE/windings_of_interest.tsv | while IFS=$'\t' read -r sc fit w why; do
       [ -n "$w" ] || continue
       echo "+ /data/$sc/ink/$fit/maps/${w}__*"; echo "+ /data/$sc/ink/$fit/ens3/$w/**"; echo "+ /data/$sc/ink/$fit/ens4/$w/**"
