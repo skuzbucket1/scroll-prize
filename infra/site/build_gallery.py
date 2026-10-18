@@ -48,16 +48,16 @@ for _, name, pics in sorted(folders, reverse=True):
 for k in sorted(loose):
     sections.append((f'{k} (loose images)', 'data/results/', [dict(href=rel(p), img=rel(p), cap=os.path.basename(p)) for p in loose[k]]))
 
-out = ['''<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Gallery</title>
-<style>body{margin:0;background:#141414;color:#e8e6e1;font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
-header{position:sticky;top:0;background:#141414;padding:10px 16px;border-bottom:1px solid #2c2c2c;display:flex;gap:14px;align-items:center;z-index:2}
-header a{color:#e0a33c}header input{background:#1d1d1d;color:#e8e6e1;border:1px solid #2c2c2c;border-radius:4px;padding:5px 8px;width:260px}
-section{padding:6px 16px 14px}h2{font-size:15px;margin:14px 0 2px}h2 small{color:#77746f;font-weight:normal;margin-left:8px}
+out = ['''<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Gallery</title><link rel="stylesheet" href="hv-theme.css"><script src="hv-nav.js" defer></script>
+<style>body{margin:0;background:#0d0d0d;color:#f2f2f0;font:14px/1.4 system-ui,-apple-system,sans-serif}
+header{position:sticky;top:40px;background:#0d0d0d;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;gap:14px;align-items:center;z-index:2}
+header a{color:#7fb6ff}header input{background:#1d1d1c;color:#f2f2f0;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:5px 8px;width:260px}
+section{padding:6px 16px 14px}h2{font-size:15px;margin:14px 0 2px}h2 small{color:#6d6c68;font-weight:normal;margin-left:8px}
 .g{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:8px}
-.c{background:#1d1d1d;border:1px solid #2c2c2c;border-radius:4px;overflow:hidden}.c a{color:#e8e6e1;text-decoration:none;display:block}
+.c{background:#1d1d1c;border:1px solid rgba(255,255,255,.12);border-radius:4px;overflow:hidden}.c a{color:#f2f2f0;text-decoration:none;display:block}
 .c img{width:100%;height:200px;object-fit:contain;background:#000;display:block}.c .x{height:200px;display:flex;align-items:center;justify-content:center;color:#e0a33c}
-.c p{margin:0;padding:5px 7px;font-size:12px;color:#a9a6a0;word-break:break-all}</style></head><body>
-<header><a href="index.html">&larr; winding viewer</a>''' + ('<a href="findings.html"><b>Findings</b></a>' if os.path.exists(os.path.join(VIEW, 'findings.html')) else '') + '''<b>Gallery</b><input id="q" placeholder="filter by name" autocomplete="off"><span id="n"></span></header>''']
+.c p{margin:0;padding:5px 7px;font-size:12px;color:#8a8984;word-break:break-all}</style></head><body>
+<header><b>Gallery</b><input id="q" placeholder="filter by name" autocomplete="off"><span id="n"></span></header>''']
 for title, sub, cards in sections:
     out.append(f'<section><h2>{html.escape(title)}<small>{html.escape(sub)} &middot; {len(cards)}</small></h2><div class="g">')
     for c in cards:

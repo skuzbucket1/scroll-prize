@@ -702,10 +702,10 @@
    "date": "2026-10-09",
    "phase": "P3",
    "track": "Setup",
-   "short": "AWS GPU proof of concept",
-   "title": "AWS proof of concept: render + ink on an EC2 GPU next to the data",
+   "short": "Cloud proof of concept",
+   "title": "Cloud proof of concept: render + ink on a cloud machine next to the data",
    "question": "Can a cloud GPU in us-east-1 run our exact pipeline (render from S3, ink model) and match our home runs, quickly?",
-   "technique": "infra/aws/poc.sh from the Mac: dedicated VPC, one cloud GPU instance, Ubuntu 24.04 Deep Learning Base AMI; bootstrap = uv + villa vesuvius env + VC3D Linux AppImage + four ink checkpoints from Hugging Face; job = 66-layer render of the PHerc. 343 control segment straight from the public S3 volume, ink_9um seed 42 at depth +1; fetch; terminate.",
+   "technique": "infra/aws/poc.sh from the Mac: dedicated VPC, one cloud GPU instance, Ubuntu 24.04 deep-learning base image; bootstrap = uv + villa vesuvius env + VC3D Linux AppImage + four ink checkpoints from Hugging Face; job = 66-layer render of the PHerc. 343 control segment straight from the public S3 volume, ink_9um seed 42 at depth +1; fetch; terminate.",
    "result": "Worked end to end in 7 minutes: bootstrap 2 min, render 43 s (vs 280 s at home), ink map 157 s (vs ~290 s at home). Output matches our home run: Pearson r 0.99998, max difference 1/255, 97.7% of pixels identical.",
    "verdict": "pass",
    "metrics": {},
@@ -790,7 +790,7 @@
    "verdict": "null",
    "metrics": {},
    "images": [],
-   "learned": "Four of the five best-geometry windings are now checked with the full ensemble at the two depths where the PHerc. 343 letters sit; none shows text. The search needs more windings (and possibly more depths), which is what the AWS fleet is for.",
+   "learned": "Four of the five best-geometry windings are now checked with the full ensemble at the two depths where the PHerc. 343 letters sit; none shows text. The search needs more windings (and possibly more depths), which is what the cloud runs is for.",
    "credits": [
     "nieuwlaar-343",
     "vc-data",
@@ -808,8 +808,8 @@
    "date": "2026-10-09",
    "phase": "P3",
    "track": "Setup",
-   "short": "AWS fleet: 2 workers, real work",
-   "title": "First real AWS fleet run: four-model ensemble on w073 and w074 on two cloud GPUs",
+   "short": "Cloud: 2 workers, real work",
+   "title": "First real cloud run: four-model ensemble on w073 and w074 on two cloud GPUs",
    "question": "Does the fleet do real work end to end (launch, bootstrap, render from S3, four models, fetch, teardown), how fast is each model on a cloud GPU, and do its results match our home runs?",
    "technique": "infra/aws/fleet.sh on 2 cloud GPU instances in our dedicated VPC; each worker rendered one winding (w073, w074) straight from the public S3 volume and ran ink_9um 42/43, dense_native and Hecate at depths 0 and +1 (Erwin Nieuwlaar's scripts), then his ensemble images; raw maps fetched and stroke-scored at home; seed-42 maps compared with our home maps of the same windings.",
    "result": "Worked: both windings done in 1 h 47 min, results fetched, instances terminated. Both first bootstraps failed at apt-get update (NVIDIA's CUDA package mirror was mid-sync); fixed in the user-data and recovered on the live instances without relaunching. Per depth on one cloud GPU: render 48–53 s, ink_9um 90–142 s, dense_native 92–112 s, Hecate ~47 min (two passes). Seed-42 maps match our home maps (r 0.99998, max difference 1/255). Ink: none on w073 or w074 by eye; stroke area 0.0055–0.0067, like the other windings.",
@@ -840,7 +840,7 @@
    "short": "Stroke score v2: absolute metrics",
    "title": "Stroke score v2: rank by absolute stroke area and a 4 cm² window, not by the reading/blind ratio",
    "question": "w073 scored 7.45× reading/blind, far above every other PHerc. 0191 winding. Real, or an artefact of the metric?",
-   "technique": "Per-model scores on w073/w074 (AWS) and w068–w071 (home); raw reading and blind stroke areas; a new First-Letters-scale window (best 2 × 2 cm reading-side stroke share, clamped to the winding height); three-model and four-model sets.",
+   "technique": "Per-model scores on w073/w074 (cloud) and w068–w071 (home); raw reading and blind stroke areas; a new First-Letters-scale window (best 2 × 2 cm reading-side stroke share, clamped to the winding height); three-model and four-model sets.",
    "result": "Artefact of the ratio: w073's reading side (0.0066) is like every other winding (0.0046–0.0073); its blind side was unusually quiet (0.0009), and a small denominator inflates the ratio. Absolute metrics separate the control cleanly. Three models: control area 0.0354, reading minus blind +0.030, best window 0.050; PHerc. 0191 ≤ 0.0064, ≤ +0.0021, ≤ 0.017. Four models: control 0.0335 / +0.031 / 0.048; PHerc. 0191 ≤ 0.0073 / ≤ +0.0057 / ≤ 0.023.",
    "verdict": "improved",
    "metrics": {},
@@ -865,7 +865,7 @@
    "date": "2026-10-10",
    "phase": "P3",
    "track": "Ink & render",
-   "short": "AWS: 59 windings, three models",
+   "short": "Cloud: 59 windings, three models",
    "title": "Ten cloud GPUs, 59 PHerc. 0191 windings: three-model ink pass with automatic stroke scoring",
    "question": "Does any snapped + flattened exp-30k winding outside the central seven show ink, by the stroke score and by eye?",
    "technique": "infra/aws/fleet.sh on 10 cloud GPU instances: windings w037–w067 and w075–w102, each rendered in 66 layers from the public S3 volume, ink_9um seeds 42/43 and dense_native at depths 0 and +1 (Erwin Nieuwlaar's scripts and ensemble images, Hecate left out for time), the stroke score computed on each worker; flagged windings checked by eye at row scale and at full resolution against the blind side and the CT.",
@@ -890,8 +890,8 @@
    "date": "2026-10-10",
    "phase": "P3",
    "track": "Ink & render",
-   "short": "AWS: last 26 old-band windings",
-   "title": "AWS fleet run 3: three-model ink pass on the last 26 windings of band z 9,000–10,000",
+   "short": "Cloud: last 26 old-band windings",
+   "title": "Cloud run 3: three-model ink pass on the last 26 windings of band z 9,000–10,000",
    "question": "Do the innermost and outermost windings of the old band (w020–w032, w106–w119), the ones no pass had covered yet, show ink?",
    "technique": "Nine cloud GPU workers. Each winding rendered in 66 layers from the public S3 volume, ink_9um seeds 42/43 and dense_native at depths 0 and +1 (Erwin Nieuwlaar's scripts), then the stroke score and Scan-Quality-Map on the worker. Flagged rows checked by eye against the blind side and the CT.",
    "result": "No ink. 1 h 10 min. Five rows on three windings crossed the look line: w023 and w025 (reading-side stroke area up to 0.018) are core-geometry jumbles where the CT shows folded layers instead of one sheet; w110 (best 4 cm² window 0.038) is speckle. Scan-Quality-Map rates the scan's layer separation at 0.55–0.67 on the inner windings and 0.21–0.36 on the outer ones (it rates the scan, not the mesh). A first attempt stopped before launch because a script was edited while it was running.",
@@ -942,8 +942,8 @@
    "date": "2026-10-10",
    "phase": "P3",
    "track": "Ink & render",
-   "short": "AWS: community windings",
-   "title": "AWS fleet run 4: the community's PHerc0191 fit (z 11,600–12,400), snapped and inked",
+   "short": "Cloud: community windings",
+   "title": "Cloud run 4: the community's PHerc0191 fit (z 11,600–12,400), snapped and inked",
    "question": "Does an independent public fit of PHerc0191, in a different band, show ink with our method?",
    "technique": "rodriguescarson's public fit (10 windings), snapped onto the m7 prediction and Lasagna-flattened at home; five cloud GPU workers ran the three-model ink pass at depths 0 and +1, the stroke score and Scan-Quality-Map.",
    "result": "No ink. 30 minutes. The ten windings are small fragments, about 0.6 cm² each, in the hollow core of the scroll. Three rows (w008, w009) crossed the look line on edge effects; no 4 cm² window fits on any of them.",
@@ -1641,8 +1641,8 @@
    "date": "2026-10-10",
    "phase": "B",
    "track": "Ink & render",
-   "short": "AWS run 6: 8 PHerc0813 picks",
-   "title": "AWS run 6: three-model ink pass on eight PHerc0813 picks",
+   "short": "Cloud run 6: 8 PHerc0813 picks",
+   "title": "Cloud run 6: three-model ink pass on eight PHerc0813 picks",
    "question": "Do the cleanest PHerc0813 windings show ink at depths 0 and +1?",
    "technique": "Eight windings picked together from the outer-band montage: w085, w088, w091, w095, w100, w105, w108, w111. Three cloud GPU instances rendered them in 66 layers straight from the public S3 volume and ran ink_9um seeds 42/43 and dense_native at depths 0 and +1 (Erwin Nieuwlaar's scripts), with the stroke score on each worker. About 14 minutes per winding, while the home GPUs kept working on A4.",
    "result": "No row reaches the flag line (table below). 21:40–22:46 UTC, all three instances terminated (checked). Highest: w088 at depth +1 (stroke area 0.0120, reading minus blind +0.0073, best 4 cm² window 0.027 against 0.012 on the blind side); by eye its top tile is soft brightness along the lower mesh edge next to CT voids. w105 at +1 has the only window over 0.030 (0.033), but its blind side is nearly as high (0.027). The PHerc. 0343 control scores 0.035 / +0.030 / 0.050.",
@@ -1837,8 +1837,8 @@
    "date": "2026-10-10",
    "phase": "B",
    "track": "Ink & render",
-   "short": "AWS run 7: 9 µm controls",
-   "title": "Instrument check at 9 µm (AWS run 7): what does known text look like at the resolution we search?",
+   "short": "Cloud run 7: 9 µm controls",
+   "title": "Instrument check at 9 µm (cloud run 7): what does known text look like at the resolution we search?",
    "question": "Both scrolls we search were scanned at 9.362 µm. Public benchmarks show that at this resolution (9.362 µm / 113 keV) known text is not legible with any public ink model: on PHerc0139 it comes out as 'letter-shaped strokes, not transcribable lines' (Erwin Nieuwlaar's dense_native model card); on PHerc0841 the letters render as blobs (ScrollPrize/villa issue #1907); a blind letter test named 3 of 8 letters from a 9 µm map against 6 of 8 at 2.4 µm (SirColton's pherc0841-9um-letter-test). Our only positive control so far, PHerc. 0343, was scanned at 8.64 µm. Does our pipeline reproduce the published results at 9 µm, and what does text look like there?",
    "technique": "One cloud GPU instance running our render and ink steps on two known-text segments. PHerc0139 w047, which is not in the training data of ink_9um, dense_native or Reader v2 (published AUCs against a 78 keV reference map: ink_9um 0.778, Hecate 0.777, dense_native 0.898, Reader v2 0.893). PHerc0841 auto_grown 20260221022814, from a scroll none of these models trained on, with human ink labels. Models: ink_9um 42/43, dense_native and Reader v2 on both, plus d9v4C on PHerc0841, at depths −1, +1, +3 and +5. The same run puts the two models new to us, Reader v2 (DomRusso2) and d9v4C (TAUIL-Abd-Elilah), on the eight PHerc0813 picks at depths 0 and +1. Afterwards pipeline/controls/control_eval.py scores our maps against the references (AUC, correlation, best shift) and we look at how the known rows appear. The stroke score (three models) runs on both controls exactly as on any of our windings.",
    "result": "Ran 23:27–03:13 UTC on one cloud GPU instance (including a first launch that we stopped after about a minute). Our render and ink steps reproduce the published AUCs (table below). PHerc0139 w047 against the published 78 keV reference map, reading side at the best depth: dense_native 0.859, Reader v2 0.860, ink_9um 0.744 and 0.757 (published 0.898, 0.893 and 0.778); our three-model ensemble 0.838, three models + Reader v2 0.854. The blind side sits at chance (0.53–0.56). PHerc0841 against the human ink labels: three-model ensemble 0.78, dense_native 0.77, ink_9um 0.75–0.76, Reader v2 0.82, d9v4C 0.82, Reader v2 + d9v4C 0.83 (published: dense_native 0.800, ink_9um 0.733, Reader v2 0.824, d9v4C 0.830). Best depths −1 to +1. The stroke score sees the PHerc0139 text the way it saw the PHerc. 0343 letters: stroke area 0.028–0.031, reading − blind +0.019 to +0.024, best 4 cm² window 0.054–0.067 against 0.016–0.019 on the blind side (control: 0.034, +0.031, 0.048). On PHerc0841, a scroll none of the models trained on, it does not: stroke area 0.026–0.029, but reading − blind only +0.001 to +0.009 and the best window 1.0–1.4× the blind side, because the text covers a small part of the segment and this scroll's blind side is noisy. On the two lines meant to tell ink from damage (reading − blind ≥ 0.010; a window at least 2× the blind side) the v0.1 rule would not have flagged this known-text segment; it crosses only the stroke-area line, which damaged inner windings cross too. By eye at row scale it is plain, though: the reading side shows rows of letter-shaped strokes where the human labels are (ΗΚΑ… and a second row), the blind side only mottling (first image). Reader v2 + d9v4C draw the letters noticeably crisper than our three models. The same run's Reader v2 + d9v4C maps of the eight PHerc0813 picks have their own page.",
@@ -2573,7 +2573,7 @@
    "date": "2026-10-12",
    "phase": "E",
    "track": "Ink & render",
-   "short": "Ink first over all of PHerc0175A (AWS)",
+   "short": "Ink first over all of PHerc0175A (cloud)",
    "title": "Brute force, option 3 at scale: ink first over a whole 8.64 µm scroll",
    "question": "Can ink first, which needs no mesh, sweep a whole scroll in an evening and point at text?",
    "technique": "PHerc0175A, the clearest of the 8.64 µm eligible scans, tiled into 199 blocks of 1280³ voxels. In each block, patches cut along the sheets of the published surface prediction (one point per 0.8 mm cube), inked with Reader v2 in both layer orders, summarised per block and mapped over the scroll. Four cloud GPUs, about four hours.",
@@ -2824,7 +2824,7 @@
    "short": "Our whole pipeline finds the 343 letters",
    "title": "End to end on PHerc. 343: our own geometry and read put all 18 of Erwin Nieuwlaar's letters where they should be",
    "question": "Our controls so far started from other people's meshes. If we run our whole recipe from scratch on a scroll with known letters, do the letters land on our windings and show in our read?",
-   "technique": "On AWS (one NVIDIA L4, about 3.6 h): our centre (VC3D vc_gen_umbilicus + smoothing), sheet tracks with the organisers' PHerc0813 parameters, the exp-30k spiral fit on z 9,300–11,300 of PHerc. 343 (8.64 µm), Nieuwlaar's snap (120 windings, 94 % of mesh points on the sheet), Lasagna flatten. Then Nieuwlaar's 18 letters, placed in 3D from his published segment, matched to our windings (within 4 voxels along the normal), and our read of those windings with Reader v2 + d9v4C at d 0 and +1, letter areas against the rest of the winding.",
+   "technique": "In the cloud: our centre (VC3D vc_gen_umbilicus + smoothing), sheet tracks with the organisers' PHerc0813 parameters, the exp-30k spiral fit on z 9,300–11,300 of PHerc. 343 (8.64 µm), Nieuwlaar's snap (120 windings, 94 % of mesh points on the sheet), Lasagna flatten. Then Nieuwlaar's 18 letters, placed in 3D from his published segment, matched to our windings (within 4 voxels along the normal), and our read of those windings with Reader v2 + d9v4C at d 0 and +1, letter areas against the rest of the winding.",
    "result": "All 18 letters lie on four of our windings (w047–w050), a median 0.7 voxel from our surface. On our read they show as rows of strokes on the reading side. Letters against the rest of the winding: AUC 0.78 (Reader v2) and 0.74 (d9v4C) on w047, 0.73 and 0.71 on w048, 0.62–0.63 on w049 and 0.52–0.57 on w050 (few, faint letters); the other face lower (0.65–0.72 on w047–w048). Neither model was trained on PHerc0343 (Reader v2 and d9v4C trained on PHerc0343P, a separately scanned object).",
    "verdict": "pass",
    "metrics": {},
@@ -3075,6 +3075,155 @@
     "nieuwlaar-343",
     "ours"
    ]
+  },
+  {
+   "id": "letter-guesser-0841",
+   "date": "2026-10-17",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "A letter guesser on known 9 µm text",
+   "title": "A \"which letter could this blob be\" guesser does no better than always guessing the commonest letters",
+   "question": "Could a guesser that fits letter outlines to the marks on a 9 µm ink map at least point a reader to the right letters, as a search aid?",
+   "technique": "We named 22 letters by eye on three held-out PHerc0841 crops against the official ink labels (no ink model saw 0841). The guesser places a guess where Reader v2 marks a letter-sized area and ranks the 24 Greek letters by how well their outlines fit the marks there. Pass line, fixed before scoring: the true letter in the top 3 at 9 or more letters, and better than the same guesser on tile-shuffled windows (p < 0.05).",
+   "result": "Fail. Only 10 of the 22 letters got a guess at all (Reader v2 covers parts of letters, not whole ones). Of those 10 the true letter was in the top 3 three times; always guessing alpha, epsilon and omicron gets 6, the shuffled windows 2 (p = 0.15).",
+   "verdict": "null",
+   "metrics": {},
+   "images": [],
+   "learned": "At 9 µm the maps do not carry enough letter shape for a shape guesser to beat letter frequencies. We shelved it; a reader fitting outlines by hand stays a human job.",
+   "credits": [
+    "vc-known-text",
+    "readerv2",
+    "ours"
+   ]
+  },
+  {
+   "id": "ruleout-filters",
+   "date": "2026-10-18",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "Rule-out filters for false marks",
+   "title": "Simple rules that should throw out false marks do not separate real letters from marks on blank papyrus",
+   "question": "The ink models also mark blank papyrus. Can cheap per-mark rules (each one weak) throw out most of those false marks while keeping real letters, the way computer-aided detection in medicine filters its candidates?",
+   "technique": "Marks: Reader v2's strong marks at depth +1 (contrast to a 3 mm local mean). Known letters: marks centred on the official labels of three held-out PHerc0841 sheets (27 letter marks) and on Erwin Nieuwlaar's PHerc. 343 letters. Blank hits: 847 marks on windings of PHerc0813 and 0191 where no writing was found. Rules: one-sidedness, agreement with a second model, fibre direction, along-fibre shape, CT density, distance to the surface's edge, a line-grid layout, crackle, and whether a mark repeats on the neighbouring turn. Pass line per rule, fixed first: keep 90 % of the 0841 letter marks and remove at least 30 % of the blank hits.",
+   "result": "Fail for every rule: they remove 0 to 23 % of the blank hits. Two early passes on only 12 letter marks did not hold with 27. Agreement with a second model looked like a pass (66 %) but every mark on the 0841 renders scores high, letter or not: it tells the scroll apart, not ink. On the neighbouring turn the test ran the other way: letter marks repeat there more often than blank marks, because the 17-layer model window reaches the next sheet. Marks are also not concentrated at the surface edges or on stretched mesh.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [],
+   "learned": "At 9 µm a model's strong marks on known text and on blank papyrus look alike on everything we can measure at the mark. The depth-profile rule is still running.",
+   "credits": [
+    "vc-known-text",
+    "nieuwlaar-343",
+    "readerv2",
+    "d9v4c",
+    "vc-data",
+    "snorkel",
+    "ours"
+   ]
+  },
+  {
+   "id": "sharpen-ct-input",
+   "date": "2026-10-18",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "Sharpening the CT before the model reads it",
+   "title": "Sharpening the CT before the model reads it does not sharpen the ink map",
+   "question": "The ink maps are blurrier than the letters. If the CT that goes into the model is sharpened first, does the model draw sharper strokes?",
+   "technique": "An unsharp mask on every layer of the 66-layer render (light and stronger), Reader v2 at depth +1 otherwise unchanged. Judged on the three held-out PHerc0841 sheets against the official labels, PHerc. 343 against Nieuwlaar's labels, and six blank crops of PHerc0191 and 0813. Pass line, fixed first: AUC up by at least 0.01 on two of the three 0841 sheets, down by more than 0.005 on none, and no more blank papyrus read as ink (+0.5 points at most).",
+   "result": "Fail. AUC changed by +0.003, +0.003 and 0.000 (light) and +0.005, +0.006 and -0.002 (stronger); blank crops 0.25 % to 0.28 %. The CT looks crisper; the maps look the same.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [
+    {
+     "file": "sharpen-PHerc0841-ag2814-and-blank.jpg",
+     "caption": "CT layer 33 (top) and Reader v2 (below), plain, light and stronger sharpening: a letter area of held-out PHerc0841 and a blank PHerc0191 crop"
+    }
+   ],
+   "learned": "The blur is the model's own: sharpening its output (deconvolution, 15 Oct) and now its input both leave the strokes as they were.",
+   "credits": [
+    "vskinox",
+    "readerv2",
+    "vc-known-text",
+    "nieuwlaar-343",
+    "vc-data",
+    "ours"
+   ]
+  },
+  {
+   "id": "stacked-reader",
+   "date": "2026-10-18",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "A small learned combiner of five models",
+   "title": "A small learned combiner of the five public 9 µm models reads held-out text slightly worse than Reader v2 alone",
+   "question": "Each public model sees ink a little differently. Can a small learner on top of their maps, which cannot memorise a sheet the way a fine-tune can, combine them into a sharper reader?",
+   "technique": "Gradient-boosted trees (scikit-learn) on 31 features per pixel: the reading side, the other face and their difference for Reader v2, d9v4C, dense_native and both ink_9um seeds at depth +1, at three scales, and the five-model mean; trained on about 2 million labelled pixels of PHerc0841 (two sheets), PHerc0139 (two segments) and PHerc. 343 minus a held-out quarter. Judged on the held-out PHerc0841 sheet ag2814 with the pass line of our training test: AUC up by 0.03 and letter Dice in ten agreed letters 1.3 times Reader v2's, no harm on 343's held-out quarter or on blank crops.",
+   "result": "Fail. AUC 0.802 against Reader v2's 0.815; median letter Dice 0.336 against 0.366 (some letters a little better, the hard ones still 0); 343's held-out quarter 0.997 against 0.993; blank crops read as ink 5.1 % against 0.3 %.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [],
+   "learned": "What a combiner learns on these labelled sheets does not carry to an unseen sheet of the same scroll.",
+   "credits": [
+    "readerv2",
+    "d9v4c",
+    "dense-native",
+    "ink9um",
+    "vc-known-text",
+    "nieuwlaar-343",
+    "scikit-learn",
+    "ours"
+   ]
+  },
+  {
+   "id": "taught-from-2p4um",
+   "date": "2026-10-18",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "Teaching a 9 µm model with 2.4 µm-traced labels",
+   "title": "Teaching Reader v2 with ink traced on a 2.4 µm scan improves the sheets it learns and not the one next to them",
+   "question": "PHerc0841 has official ink labels drawn on its 2.4 µm scan and renders at 9.4 µm in register. If Reader v2 is taught with those labels on the 9.4 µm renders, does it read a held-out 0841 sheet more clearly?",
+   "technique": "Reader v2 fine-tuned 1,500 steps (AdamW, learning rate 1e-5, villa's ink training) on two 0841 sheets with their official labels, mixed in every batch with known text of other scrolls (PHerc0139, PHerc. 343 minus a held-out quarter) and blank papyrus of PHerc0191 and 0813 so it cannot drift. Held out: the neighbouring 0841 sheet ag2814, 343's quarter, six blank crops. Pass line, fixed before training: ag2814 AUC up by 0.03 and letter Dice 1.3 times Reader v2's, no harm elsewhere; the last passing checkpoint counts.",
+   "result": "Fail at every checkpoint. On the sheets it was taught, AUC rose from 0.855 to 0.924; on the held-out sheet next to them it fell from 0.818 to 0.814 (step 250) and 0.789 (step 1,500). Letter Dice never beat Reader v2. 343 and the blank crops stayed fine.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [],
+   "learned": "With this model and recipe, teaching from 2.4 µm-traced labels learns the taught sheets rather than ink. A better base model is the lever, not more fine-tuning.",
+   "credits": [
+    "readerv2",
+    "villa",
+    "vc-known-text",
+    "nieuwlaar-343",
+    "vc-data",
+    "ours"
+   ]
+  },
+  {
+   "id": "letter-averaging",
+   "date": "2026-10-18",
+   "phase": "F",
+   "track": "Ink & render",
+   "short": "Averaging repeated marks, cryo-EM style",
+   "title": "Averaging many marks of the same shape, as cryo-EM does with molecules, still gives blobs on known 9 µm text",
+   "question": "A text repeats its letters. If the marks on an ink map are grouped by shape and each group averaged, the way cryo-EM averages thousands of noisy copies of a molecule, do letter forms appear that no single mark shows?",
+   "technique": "Reference-free class averaging: every strong mark on the five-model mean (depth +1) cut as a 3.6 mm patch, aligned by shift and small rotation to 12 class averages by cross-correlation, reassigned and re-averaged for 15 rounds. Control: held-out PHerc0841 sheets w00 and ag2814, where the official labels of each class's members, aligned the same way, give the class's true average. Pass line, fixed first: ink and true averages correlate (median r at least 0.5 and 0.2 above shuffled classes), and at least three classes show distinct letter shapes.",
+   "result": "Fail. Median r 0.55 and 0.58 against 0.49 and 0.43 with shuffled classes; by eye the class averages are central blobs and bars, with no letter form, even on known text.",
+   "verdict": "null",
+   "metrics": {},
+   "images": [
+    {
+     "file": "letter-averaging-PHerc0841-ag2814.jpg",
+     "caption": "Class averages on held-out PHerc0841 ag2814: ink average, true (label) average, three members per class"
+    }
+   ],
+   "learned": "At 9 µm the maps break letters into blobs, and patches centred on blobs group by blob layout, not by letter.",
+   "credits": [
+    "relion",
+    "vc-known-text",
+    "readerv2",
+    "d9v4c",
+    "dense-native",
+    "ink9um",
+    "ours"
+   ]
   }
  ],
  "findings": [
@@ -3171,7 +3320,7 @@
   {
    "kind": "scroll",
    "title": "The method sees ink at 9.36 µm, but the v0.1 flag rule misses text on an unseen scroll",
-   "text": "AWS run 7, on two known-text segments scanned at the resolution we search. Our render + ink reproduces the published AUCs (PHerc0139 w047: dense_native 0.859, Reader v2 0.860; PHerc0841: Reader v2 + d9v4C 0.83). On PHerc0139 the stroke score sees the text as it saw the PHerc. 0343 letters (reading − blind +0.019 to +0.024, best 4 cm² window 0.054–0.067 against 0.016–0.019 on the blind side). On PHerc0841, a scroll none of the models trained on, the letters show by eye as rows of letter-shaped strokes, yet reading − blind is only +0.001 to +0.009 and the window 1.0–1.4× the blind side: the v0.1 rule would not have singled it out. So windings that stayed under the line could hold text. Known text here shows as rows of elongated strokes; a row score (2.7–4.2 on known text, at most 1.47 on our windings so far) and Reader v2 + d9v4C are now part of the search."
+   "text": "Cloud run 7, on two known-text segments scanned at the resolution we search. Our render + ink reproduces the published AUCs (PHerc0139 w047: dense_native 0.859, Reader v2 0.860; PHerc0841: Reader v2 + d9v4C 0.83). On PHerc0139 the stroke score sees the text as it saw the PHerc. 0343 letters (reading − blind +0.019 to +0.024, best 4 cm² window 0.054–0.067 against 0.016–0.019 on the blind side). On PHerc0841, a scroll none of the models trained on, the letters show by eye as rows of letter-shaped strokes, yet reading − blind is only +0.001 to +0.009 and the window 1.0–1.4× the blind side: the v0.1 rule would not have singled it out. So windings that stayed under the line could hold text. Known text here shows as rows of elongated strokes; a row score (2.7–4.2 on known text, at most 1.47 on our windings so far) and Reader v2 + d9v4C are now part of the search."
   },
   {
    "kind": "tooling",
@@ -3305,7 +3454,7 @@
   {
    "id": "rodriguescarson-fit",
    "who": "rodriguescarson",
-   "what": "The public PHerc. 0191 spiral fit of z 11,600–12,400 (eligible-scroll-atlas), whose ten windings we snapped, flattened and inked in AWS run 4.",
+   "what": "The public PHerc. 0191 spiral fit of z 11,600–12,400 (eligible-scroll-atlas), whose ten windings we snapped, flattened and inked in cloud run 4.",
    "link": "https://github.com/rodriguescarson/eligible-scroll-atlas"
   },
   {
@@ -3323,13 +3472,13 @@
   {
    "id": "readerv2",
    "who": "Domenico Russo (DomRusso2 / domenicor046)",
-   "what": "Reader v2, a 9 µm ink model distilled onto native 8.64–9.36 µm scans (MIT; weights on Hugging Face as domenicor046/reader-v2, step 40,000), and its published benchmark table, which we compare our control AUCs with; also ink9um-dense and its benchmark of all 14 released ink_9um checkpoints. Run in AWS run 7 on the 9 µm controls and the PHerc0813 picks, and in the overnight re-check.",
+   "what": "Reader v2, a 9 µm ink model distilled onto native 8.64–9.36 µm scans (MIT; weights on Hugging Face as domenicor046/reader-v2, step 40,000), and its published benchmark table, which we compare our control AUCs with; also ink9um-dense and its benchmark of all 14 released ink_9um checkpoints. Run in cloud run 7 on the 9 µm controls and the PHerc0813 picks, and in the overnight re-check.",
    "link": "https://github.com/DomRusso2/reader-v2"
   },
   {
    "id": "d9v4c",
    "who": "TAUIL-Abd-Elilah",
-   "what": "d9v4C, a 9 µm ink model (Reader v2 fine-tuned with a letter-shape loss; 9um-reader-letter-shape v1.0, MIT), and its published PHerc. 0841 benchmark and training list. It trained on PHerc. 0139 w047, so we never evaluate it there. Run in AWS run 7 on the PHerc. 0841 control and the PHerc0813 picks, and in the overnight re-check.",
+   "what": "d9v4C, a 9 µm ink model (Reader v2 fine-tuned with a letter-shape loss; 9um-reader-letter-shape v1.0, MIT), and its published PHerc. 0841 benchmark and training list. It trained on PHerc. 0139 w047, so we never evaluate it there. Run in cloud run 7 on the PHerc. 0841 control and the PHerc0813 picks, and in the overnight re-check.",
    "link": "https://github.com/TAUIL-Abd-Elilah/9um-reader-letter-shape"
   },
   {
@@ -3403,6 +3552,30 @@
    "who": "This project (Ted Bienapfl)",
    "what": "Experiment design and analysis; our scripts in pipeline/, experiments/, dead-ends/ and archive/ (mirroring, outer-shell builder, mesh audits, triage, direction-field converter, fast ink pass, deep-look scheduler, writing-side check, control scorer, row-structure score, the tests that did not work) and infra/ (artifact catalog, results table, backup, site generator); the stroke-score tool (tools/stroke-score, MIT); the tooling findings and fixes.",
    "link": "https://github.com/skuzbucket1/scroll-prize"
+  },
+  {
+   "id": "vskinox",
+   "who": "VSkinox (Vesuvius Challenge community)",
+   "what": "Suggested sharpening the CT before an ink model reads it.",
+   "link": "https://discord.gg/V4fJhvtaQn"
+  },
+  {
+   "id": "snorkel",
+   "who": "Ratner et al., Snorkel (weak supervision)",
+   "what": "The idea of many weak, independent rules that each rule something out, calibrated before they are combined.",
+   "link": "https://arxiv.org/abs/1711.10160"
+  },
+  {
+   "id": "relion",
+   "who": "Scheres, RELION (cryo-EM)",
+   "what": "Reference-free 2D classification and averaging of many noisy copies of the same shape.",
+   "link": "https://doi.org/10.1016/j.jsb.2012.09.006"
+  },
+  {
+   "id": "scikit-learn",
+   "who": "scikit-learn",
+   "what": "HistGradientBoostingClassifier, the small learned combiner.",
+   "link": "https://scikit-learn.org"
   }
  ],
  "pipeline": {

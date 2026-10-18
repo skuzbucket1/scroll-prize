@@ -122,23 +122,23 @@ GALLERY = (('<a href="findings.html" style="color:var(--acc);margin-left:10px"><
            ('<a href="gallery.html" style="color:var(--acc);margin-left:10px">Gallery: 3D views and every other result image &rarr;</a>'
             if os.path.exists(os.path.join(VIEW, 'gallery.html')) else ''))
 HTML = r'''<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Inked windings</title>
+<html lang="en"><head><meta charset="utf-8"><title>Inked windings</title><link rel="stylesheet" href="hv-theme.css"><script src="hv-nav.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-:root{--bg:#141414;--panel:#1d1d1d;--line:#2c2c2c;--ink:#e8e6e1;--ink2:#a9a6a0;--ink3:#77746f;--sel:#3a3226;--acc:#e0a33c}
-*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+:root{--bg:#0d0d0d;--panel:#1d1d1c;--line:rgba(255,255,255,.12);--ink:#f2f2f0;--ink2:#8a8984;--ink3:#6d6c68;--sel:rgba(57,135,229,.22);--acc:#3987e5}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,sans-serif}
 body{display:grid;grid-template-columns:300px 1fr;grid-template-rows:auto 1fr;height:100vh;overflow:hidden}
-header{grid-column:1/3;padding:10px 16px;border-bottom:1px solid var(--line);color:var(--ink2)}
+header{grid-column:1/3;padding:0;border-bottom:1px solid var(--line);color:var(--ink2)} header .htext{padding:8px 16px}
 header b{color:var(--ink)}
 aside{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 .tools{padding:10px;display:flex;gap:6px;border-bottom:1px solid var(--line)}
 .tools input,.tools select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:5px 7px;font:inherit}
 .tools input{flex:1;min-width:0}
 #list{overflow-y:auto;flex:1;padding-bottom:8px}
-.gh{position:sticky;top:0;background:#191919;padding:8px 10px 6px;border-bottom:1px solid var(--line);font-size:12px;color:var(--ink2);z-index:1}
+.gh{position:sticky;top:0;background:#1d1d1c;padding:8px 10px 6px;border-bottom:1px solid var(--line);font-size:12px;color:var(--ink2);z-index:1}
 .gh b{color:var(--ink);font-size:13px}
 .it{display:grid;grid-template-columns:52px 1fr 1fr;gap:4px;padding:3px 10px;cursor:pointer;font-variant-numeric:tabular-nums;font-size:13px}
-.it:hover{background:#232323}.it.on{background:var(--sel)}
+.it:hover{background:#252524}.it.on{background:var(--sel)}
 .it .n{color:var(--ink)}.it .v{color:var(--ink2);text-align:right}.it .v i{font-style:normal;color:var(--ink3);font-size:11px;margin-right:3px}
 .legend{padding:8px 10px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3)}
 main{display:flex;flex-direction:column;min-width:0;min-height:0}
@@ -150,7 +150,7 @@ main{display:flex;flex-direction:column;min-width:0;min-height:0}
 .spacer{flex:1}
 #panels{flex:1;overflow:auto;padding:6px 14px 14px}
 .lab{font-size:12px;color:var(--ink2);margin:8px 0 3px}
-.pane{position:relative;overflow:hidden;background:#0c0c0c;border:1px solid var(--line);border-radius:3px;cursor:grab;touch-action:none}
+.pane{position:relative;overflow:hidden;background:#0d0d0d;border:1px solid var(--line);border-radius:3px;cursor:grab;touch-action:none}
 .pane.drag{cursor:grabbing}
 .stage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 .stage img{display:block;width:100%;height:100%;user-select:none;-webkit-user-drag:none;pointer-events:none}
@@ -162,7 +162,7 @@ main{display:flex;flex-direction:column;min-width:0;min-height:0}
 .sbar{position:absolute;left:10px;bottom:8px;color:#fff;font-size:11px;text-shadow:0 0 3px #000,0 0 2px #000;pointer-events:none}
 .sbar i{display:block;height:3px;background:#fff;box-shadow:0 0 2px #000;margin-bottom:3px}
 </style></head><body>
-<header><b>Ink previews, half resolution.</b> Bright = the models see ink. Real writing shows on the reading side only, in rows of thin strokes; cracks and damage often show on both sides. Letters are about 2–4 mm tall. GALLERY</header>
+<header><div id="hvnav"></div><div class="htext"><b>Ink previews, half resolution.</b> Bright = the models see ink. Real writing shows on the reading side only, in rows of thin strokes; cracks and damage often show on both sides. Letters are about 2–4 mm tall. GALLERY</div></header>
 <aside>
   <div class="tools"><input id="q" placeholder="filter, e.g. w09 or 0813" autocomplete="off">
     <select id="sort" title="sort"><option value="w">winding</option><option value="rows">rows ↓</option><option value="rb">R−B ↓</option></select></div>

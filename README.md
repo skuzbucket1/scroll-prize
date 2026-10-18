@@ -64,7 +64,7 @@ Kept so that nobody, us included, repeats them. Each README gives what we tried,
 ## Also here
 
 - `archive/`: one-off setup steps that are done, and scripts that newer ones replaced (the README says which replaced which).
-- `infra/`: plumbing. This is data mirroring, the AWS fleet, backup and the artifact catalog, and the site and viewer
+- `infra/`: plumbing. This is data mirroring, the cloud runs, backup and the artifact catalog, and the site and viewer
   builders. It also holds `infra/box/sync_bin.py`, which maps these folders to the GPU machine, where every script lives flat
   in `~/scroll-prizes/bin/`.
 - `research/registry.json` drives the site in `docs/` (`python3 infra/site/build_site.py`). `docs/` also holds the code
