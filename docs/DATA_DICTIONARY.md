@@ -724,3 +724,20 @@ flag_v02, area_R, area_B, window_R, window_B, row_at, tool).
 **Viewer links** `data/viewer/links.json` (`viewer_links.py`): {group: {winding: {um_px, prev / next: {w, pts: [[y, x, y2,
 x2, gap in hundredths of a mm], …]}}}}, in preview pixels (half the render).
 
+## Added 2026-10-21
+
+**Reader V3 maps.** `ink343/run_ink.sh` model `readerv3` (Reader V3, Domenico Russo, MIT; 384 px tiles) writes the villa format:
+`<name>__readerv3__L66s<25+d>[_reverse].tif`, uint8 = trunc(255 p), `_reverse` = the reading side.
+
+**Official control renders.** `controls/official/c<scroll>_<segment>_66.zarr`: an official ink-labelled segment (PHerc0139 w030,
+w035, w039, w045; PHerc0841 ag144) rendered with `render66.sh` (66 layers, the same recipe as every search winding), so a model's
+maps on it can be scored against the official labels on the same grid.
+
+**One name per thing** (`pipeline/common/scroll_ids.py`). A scroll `PHerc0139`; a winding `PHerc0139/z7680/w044` (winding 44 of
+the fit band starting at z 7680); a window `PHerc0139/z7680/w044/n64m128` (first node row 64, column 128 of that winding's mesh);
+a segment `PHerc0841/seg/ag2814`. Older names (`exp30k-z7680_w044_66`, `z7680w044n64m128`, `c0841_w00_66`) parse to the same
+IDs. Faces are `reading` and `back`; depths `d-1`, `d+0`, `d+1`.
+
+**Config** (`pipeline/common/platform_config.py`). One TOML file: `[nodes.<name>]` (host, paths, GPUs by role with UUID and
+`usable`), `[volumes.<scroll>.<scan>]` (volume id; `main` = the scan we read), `[checkpoints.<name>]` (path, sha256, source,
+credit, licence), `[ui.<name>]` (url, what serves and builds it). Example: `pipeline/common/platform.example.toml`.

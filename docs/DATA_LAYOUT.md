@@ -4,6 +4,18 @@ Status: **approved by Ted and MIGRATED on 2026-10-10 (02:40 UTC)**, while no job
 (disk 91 % → 71 %). Every moved item left an absolute symlink at its old path, so old paths in scripts, notes and memory still
 work; new work should use the new paths. Script: `scratch/migrate_layout.sh` on the GPU machine (dry-run output `scratch/migrate-dry.txt`).
 
+**Changes from 2026-10-13 to 2026-10-21** (the public part; the rest of this file still holds):
+- **Control renders on the second disk** (`/mnt/nvme2/scroll-prizes/controls/`): `c0139_w047_66.zarr`, `c0841_ag2814_66.zarr`,
+  `c0841_w00_66.zarr`, and `official/`: the official ink-labelled segments rendered with our 66-layer recipe (PHerc0139 w030,
+  w035, w039, w045; PHerc0841 ag144). CT crops of the controls: `data/controls-ct/`, `data/controls-ct24/` (2.4 µm).
+  2.4 µm control material for PHerc0841: `data/controls24/PHerc0841/`.
+- **Training sets of the fine-tune tests** (`data/train8um/`, `data/train-recipe0841/`, `data/train-chain0841/` on the second
+  disk): all dead ends now (`dead-ends/model-8um-v1/` and the site's findings); kept until a disk clean-up.
+- **`work/`** holds one working folder per task (deep-look crops, labelling, review pages); our private notes describe it.
+- **`checkpoints/`**: the model files; their checksums are now kept in one config file (format:
+  `pipeline/common/platform.example.toml`).
+- **Disks on 2026-10-21:** first 84 % full, second 87 %.
+
 **Changes on 2026-10-11 and 2026-10-12** (the rest of this file describes the 2026-10-10 layout, which still holds):
 - **Second disk** `/mnt/nvme2/scroll-prizes` (916 G, since 2026-10-11): every scroll's `renders/` (`data/<scroll>/renders` is a
   symlink to it), `scratch/` (ink-first work folders, `run_ink.sh` temp), the known-text control renders (`controls/`) and
