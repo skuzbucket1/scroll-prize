@@ -398,9 +398,9 @@ Row and shape scores of search windings inside the render-valid area (all 66 lay
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `pipeline/controls/control_eval.py`
-Score our ink maps on a known-text control against a reference (2.4 um prediction map or human labels). For each model, depth and side: AUC and Pearson r against the reference resized onto the map grid, after a global shift found by maximising r for the strongest map (search +-14 px).
-- **Usage:** `control_eval.py <maps dir> <name> <reference.tif | labels.zarr> [--mask mask.zarr] [--thr 128] [--out prefix]`
-- **Runs on:** GPU machine. Not in the GPU machine's `bin/`.
+Score our ink maps on a known-text control against a reference (2.4 um prediction map or human labels). For each model, depth and side: AUC and Pearson r against the reference resized onto the map grid, after a global shift found by maximising r for the strongest map (search +-14 px). Since 2026-10-21 the valid pixels come from the render's CT (`conventions.ct_valid`), not from where a map is above zero (which leaves out quiet papyrus), and the AUC averages tied ranks (`conventions.auc`).
+- **Usage:** `control_eval.py <maps dir> <name> <reference.tif | labels.zarr> --render <66-layer zarr> [--mask mask.zarr] [--thr 128] [--out prefix]`
+- **Runs on:** GPU machine (`bin/control_eval.py` since 2026-10-21).
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `pipeline/controls/side_check.py`

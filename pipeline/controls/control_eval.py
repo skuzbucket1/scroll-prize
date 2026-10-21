@@ -1,13 +1,20 @@
 """Score our ink maps on a known-text control against a reference (2.4 um prediction map or human labels).
 For each model, depth and side: AUC and Pearson r against the reference resized onto the map grid, after a global shift
 found by maximising r for the strongest map (search +-14 px). Also the mean-z ensemble of the given model groups.
-Usage: control_eval.py <maps dir> <name> <reference.tif | labels.zarr> [--mask mask.zarr] [--thr 128] [--out prefix]"""
+Valid pixels (2026-10-21): the render's CT (conventions.ct_valid, eroded 31 px), no longer where any map is > 0, which leaves out
+quiet papyrus and made the other face look more ink-like (on PHerc0841 ag2814 its AUCs fell ~0.05, the reading face's moved < 0.025);
+AUC with average ranks for ties (conventions.auc; uint8 maps tie heavily).
+Usage: control_eval.py <maps dir> <name> <reference.tif | labels.zarr> --render <66-layer zarr> [--mask mask.zarr] [--thr 128] [--out prefix]"""
 import glob, os, re, sys, json, numpy as np, tifffile, cv2, zarr
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path[:0] = [HERE, os.path.join(HERE, '..', 'common')]   # GPU machine: bin/conventions.py
+import conventions as C
 args = sys.argv[1:]
 def opt(k, d=None):
     if k in args: i = args.index(k); v = args[i + 1]; del args[i:i + 2]; return v
     return d
-maskp, thr, outp = opt('--mask'), float(opt('--thr', '128')), opt('--out')
+maskp, thr, outp, renderp = opt('--mask'), float(opt('--thr', '128')), opt('--out'), opt('--render')
+if not renderp: sys.exit('--render <66-layer zarr> is needed: valid pixels come from its CT')
 mdir, name, refp = args
 def load2d(p):
     if p.endswith('.zarr'): return np.asarray(zarr.open(p, mode='r')['0'])
@@ -25,14 +32,12 @@ def shift(a, dy, dx):
     xs, xd = (slice(dx, None), slice(0, W - dx)) if dx >= 0 else (slice(0, W + dx), slice(-dx, None))
     out[ys, xs] = a[yd, xd]; return out
 def auc(score, pos, valid):
-    s = score[valid]; p = pos[valid]
-    if p.sum() == 0 or p.sum() == p.size: return float('nan')
-    r = np.argsort(np.argsort(s, kind='stable'), kind='stable').astype(np.float64) + 1
-    return float((r[p].sum() - p.sum() * (p.sum() + 1) / 2) / (p.sum() * (~p).sum()))
+    P, N = pos & valid, ~pos & valid
+    if not P.any() or not N.any(): return float('nan')
+    return C.auc(score[P], score[N])
 def corr(a, b, v): return float(np.corrcoef(a[v], b[v])[0, 1])
 arr = {k: tifffile.imread(f).astype(np.float32) for k, f in maps.items()}
-valid0 = np.zeros((H, W), bool)
-for a in arr.values(): valid0 |= a > 0
+valid0 = C.resize_mask(C.ct_valid(zarr.open(renderp, mode='r')['0']), (H, W))
 valid0 = cv2.erode(valid0.astype(np.uint8), np.ones((31, 31), np.uint8)) > 0
 # shift search on a 4x downsampled grid with the map that correlates best unshifted
 best_key = max(arr, key=lambda k: corr(arr[k], ref, valid0 & (ref > 0)))
