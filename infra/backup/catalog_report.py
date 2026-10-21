@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Write docs/DATA_CATALOG.md from data/catalog/{catalog,results}.sqlite (generated; do not edit by hand).
-Usage: catalog_report.py [catalog.sqlite] [results.sqlite] [out.md]"""
+Usage: catalog_report.py [catalog.sqlite] [results.sqlite] [out.md] [--all]   (--all = every scroll; refused for the public docs/)"""
 import sqlite3, sys, time
+ALL = '--all' in sys.argv; sys.argv = [a for a in sys.argv if a != '--all']   # --all: every scroll, for a PRIVATE copy only
 cat = sys.argv[1] if len(sys.argv) > 1 else 'data/catalog/catalog.sqlite'
 res = sys.argv[2] if len(sys.argv) > 2 else 'data/catalog/results.sqlite'
 out = sys.argv[3] if len(sys.argv) > 3 else 'docs/DATA_CATALOG.md'
@@ -13,6 +14,10 @@ if not os.path.exists(_pv):
     sys.exit(f'refusing: no private scroll list at {_pv}')
 PRIVATE = set(json.load(open(_pv)))
 pub = lambda *vals: not any(p in str(v) for v in vals if v is not None for p in PRIVATE | {p.replace('PHerc', '') for p in PRIVATE})
+if ALL:
+    if os.path.abspath(out).startswith(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'docs'))):
+        sys.exit('refusing: --all lists the private scrolls; write it outside the public docs/ (e.g. the private repo)')
+    pub = lambda *vals: True
 c, r = sqlite3.connect(cat), sqlite3.connect(res); G = 1073741824.0
 L = ['# Data catalog (generated)', '',
      f'Generated {time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())} by `infra/backup/catalog.py` (one scan per host) and `infra/backup/results_db.py`, '

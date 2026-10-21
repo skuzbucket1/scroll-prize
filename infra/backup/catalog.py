@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Artifact catalog: walk the project's data on this host and write one row per artifact into SQLite.
+Walks data/, runs/, memory/, backup/ and (since 2026-10-21) work/, controls/, site/, site-review/, checkpoints/ under the root.
 A zarr store or tifxyz mesh directory is one artifact; public scan inputs under <scroll>/source/ are listed per top-level
 store without walking their chunks. Kinds come from the data layout (docs/DATA_LAYOUT.md); "critical" follows the backup
 set in infra/backup/backup_r2.sh (infra/backup/windings_of_interest.tsv decides which ink maps count).
@@ -17,7 +18,7 @@ for cand in (os.path.join(os.path.dirname(os.path.abspath(__file__)), 'windings_
         break
 
 STORE_SUFFIXES = ('.zarr', '.tifxyz')
-SKIP_DIRS = {'.git', '__pycache__', '.venv', 'stroke-score-src', 'prior-art', 'claims', 'claims3', 'claims-a3', 'claims-a4'}
+SKIP_DIRS = {'.git', '__pycache__', '.venv', 'stroke-score-src', 'prior-art', 'claims', 'claims3', 'claims-a3', 'claims-a4', 'tmp', 'xscan_cache'}
 W_RE = re.compile(r'(?<![A-Za-z0-9])(w\d{3})(?![0-9])|_(w\d{3})(?![0-9])')
 D_RE = re.compile(r'(?:L66s(\d+)|L66zc(\d+\.\d+)|__d([+-]\d{2})|_d([+-]?\d+)\b)')
 MODELS = {'hybrid_3d2d-seed42': 'ink9-42', 'hybrid_3d2d-seed43': 'ink9-43', 'dnative': 'dnative', 'hecate': 'hecate',
@@ -64,7 +65,18 @@ def classify(rel, is_store):
         if key in parts:
             i = parts.index(key); run = parts[i + 1] if i + 1 < len(parts) else run
     b = os.path.basename(rel)
+    w1 = parts[1] if parts[0] == 'work' and len(parts) > 1 else ''      # work/<task>/ folders (added 2026-10-21)
     if parts[0] == 'memory': kind = 'memory'
+    elif parts[0] == 'checkpoints': kind = 'model'
+    elif parts[0] in ('site', 'site-review'): kind = 'site'
+    elif parts[0] == 'controls' and is_store: kind = 'control-render'
+    elif w1.startswith('label') : kind = 'labels'
+    elif w1 == 'triage': kind = 'triage'
+    elif w1 == 'humanview': kind = 'review-view'
+    elif w1.startswith('clefjudge'): kind = 'clef'
+    elif w1 == 'mosaic': kind = 'mosaic'
+    elif w1.startswith('deeplook-') and is_store: kind = 'deep-look-crop'
+    elif w1 == 'track2-g6' or w1.startswith(('p1-24um', 'p2-24um')): kind = '2.4um-spot'
     elif '/source/' in f'/{rel}/' or parts[0] == 'source': kind = 'public-input'
     elif '/inputs/' in f'/{rel}/': kind = 'fit-input'
     elif '/geometry/' in f'/{rel}/':
@@ -88,17 +100,19 @@ def classify(rel, is_store):
     else: kind = 'other'
     if parts[0] == 'data' and len(parts) > 1 and parts[1] == 'controls9um': kind = 'control-' + kind
     critical = kind in ('memory', 'score-figure', 'scan-quality', 'reference', 'fit', 'mesh-snapped', 'mesh-flattened', 'geometry-qa', 'score', 'ranking', 'run-record',
+                        'labels', 'triage',
                         'review-image', 'control-ink-map', 'control-reference', 'control-score', 'control-ranking', 'control-other') \
         or (kind == 'fit-input' and re.search(r'umbilicus|spiral-scroll\.json|/qa/', rel)) \
         or (kind in ('ink-map', 'ensemble-image') and (scroll, fit, w) in interest) \
-        or ('runs-aws' in parts or 'aws-results' in parts)
+        or ('runs-aws' in parts or 'aws-results' in parts) \
+        or (kind == 'review-view' and b.endswith(('.json', '.log'))) or (kind == '2.4um-spot' and b.endswith(('.json', '.tsv')))
     return dict(scroll=scroll, fit=fit, winding=w, model=model, depth=depth, side=side, run_id=run, kind=kind, critical=int(bool(critical)))
 
 db = sqlite3.connect(out); db.execute('drop table if exists artifacts')
 db.execute('''create table artifacts (host text, path text, kind text, scroll text, fit text, winding text, model text, depth int,
               side text, run_id text, size int, mtime real, sha1 text, critical int, is_store int, primary key (host, path))''')
 rows = []; t0 = time.time()
-for top in ('data', 'runs', 'memory', 'backup'):
+for top in ('data', 'runs', 'memory', 'backup', 'work', 'controls', 'site', 'site-review', 'checkpoints'):   # work/ ... since 2026-10-21
     base = os.path.join(root, top)
     if not os.path.isdir(base): continue
     for dp, dn, fn in os.walk(base, followlinks=False):
