@@ -29,3 +29,6 @@ These scripts are not for new work. They are kept because past runs on the site 
 | `stroke_rank.sh`, `stroke_watch.sh` | `pipeline/rank/rank_post.py` and the released `tools/stroke-score` |
 | `triage_windings.sh` | `pipeline/render/triage_band.sh` (any fit, any scroll) |
 | `winding_qa.sh` | 28-slice renders; replaced by 66-layer renders (`pipeline/render/render66.sh`) |
+| `poc.sh`, `fleet_3model.sh`, `fleet_score.sh` | the first cloud runs (a one-map proof of concept and a three-model pass over a fleet of GPU instances, 10-09 / 10-10); cloud work now runs one instance per job |
+| `status.sh` | a one-screen status of the PHerc0191 runs (no longer used) |
+| `pull_preview.sh` | fetched a preview TIFF as a JPEG (no longer used) |
