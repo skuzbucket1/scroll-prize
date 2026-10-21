@@ -1,0 +1,58 @@
+# platform.example.toml - an example of the one config file every script reads (pipeline/common/platform_config.py).
+# Copy it to ~/.config/scroll/platform.toml (or point SCROLL_PLATFORM at your copy) and fill in your machines.
+# Check it: python3 pipeline/common/platform_config.py check <file>
+
+bucket = "https://vesuvius-challenge-open-data.s3.amazonaws.com"
+
+[nodes.gpubox]                       # a home GPU box
+host = "gpubox"                      # its ssh name
+hostnames = ["gpubox"]               # what `hostname` says there (how a script knows it is on this node)
+role = "renders and ink reads"
+cost = "own hardware"
+
+[nodes.gpubox.paths]
+work = "/data/scroll/work"
+renders = "/data/scroll/work/renders"
+maps = "/data/scroll/work/maps"
+scratch = "/data/scroll/scratch"
+checkpoints = "/data/scroll/checkpoints"
+python = "~/scroll/villa/vesuvius/.venv/bin/python"
+
+[nodes.gpubox.gpus.gpu0]
+uuid = "GPU-00000000-0000-0000-0000-000000000001"   # nvidia-smi --query-gpu=uuid --format=csv
+model = "a 12 GB CUDA card"
+vram_gb = 12
+
+[nodes.gpubox.gpus.gpu1]
+uuid = "GPU-00000000-0000-0000-0000-000000000002"
+model = "an old 6 GB card"
+vram_gb = 6
+usable = false                       # never scheduled: gpu("gpubox:gpu1") refuses it
+note = "too old for the ink models"
+
+[volumes.PHerc0139.main]             # main = the scan we read
+id = "20250728140407-9.362um-1.2m-113keV-masked.zarr"
+
+[volumes.PHerc0841.main]
+id = "20250821151531-9.366um-1.2m-113keV-masked.zarr"
+
+[volumes.PHerc0841.rescan]
+id = "20260319124803-2.403um-0.2m-77keV-masked.zarr"
+
+[volumes.PHerc0343.main]
+id = "20250521140437-8.640um-1.2m-116keV-masked.zarr"
+voxel_um = 8.64                      # optional; checked against the id
+
+[checkpoints.reader-v2]
+path = "ckpt343/reader-v2-step040000.pth"   # relative to the node's paths.checkpoints
+sha256 = "654ec5acec2b6c4788d9cb326e2f0b8c2c730584949a934ef775db7f6ab5d3a6"
+source = "https://huggingface.co/domenicor046/reader-v2"
+credit = "Domenico Russo"
+licence = "MIT"
+
+[ui.results]
+url = "http://gpubox:8820/"
+node = "gpubox"
+served_by = "python3 -m http.server over paths.site"
+built_by = ["build_viewer.py", "build_gallery.py"]
+note = "static pages, rebuilt by the scripts that make the results"

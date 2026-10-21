@@ -29,6 +29,17 @@ says which script does what.
    checks that the reading side is the written face. `triage_eval.py` and `band_nulls.py` measure the hit rate on known
    text and the false-alarm rate on bare windings.
 
+## Shared by every step (`common/`)
+
+- `conventions.py`: map file names, depths, voxel sizes, valid-pixel masks, AUC with ties, normals. One place for the
+  things a script must not get slightly wrong on its own.
+- `scroll_ids.py`: one name for each scroll, winding and window (`PHerc0139/z7680/w044/n64m128`), read from every older
+  name form we use, and one name for each face of the sheet (`reading`, `back`).
+- `platform_config.py` with `platform.example.toml`: where things are (machines and their GPUs, paths, volumes, model files
+  with checksums, result pages), read from one config file instead of being written into each script.
+  `python3 platform_config.py check <file>` validates a config.
+- `tests/`: `python3 -m unittest discover -s pipeline/common/tests`.
+
 ## What it has been checked on
 
 - PHerc. Paris 4: three readable lines of Greek.
