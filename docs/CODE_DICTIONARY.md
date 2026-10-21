@@ -5,7 +5,7 @@ being tested (`experiments/`), what was tried and dropped (`dead-ends/`), what i
 plumbing (`infra/`). On the GPU machine the same scripts live flat in `~/scroll-prizes/bin/` (Nieuwlaar's in `bin/ink343/`),
 which is why entries show them as `bin/<script>`; `infra/box/sync_bin.py` maps the two by file name.
 
-Dates: written 2026-10-10, scripts of 2026-10-11 to 2026-10-13 added from their header comments, regrouped by status on
+Dates: written 2026-10-10, brought up to date 2026-10-21 (every public script has an entry; the code hygiene pass), scripts of 2026-10-11 to 2026-10-13 added from their header comments, regrouped by status on
 2026-10-13 (old paths: `infra/moved-2026-10-13.tsv`). An entry's **Status** line is what it said when it was written;
 the folder is the status now.
 
@@ -161,7 +161,7 @@ Download only the level-0 chunks of a remote CT zarr (v2, dimension_separator '/
 Wraps the public dense_native safetensors weights and training config into a checkpoint that villa can load.
 - **Usage:** `python rebuild_dense_native_pth.py dense_native_016000.safetensors train_dense_native.json dense_native-016000.rebuilt.pth`
 - **In → out:** weights and config (from Hugging Face `Nieuwlaar/ink9um-dense-native`) → `.pth`. Its maps match the original checkpoint's within 1/255.
-- **Runs on:** GPU machine and AWS worker (called by `infra/aws/remote/setup_models.sh`). **Log/marker:** prints `written <path>`.
+- **Runs on:** GPU machine and cloud worker (called by `infra/aws/remote/setup_models.sh`). **Log/marker:** prints `written <path>`.
 - **Status:** current. **Origin:** Nieuwlaar (MIT).
 
 #### `pipeline/ink/ink343/fetch_checkpoints.sh`
@@ -169,14 +169,14 @@ Downloads the public ink checkpoints and `hecate.py` listed in a `models.tsv`, c
 - **Usage:** `fetch_checkpoints.sh [MODELS_TSV=/opt/pherc0343/models.tsv] [CKPT_DIR=/opt/ckpt]`
 - **In → out:** `models.tsv` (not in this repo) → `CKPT_DIR/*` and `CKPT_DIR/SHA256SUMS.local`.
 - **Runs on:** not run here. **Log/marker:** stdout.
-- **Status:** unclear (unused here). On the GPU machine, `$S/checkpoints/ckpt343/` was laid out by hand. On AWS, `infra/aws/remote/setup_models.sh` does the same job. **Origin:** Nieuwlaar (MIT).
+- **Status:** unclear (unused here). On the GPU machine, `$S/checkpoints/ckpt343/` was laid out by hand. On a cloud worker, `infra/aws/remote/setup_models.sh` does the same job. **Origin:** Nieuwlaar (MIT).
 
 #### `pipeline/ink/ink343/run_ink.sh`
 Makes one ink map pair (reading side + blind side) for one 66-layer render, one model and one depth d.
 - **Usage:** `run_ink.sh <surface.zarr> <model> <d> <out_dir>`, where model is one of `dnative`, `hybrid_3d2d-seed42`, `hybrid_3d2d-seed43`, `hecate` and d runs from −15 to +15.
 - **Environment:** `CKPT_DIR`, `PY`, `HECATE_PY`, `PREP_PY`, `N_LAYERS` (66), `NATIVE_UM` (8.64; 9.362 for PHerc. 0191), `VILLA_BATCH`, `HEC_BATCH`, `HEC_DEVICE`, `TMPDIR`.
 - **In → out:** render → `<name>__<model>__L66s<s>[_reverse].tif` or `<name>__hecate__L66zc<zc>[_reverse].png` (+ `.json`). See Conventions.
-- **Runs on:** GPU machine and AWS worker (GPU). **Log/marker:** stdout. Exit codes: 2 for usage, unknown model or depth out of range; 3 for a missing checkpoint; 4 for no output.
+- **Runs on:** GPU machine and cloud worker (GPU). **Log/marker:** stdout. Exit codes: 2 for usage, unknown model or depth out of range; 3 for a missing checkpoint; 4 for no output.
 - **Status:** current. **Origin:** Nieuwlaar (MIT). Licence: `pipeline/ink/ink343/LICENSE-pherc343-first-letters`.
 
 #### `pipeline/ink/ink343/run_depth_sweep.sh`
@@ -190,14 +190,14 @@ Runs all four models (or `MODELS`), both directions, at every depth in [D_MIN, D
 Resamples a render into Hecate's input: isotropic 9.6 µm in x, y and z, exactly `--nz` planes centred at `--z-center`.
 - **Usage:** `python hecate_prep.py --src <zarr-group|tifdir> --out out.zarr --native-um <µm> [--native-um-z <µm>] [--target-um 9.6] --z-center <32.5+d> [--nz 16] [--crop y0 x0 h w]`
 - **In → out:** render → temporary `prep.zarr` (called by `run_ink.sh`).
-- **Runs on:** GPU machine and AWS worker (CPU). **Log/marker:** stdout.
+- **Runs on:** GPU machine and cloud worker (CPU). **Log/marker:** stdout.
 - **Status:** current. **Origin:** Nieuwlaar (MIT).
 
 #### `pipeline/ink/ink343/ensemble_maps.py`
 Makes grayscale images of each model's maps, their z-score ensemble (reading and blind side) and the CT, all with fixed stretches pooled from the reading side. Missing models are skipped, so it also works for three-model sets.
 - **Usage:** `python ensemble_maps.py --surface <name>.zarr --maps <dir> --out <dir> [--name N] [--stat-depths -15..15] [--write-depths 0] [--orientation reading|raw]`
 - **In → out:** render + `run_ink.sh` maps → `<name>__{ensemble,dnative,hecate,ink9-42,ink9-43}__d±NN.png` (reading side), the same names with `_blind`, `<name>__ct__d±NN.png`, and `<name>__stats.json`. Images are in reading orientation by default.
-- **Runs on:** GPU machine and AWS worker (CPU). **Log/marker:** stdout.
+- **Runs on:** GPU machine and cloud worker (CPU). **Log/marker:** stdout.
 - **Status:** current. **Origin:** Nieuwlaar (MIT).
 
 #### `pipeline/ink/depth_sweep.sh`
@@ -240,7 +240,7 @@ Ink maps for any model set and depths on the rendered windings of one fit (Nieuw
 Scores how much stroke-sized ink the ensemble shows on the reading side compared with the blind side (the null) of one render at one depth. It reports tiles and the best 2 × 2 cm window.
 - **Usage:** `python bin/stroke_score.py --surface <name>.zarr --maps <dir> --out <dir> --um 9.362|8.64 --depth <d> [--name N] [--models dnative,hecate,ink9-42,ink9-43] [--tag _s42] [--crops 3] [--window-mm 20] [--thr 2.0] [--bg-mm 1.5] [--amin-mm2 0.02] [--amax-mm2 1.5] [--tile-mm 4] [--step-mm 1] …`
 - **In → out:** render + maps → `<name>__strokes<tag>_d±NN.json` (parameters, per-side statistics, top reading tiles in reading orientation), `<name>__strokes<tag>_d±NN.png`, and the review crops `…_d±NN__topNN.png` (reading E | blind E | CT). The valid-pixel mask is cached as `<name>__valid.png`.
-- **Runs on:** GPU machine and AWS worker (CPU). **Log/marker:** prints a JSON summary line.
+- **Runs on:** GPU machine and cloud worker (CPU). **Log/marker:** prints a JSON summary line.
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `tools/stroke-score/` (`stroke-score score|rank`)
@@ -290,6 +290,22 @@ Command line: `stroke-score score ...` scores one render at one depth; `stroke-s
 #### `tools/stroke-score/src/stroke_score/control.py`
 Known-text control kit: public segments with known text at the 9 um scan type, and an evaluator that scores ANY ink model's maps on them the same way as on a search winding (stroke score, row score) plus AUC against a reference. stroke-score control list stroke-score control fetch 0841-ag2814 controls/            # mesh + reference map + labels (no CT; < 70 MB) stroke-score control eval --control 0841-ag2814 …
 - **Runs on:** any (Python package).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/stroke-score/src/stroke_score/core.py`
+The arithmetic of the stroke score: per side, the model ensemble normalised on the reading side, stroke-sized marks found and measured, and the reading side compared with the blind side of the same sheet; plus the row and shape scores of 0.2.
+- **In → out:** a library (used by `cli.py` and `control.py`).
+- **Runs on:** GPU machine or laptop.
+- **Status:** current (released as stroke-score 0.2). **Origin:** ours (MIT).
+
+#### `tools/stroke-score/src/stroke_score/__init__.py`
+The package's top level: what stroke-score is and its version.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `tools/stroke-score/tests/test_core.py`
+Unit tests of the arithmetic on small synthetic arrays.
+- **Usage:** `python3 -m pytest tools/stroke-score/tests`
+- **Runs on:** anywhere.
 - **Status:** current. **Origin:** ours (MIT).
 
 ### Review pictures (`pipeline/review/`)
@@ -401,6 +417,71 @@ Does stroke-score 0.2 triage better than plain ink measures? Known text cut into
 
 ---
 
+#### `pipeline/controls/endtoend343/control_job.sh`
+The end-to-end positive control on a scroll with known letters: our own geometry recipe, exactly as on a search band, then which of our windings pass through the known letters (`letters_on_windings.py`) and whether the letters show in our read of them (`letters_eval.py`).
+- **Usage:** `control_job.sh <z0> <z1> <fit-id>`
+- **In → out:** scroll parameters from the environment (`SC`, `VN` volume, `SN` surface prediction, `LN` Lasagna dir, `UM`, `NZ NY NX`, `LETTERS` = letters3d.npz, `READ_MODELS`) → the band fit, snapped and flattened windings, their renders and reads, `letters_on.tsv` and the letter evaluation. Fixed order, resumable.
+- **Runs on:** cloud worker. **Log/marker:** `CONTROL-EXIT`.
+- **Status:** current (run on PHerc. 343, 2026-10-13/14). **Origin:** ours (MIT).
+
+#### `pipeline/controls/endtoend343/launch_aws.sh`
+Runs `control_job.sh` on PHerc. 343 (z 9,300-11,300, around Erwin Nieuwlaar's 18 letters) on one cloud worker: starts it (spot first, else on-demand; tag `Project=scroll-prize-ctl`; 7 h hard limit), reports progress every 5 minutes, fetches the results at `CONTROL-EXIT` and terminates the worker (a trap does the same on any exit).
+- **Usage:** `nohup caffeinate -i bash pipeline/controls/endtoend343/launch_aws.sh > data/PHerc0343/runs-aws/control.log 2>&1 &`
+- **In → out:** → `data/PHerc0343/runs-aws/2026-10-13_control/` (logs, letter hits, evaluation, the read windings' maps and previews, our geometry without its inputs).
+- **Runs on:** laptop (it launches and watches the cloud worker).
+- **Status:** current; every cloud launch needs Ted's go. **Origin:** ours (MIT).
+
+#### `pipeline/controls/endtoend343/letters_eval.py`
+Do known letters show in our read of our windings? For every read winding, the letter samples on it are put on its render grid (20 px per node), grown into letter areas and compared with the rest of the winding: mean ink inside and outside on both faces and the AUC letters-vs-rest with a 95 % interval (`conventions.auc_bootstrap`); valid pixels from the mesh, not from the map.
+- **Usage:** `letters_eval.py <letters3d.npz> <flattened root> <results root> <fit> <models,> <out dir>`
+- **In → out:** letter samples + flattened windings + `<results>/<fit>_<w>/maps/` → `<out>/eval.tsv` and per-winding pictures.
+- **Runs on:** GPU machine or cloud worker (CPU).
+- **Status:** current (ties averaged since the 2026-10-15 audit). **Origin:** ours (MIT).
+
+#### `pipeline/controls/endtoend343/letters_on_windings.py`
+Which of our windings pass through known letters? For every flattened winding: each letter sample's nearest mesh node, the offset split along the local normal and in-plane; a sample is on the winding when |normal| ≤ 4 voxels and in-plane ≤ 15 voxels.
+- **Usage:** `letters_on_windings.py <letters3d.npz> <flattened root> <out.tsv>`
+- **In → out:** letter samples (`experiments/ink-first/letters_to_3d.py`) + `<root>/<w>/tifxyz/flatten.tifxyz` → a TSV sorted by samples on (winding, samples on, letters on, median |normal|).
+- **Runs on:** GPU machine or cloud worker (CPU).
+- **Status:** current. **Origin:** ours (MIT).
+
+### Shared by every step (`pipeline/common/`)
+
+#### `pipeline/common/conventions.py`
+The one place for what a script must not get slightly wrong on its own: map file names, depths and layers, voxel size per scroll (never a default), valid-pixel masks from the CT or the mesh (not the map), AUC with ties averaged and a letter-level bootstrap, mesh-to-mesh distance along the normal, and the sign of a mesh's normal. Scripts fail loudly on missing maps or unknown scrolls.
+- **Usage:** `python3 conventions.py   (self-test)`
+- **In → out:** a library (imported). Scrolls we do not publish yet come from an untracked `scrolls_private.json` next to it.
+- **Runs on:** everywhere (on the GPU machine as `bin/conventions.py`).
+- **Status:** current (since the 2026-10-15 audit). **Origin:** ours (MIT).
+
+#### `pipeline/common/scroll_ids.py`
+One name for each scroll, winding and window (`PHerc0139/z7680/w044/n64m128`), read from every older name form we use (fit renders, survey windows, crops, board marks, control segments), and one name for each face of the sheet (`reading`, `back`) with each pipeline's own token translated in one place.
+- **Usage:** `python3 scroll_ids.py   (self-test)`
+- **In → out:** a library (imported); stdlib only, no I/O.
+- **Runs on:** everywhere.
+- **Status:** new 2026-10-21; nothing uses it yet. **Origin:** ours (MIT).
+
+#### `pipeline/common/platform_config.py`
+Where things are (machines and their GPUs, paths, volumes, model files with checksums, result pages), read from one config file instead of being written into each script. Checks the file and refuses a GPU marked unusable.
+- **Usage:** `platform_config.py check [file] | get gpu|path|volume_url|checkpoint <ref> | export-json [file]`
+- **In → out:** a TOML file (`$SCROLL_PLATFORM`, `~/.config/scroll/platform.toml` or `platform.toml` at the repo root; JSON for Python < 3.11; example `platform.example.toml`) → values on stdout for shell scripts, or a JSON copy.
+- **Runs on:** everywhere.
+- **Status:** new 2026-10-21; nothing uses it yet. **Origin:** ours (MIT).
+
+#### `pipeline/common/tests/test_scroll_ids.py`
+Tests for `scroll_ids.py`: every name form parses to one ID and back, faces and depths.
+- **Usage:** `python3 -m unittest discover -s pipeline/common/tests`
+- **Runs on:** anywhere (stdlib).
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `pipeline/common/tests/test_platform_config.py`
+Tests for `platform_config.py` on `platform.example.toml`: lookups, refusals and the problems a bad config must report.
+- **Usage:** `python3 -m unittest discover -s pipeline/common/tests`
+- **Runs on:** anywhere (stdlib).
+- **Status:** current. **Origin:** ours (MIT).
+
+---
+
 ## 2. experiments/: being tested
 
 Each folder has a STATUS.md with the question, the numbers so far and what decides it.
@@ -413,12 +494,33 @@ Do the six ink models agree that a spot is one-sided (reading side brighter than
 - **Runs on:** GPU machine.
 - **Status:** current. **Origin:** ours (MIT).
 
+#### `experiments/model-agreement/crop_control.py`
+Cuts a known-text control down to its labelled area: downloads the segment's 9 µm mesh and its official ink labels, finds the bounding box of the supervision mask and writes a cropped mesh, labels and mask that line up.
+- **Usage:** `crop_control.py <mesh prefix> <ink-labels prefix (…/<date>/)> <out dir> [--margin-mm 1.5] [--um 9.362]`
+- **In → out:** the bucket's `<segment>/ink-labels/<volume>/<date>/{inklabels,supervision}.zarr` + the mesh → `<out>/` cropped `mesh.tifxyz`, labels and supervision mask.
+- **Runs on:** GPU machine (CPU).
+- **Status:** in test (2026-10-13). **Origin:** ours (MIT).
+
+#### `experiments/model-agreement/label_boxes.py`
+Letter tiles for `model_agreement.py` from human ink labels: a grid of letter-sized tiles over the supervision mask; a tile is a letter box when at least `--min-cov` of it is labelled ink; unlabelled tiles inside the mask are known bare papyrus. Reference mode takes a 2.4 µm ink prediction instead (PHerc0139 w047).
+- **Usage:** `label_boxes.py <labels.zarr|reference.tif> <supervision.zarr|-> <render.zarr> <um> <out.json> [--tile 300] [--min-cov 0.15]`
+- **In → out:** labels + render → `<out>.json` (letter boxes), `<out>.bare.json`, `<out>.sup.png`.
+- **Runs on:** GPU machine (CPU).
+- **Status:** in test (2026-10-13). **Origin:** ours (MIT).
+
 ### Ink ablation (`experiments/ink-ablation/`)
 
 #### `experiments/ink-ablation/ink_ablation.py`
 What do the ink models respond to on real 9.36 µm letters? Runs one model on variants of a labelled control render (as is, one band of layers flattened, 0.5 mm high-pass, 8 px pixel shuffle) and scores each reading-side map against the labels (AUC).
 - **Usage:** `ink_ablation.py <render.zarr> <labels.zarr> <supervision.zarr> <um> <dy> <dx> <checkpoint> <scratch dir> <out.json>`
 - **Runs on:** GPU machine (GPU). **Status:** in test. **Origin:** ours (MIT).
+
+#### `experiments/ink-ablation/texture_signature.py`
+What real 9.36 µm ink does to the CT texture: on a labelled control render, per layer 33+d (d −7..+9), five local texture measures (fine contrast, two band energies, orientation coherence, horizontal share) compared on ink and on bare papyrus inside the supervision mask.
+- **Usage:** `texture_signature.py <out.txt> <render.zarr> <labels.zarr> <sup.zarr> <dy> <dx> [<render2> <labels2> <sup2> <dy2> <dx2>]`
+- **In → out:** render + labels (shifted by dy, dx) → `<out.txt>`, one row per layer and measure.
+- **Runs on:** GPU machine (CPU).
+- **Status:** in test (2026-10-13; it set the synthetic letters' ink effect). **Origin:** ours (MIT).
 
 ### Geometry coverage (`experiments/geometry-coverage/`)
 
@@ -432,24 +534,24 @@ By-eye check of `geometry_coverage.py`: a level-0 CT slice around a node counted
 - **Usage:** `coverage_view.py <scroll dir> <fit> <volume.zarr> <winding> <out.jpg> [--half 300] [--around 4]`
 - **Runs on:** GPU machine (CPU). **Status:** in test. **Origin:** ours (MIT).
 
-### Ink first (`experiments/ink-first/`: GPU-machine scripts, the `tool/` package, AWS launchers in `aws/`)
+### Ink first (`experiments/ink-first/`: GPU-machine scripts, the `tool/` package, cloud launchers in `aws/`)
 
 #### `experiments/ink-first/aws/inkfirst_pilot.sh`
-Ink-first pilot on AWS one cloud GPU instance (cloud GPU 24 GB, 16 vCPU), or cloud GPU instance (L4 24 GB, 16 vCPU; Ted OK'd it as the fallback) when g5 has no capacity, blocks of PHerc0175A read straight from the public bucket, Reader v2, then fetch the small results and TERMINATE the instance (trap on every exit). Results: data/PHerc0175A/runs-aws/<date>_inkfirst-pilot/ (progress.log, …
+Ink-first pilot on one cloud GPU instance (a fallback type Ted OK'd when the first choice has no capacity): blocks of PHerc0175A read straight from the public bucket, Reader v2, then fetch the small results and TERMINATE the instance (trap on every exit). Results: data/PHerc0175A/runs-aws/<date>_inkfirst-pilot/ (progress.log, …
 - **Usage:** `experiments/ink-first/aws/inkfirst_pilot.sh <blocks.tsv> [models=readerv2] [par=4]`
 - **Runs on:** laptop (orchestration).
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `experiments/ink-first/aws/inkfirst_sweep.sh`
-Ink-first sweep of PHerc0175A on AWS (Reader v2 only): N workers, each a cloud GPU instance (cloud GPU 24 GB, 16 vCPU) or, when g5 has no capacity, a cloud GPU instance (L4 24 GB, 16 vCPU; Ted OK'd it), each running inkfirst_blocks.sh on every N-th block. Small results come home every 10 min; a worker is terminated as soon as its blocks are done; a trap fetches and terminates every worker on …
+Ink-first sweep of PHerc0175A in the cloud (Reader v2 only): N workers, each a cloud GPU instance (a fallback type Ted OK'd when the first choice has no capacity), each running inkfirst_blocks.sh on every N-th block. Small results come home every 10 min; a worker is terminated as soon as its blocks are done; a trap fetches and terminates every worker on …
 - **Usage:** `experiments/ink-first/aws/inkfirst_sweep.sh <blocks.tsv> [workers=4] [models=readerv2] [par=4]`
 - **Runs on:** laptop (orchestration).
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `experiments/ink-first/aws/inkfirst_blocks.sh`
-Ink first over a list of blocks of one scroll, on an AWS worker or the GPU machine. For each block: fetch the CT and the surface-prediction block from the public bucket, cut patches along the sheets (CPU; PAR blocks at once), ink them (GPU; one block at a time, as soon as it is cut), stitch, keep a small summary (inkfirst_block_summary.py) and a glow figure, then delete the big inputs.
+Ink first over a list of blocks of one scroll, on a cloud worker or the GPU machine. For each block: fetch the CT and the surface-prediction block from the public bucket, cut patches along the sheets (CPU; PAR blocks at once), ink them (GPU; one block at a time, as soon as it is cut), stitch, keep a small summary (inkfirst_block_summary.py) and a glow figure, then delete the big inputs.
 - **Usage:** `inkfirst_blocks.sh <blocks.tsv> <CT zarr URL> <prediction zarr URL> <um> <models,> [stride=96] [size=256] [par=4]`
-- **Runs on:** AWS worker (and the GPU machine).
+- **Runs on:** cloud worker (and the GPU machine).
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `experiments/ink-first/fetch_block.py`
@@ -587,6 +689,43 @@ Ink-first 'glowing sheets': a CT cross-section (a slice across the scroll at hei
 - **Usage:** `viz_glow.py --text <ct zarr> <patches.npz> <ink map tif> <z> --title T --out <png> [--mesh <tifxyz dir> --back <ink-first back npz> --labels <npz with labs, sups aligned to the mesh render> --window r0 r1 c0 c1 (full-res grid)] [--null <ct zarr> <patches.npz> <ink map tif> <z> <label>] [--centre 128] [--um 9.362]`
 - **Runs on:** GPU machine.
 - **Status:** current. **Origin:** ours (MIT).
+
+---
+
+#### `experiments/ink-first/tool/src/ink_first/__init__.py`
+The ink-first package's top level: look for ink without a mesh (patches along the local sheet normal of a published surface prediction).
+- **Status:** in test. **Origin:** ours (MIT).
+
+#### `experiments/ink-first/tool/tests/test_ink_first.py`
+Synthetic tests of the geometry and bookkeeping: sampling a tilted sheet, mosaic split and stitch, back-projection, the shifted-reference null.
+- **Usage:** `python3 -m pytest experiments/ink-first/tool/tests`
+- **Runs on:** anywhere.
+- **Status:** in test. **Origin:** ours (MIT).
+
+### Checkpoint swap (`experiments/ink9-swap/`)
+
+#### `experiments/ink9-swap/make_soup.py`
+A checkpoint soup: the uniform weight average of several ink_9um checkpoints of one training run, by Erwin Nieuwlaar's recipe (every float tensor summed in float64 in the given order, divided, cast back); shared tensors stay shared, so it saves at the released size. `--check` compares with a reference soup tensor for tensor.
+- **Usage:** `make_soup.py <out.pth> <in1.pth> <in2.pth> [...] [--check ref.safetensors]`
+- **In → out:** N checkpoints of one run → one `.pth`.
+- **Runs on:** GPU machine (CPU).
+- **Status:** in test (2026-10-13). **Origin:** ours (MIT), after Erwin Nieuwlaar's `make_soup.py` (MIT).
+
+#### `experiments/ink9-swap/verify_ckpts.py`
+Do candidate ink_9um checkpoints load as villa loads them, and are they the network we already use? Per checkpoint, on CPU: weights picked as villa does, names / shapes / dtypes and training config against the reference, villa's model built from the checkpoint's own config and loaded with `strict=True`, every tensor finite, and the weights' relative distance to the reference.
+- **Usage:** `verify_ckpts.py <out.json> <reference.pth> name=ckpt.pth [name=ckpt.pth ...]`
+- **In → out:** checkpoints → `<out.json>`, one record per candidate.
+- **Runs on:** GPU machine (CPU; run with `CUDA_VISIBLE_DEVICES=`).
+- **Status:** in test (2026-10-13). **Origin:** ours (MIT).
+
+### Synthetic letters (`experiments/synthetic-letters/`)
+
+#### `experiments/synthetic-letters/synth_letters.py`
+Synthetic Greek letters painted into real, text-free papyrus renders of the target scans, with exact labels: stroke masks of 1-4 lines of Greek capitals (2.0-3.0 mm tall, 0.25-0.45 mm strokes) and an ink effect that is a texture change with per-layer weights, set from `texture_signature.py`.
+- **Usage:** `synth_letters.py preview <render.zarr> <um> <effect.json> <out.jpg> [--seed 0]`
+- **In → out:** a 66-layer render + an effect file → a preview image (and, in its other modes, painted renders with labels).
+- **Runs on:** GPU machine (CPU).
+- **Status:** in test (2026-10-13); see the folder's STATUS.md. **Origin:** ours (MIT).
 
 ---
 
@@ -806,6 +945,31 @@ Ink inference on the six public PHerc. 0800 auto_grown segments (pre-rendered 8.
 
 ---
 
+### Rule-out filters (`dead-ends/rule-out-filters/`)
+
+#### `dead-ends/rule-out-filters/venn.py`
+Rule-out filters for false marks, steps 1-2 (the "Venn diagram"): per mark of a bright-mark run, measures that could tell a real letter from a mark on blank papyrus (the other face's contrast, a second model's agreement, fibre direction under the mark, elongation, CT under the mark, distance to the surface edge), then a calibration on known letters and blank windings.
+- **Usage:** `venn.py features <brightmarks out dir> <features.tsv>  |  venn.py calib <brightmarks out dir> <features.tsv> <labels.json> <out dir>`
+- **In → out:** bright-mark runs + maps + renders → features TSV; calibration tables per rule.
+- **Runs on:** GPU machine (CPU).
+- **Status:** dead end (2026-10-17/18); why in the folder's README. **Origin:** ours (MIT).
+
+#### `dead-ends/rule-out-filters/venn_depth.py`
+Round 3a, the depth rule: a real letter's contrast should peak with the slab at the surface and fall off away from it; structure persists through depth. Threshold kept 90 % of the PHerc0841 letter marks; PASS needed ≥ 30 % of the blank hits removed (line written before the run).
+- **Usage:** `venn_depth.py <bm round 2 dir> <labels2.json> <venn3 dir> <out dir>`
+- **In → out:** round-2 marks + maps at d −6 / +6 / +9 → depth-peak tables.
+- **Runs on:** GPU machine (CPU).
+- **Status:** dead end (2026-10-18). **Origin:** ours (MIT).
+
+#### `dead-ends/rule-out-filters/venn_setoff.py`
+Round 3b, the set-off rule: a mark that repeats at the same place on the neighbouring turn is structure or an offset, not writing. Per mark: its mesh node, the nearest nodes of turns w−1 and w+1, and their strongest contrast there.
+- **Usage:** `venn_setoff.py <bm round 2 dir> <bm 343 dir> <out dir>`
+- **In → out:** marks + neighbouring turns' maps → set-off tables (calibrated on PHerc. 343).
+- **Runs on:** GPU machine (CPU).
+- **Status:** dead end (2026-10-18). **Origin:** ours (MIT).
+
+---
+
 ## 4. archive/: done or replaced
 
 Not for new work; kept because past runs used them (see `archive/README.md`).
@@ -932,6 +1096,12 @@ Mirrors level 0 of the m7 surface prediction for z chunk rows 57–65 (z 10944�
 - **Runs on:** GPU machine. **Log/marker:** launcher, `$S/mirror-surf-z11k.log`; `SURFMIRROR-EXIT: 0` (always 0).
 - **Status:** one-off. **Origin:** ours (MIT).
 
+#### `archive/one-off/build-vc3d.sh`
+Built VC3D from source: villa's `volume-cartographer/build_from_src_debian.sh` without the apt / sudo steps, installed to `$HOME/.local`.
+- **Usage:** `bash build-vc3d.sh`
+- **Runs on:** GPU machine.
+- **Status:** done (one-off). **Origin:** ours (MIT).
+
 ### Replaced by newer scripts
 
 #### `archive/superseded/mirror_s3.py`
@@ -970,7 +1140,7 @@ Runs the four-model ensemble at d = 0 and +1 on the given windings, reusing exis
 - **Status:** current (its queue w068–w072 has finished). **Origin:** ours (MIT).
 
 #### `archive/superseded/three_model_windings.sh`
-Runs the three-model pass (seeds 42 and 43 + dense_native, no Hecate) at d = 0 and +1 on windings the AWS fleet did not cover, then makes ensemble images and stroke scores. Several GPUs can share one list through claim folders.
+Runs the three-model pass (seeds 42 and 43 + dense_native, no Hecate) at d = 0 and +1 on windings the cloud fleet did not cover, then makes ensemble images and stroke scores. Several GPUs can share one list through claim folders.
 - **Usage:** `bin/three_model_windings.sh <GPU UUID> w036 w103 …`
 - **In → out:** render → maps in `$D/ink-triage/maps/`, sweep log `$D/ink-triage/three_<w>.log`, images in `$D/ink-triage/ensemble3/<w>/`, scores in `$S/data/strokes/box3m/<w>/` (errors in `box3m/errors.log`). Claims are kept in `$D/ink-triage/claims3/<w>/gpu`.
 - **Runs on:** GPU machine (GPU). **Log/marker:** launcher, `$S/three-model.log`; `THREEM-EXIT: 0` once per GPU (always 0).
@@ -1030,9 +1200,47 @@ Phase A4 scorer: as `deep_score.sh` for the three-model set, plus render cleanup
 
 ---
 
+#### `archive/superseded/status.sh`
+Shows one screen of status: mirrors, the day-1 chain (assemble, pilot fit, resume volume), matching processes, disk, GPU memory and Ollama units.
+- **Usage:** `bin/status.sh`
+- **Runs on:** GPU machine. **Log/marker:** stdout.
+- **Status:** archived 2026-10-21 (no longer used; was `infra/box/status.sh`). **Origin:** ours (MIT).
+
+#### `archive/superseded/poc.sh`
+Proof of concept, end to end:
+1. `spot_up.sh`, then `spot_push.sh`.
+2. One ink map (seed 42, d = +1) on the PHerc. 343 control mesh, `data/prior-art/pherc343-first-letters/outputs/concat_w047-w048_R5B2_z9500-11000.tifxyz`.
+3. `spot_fetch.sh`.
+4. `spot_down.sh`, which runs on exit even after a failure, unless `--keep` is given.
+- **Usage:** `infra/aws/poc.sh [--keep]`
+- **In → out:** → `data/aws-results/<instance id>/control343/` (for example `previews/hybrid_3d2d-seed42_d+1_read.png`) and `infra/aws/state/bootstrap-<instance id>.log`.
+- **Runs on:** laptop. **Log/marker:** launcher, `infra/aws/state/poc-<timestamp>.log` (the latest path is in `infra/aws/state/last_poc_log`).
+- **Status:** archived 2026-10-21 (no longer used; was `infra/aws/poc.sh`). **Origin:** ours (MIT); the mesh is Nieuwlaar's (MIT).
+
+#### `archive/superseded/fleet_3model.sh`
+Runs the three-model pass (seeds 42 and 43 + dense_native) at d = 0 and +1 on every flattened PHerc. 0191 winding not in `EXCLUDE`, by calling `fleet.sh`.
+- **Usage:** `infra/aws/fleet_3model.sh N --yes`. Environment: `BOX`, `EXCLUDE` (default w068–w074), `DEPTHS`.
+- **In → out:** lists the GPU machine's flattened windings over ssh → the same outputs as `fleet.sh`.
+- **Runs on:** laptop. **Log/marker:** as for `fleet.sh`.
+- **Status:** archived 2026-10-21 (no longer used; was `infra/aws/fleet_3model.sh`). **Origin:** ours (MIT).
+
+#### `archive/superseded/fleet_score.sh`
+After a fleet run with `FETCH_MAPS=1`, copies each segment's maps to the GPU machine, runs `stroke_score.py` there, and compares the cloud seed-42 maps with the GPU machine's own maps. The header says "every depth", but the code scores d = 0 and +1 only.
+- **Usage:** `infra/aws/fleet_score.sh`
+- **In → out:** `data/aws-results/fleet/*/exp30k_snapped_w*/maps` → GPU machine `$D/aws-maps/<w>/` and `$S/data/strokes/aws/<w>/`.
+- **Runs on:** laptop, driving the GPU machine over ssh. **Log/marker:** stdout.
+- **Status:** archived 2026-10-21 (no longer used; was `infra/aws/fleet_score.sh`). **Origin:** ours (MIT).
+
+#### `archive/superseded/pull_preview.sh`
+Pulls a preview TIFF from the GPU machine and converts it to JPEG.
+- **Usage:** `infra/site/pull_preview.sh <remote path under ~/scroll-prizes/> [local-name]`
+- **In → out:** GPU-machine file → `data/results/<name>.jpg` (converted with `sips`, macOS only). It reaches the GPU machine by its LAN address, while the `aws/` scripts use the Tailscale address.
+- **Runs on:** laptop. **Log/marker:** prints the output path and size.
+- **Status:** archived 2026-10-21 (no longer used; was `infra/site/pull_preview.sh`). **Origin:** ours (MIT).
+
 ## 5. infra/: plumbing
 
-Data mirroring, the AWS fleet (paid; decided run by run; see `infra/aws/README.md`), backup, catalog and the site.
+Data mirroring, the cloud fleet (paid; decided run by run; see `infra/aws/README.md`), backup, catalog and the site.
 
 ### Box helpers (`infra/box/`)
 
@@ -1050,18 +1258,20 @@ Downloads selected pyramid levels of a remote zarr v2 group by computing the chu
 - **Runs on:** GPU machine. **Log/marker:** launcher, for example `$S/dl-surfvol-7.91um.log`. `DL-EXIT: 0` is printed only if no exception was raised.
 - **Status:** one-off (day-1 downloads); `mirror_s3_v2.py --levels` covers the same need. **Origin:** ours (MIT).
 
-#### `infra/box/status.sh`
-Shows one screen of status: mirrors, the day-1 chain (assemble, pilot fit, resume volume), matching processes, disk, GPU memory and Ollama units.
-- **Usage:** `bin/status.sh`
-- **Runs on:** GPU machine. **Log/marker:** stdout.
-- **Status:** unclear (stale). It covers only the day-1 jobs of 2026-10-08. **Origin:** ours (MIT).
 
 #### `infra/box/sync_bin.py`
 Keeps the GPU machine's flat `~/scroll-prizes/bin/` and the repo's status folders in step by file name: `check` (what differs, GPU-machine-only, repo-only), `pull [names]` (GPU machine → repo), `push names` (repo → GPU machine; names required because jobs may be running the current copies).
 - **Usage:** `python3 infra/box/sync_bin.py [check | pull [name ...] | push name ...]` (GPU machine address from `$BOX` or `infra/aws/spot.env`)
 - **Runs on:** laptop. **Status:** current. **Origin:** ours (MIT).
 
-### AWS: setup and shared parts
+#### `infra/box/sync_control.sh`
+Keeps the GPU machine's cloud-control checkout in step with the laptop: `git pull` there, then the git-excluded pieces the launchers need. Never copies instance state and never launches anything.
+- **Usage:** `bash infra/box/sync_control.sh`
+- **In → out:** the laptop's repo → the control checkout on the GPU machine.
+- **Runs on:** laptop.
+- **Status:** current. **Origin:** ours (MIT).
+
+### Cloud: setup and shared parts
 
 #### `infra/aws/lib.sh`
 Shared helpers, sourced by the other scripts and not run directly.
@@ -1076,7 +1286,7 @@ Shared helpers, sourced by the other scripts and not run directly.
 #### `infra/aws/vpc_up.sh`
 Creates or reuses a dedicated tagged VPC (10.77.0.0/16) with an internet gateway, a route table and one public subnet per call.
 - **Usage:** `infra/aws/vpc_up.sh [zone=us-east-1c]` (run it again with another zone to add a subnet)
-- **In → out:** AWS resources tagged `Project=scroll-prize`. Writes `VPC_ID` and `SUBNET_IDS` into `infra/aws/spot.env`.
+- **In → out:** cloud resources tagged `Project=scroll-prize`. Writes `VPC_ID` and `SUBNET_IDS` into `infra/aws/spot.env`.
 - **Runs on:** laptop. **Log/marker:** stderr.
 - **Status:** current (setup). **Origin:** ours (MIT).
 
@@ -1102,10 +1312,10 @@ EC2 user-data template, run once as root at first boot. `spot_up.sh` fills in `@
 4. Downloads the checkpoints from Hugging Face: ink_9um seeds 42 and 43, Hecate (Giorgio Angelotti) with `hecate.py`, and the dense_native weights and config (Nieuwlaar).
 - **Usage:** not run by hand; filled into `infra/aws/state[/fleet/<w>]/userdata.sh`.
 - **In → out:** writes `/opt/scroll/{villa,vc3d,hf}/` and info files `/opt/scroll/{bootstrap.times,torch.txt,vc3d.txt,nvidia-smi.txt}`.
-- **Runs on:** AWS worker. **Log/marker:** `/var/log/scroll-bootstrap.log`; marker files `/opt/scroll/BOOTSTRAP-DONE` or `BOOTSTRAP-FAILED`.
+- **Runs on:** cloud worker. **Log/marker:** `/var/log/scroll-bootstrap.log`; marker files `/opt/scroll/BOOTSTRAP-DONE` or `BOOTSTRAP-FAILED`.
 - **Status:** current. **Origin:** ours (MIT).
 
-### AWS: single instance
+### Cloud: single instance
 
 #### `infra/aws/spot_up.sh`
 Requests one instance, waits for it to bootstrap, and records it.
@@ -1154,18 +1364,8 @@ Lists every tagged instance with its state, type, zone, age and current spot pri
 - **Runs on:** laptop. **Log/marker:** stdout.
 - **Status:** current. **Origin:** ours (MIT).
 
-#### `infra/aws/poc.sh`
-Proof of concept, end to end:
-1. `spot_up.sh`, then `spot_push.sh`.
-2. One ink map (seed 42, d = +1) on the PHerc. 343 control mesh, `data/prior-art/pherc343-first-letters/outputs/concat_w047-w048_R5B2_z9500-11000.tifxyz`.
-3. `spot_fetch.sh`.
-4. `spot_down.sh`, which runs on exit even after a failure, unless `--keep` is given.
-- **Usage:** `infra/aws/poc.sh [--keep]`
-- **In → out:** → `data/aws-results/<instance id>/control343/` (for example `previews/hybrid_3d2d-seed42_d+1_read.png`) and `infra/aws/state/bootstrap-<instance id>.log`.
-- **Runs on:** laptop. **Log/marker:** launcher, `infra/aws/state/poc-<timestamp>.log` (the latest path is in `infra/aws/state/last_poc_log`).
-- **Status:** one-off (passed 2026-10-09). **Origin:** ours (MIT); the mesh is Nieuwlaar's (MIT).
 
-### AWS: fleet
+### Cloud: fleet
 
 #### `infra/aws/stage_segments.sh`
 Pulls flattened winding meshes from the GPU machine and writes the fleet manifest.
@@ -1179,7 +1379,7 @@ Pulls flattened winding meshes from the GPU machine and writes the fleet manifes
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `infra/aws/fleet_plan.sh`
-Splits the manifest across N workers and estimates wall time and cost. It makes no AWS calls.
+Splits the manifest across N workers and estimates wall time and cost. It makes no cloud calls.
 - **Usage:** `infra/aws/fleet_plan.sh N [minutes_per_segment=35]`
 - **In → out:** `data/aws-stage/manifest.tsv` → `infra/aws/state/fleet/plan.tsv` (workers w01..wN, round-robin). It prints a suggested `FLEET_MAX_HOURS`.
 - **Runs on:** laptop. **Log/marker:** stdout.
@@ -1229,12 +1429,6 @@ One command for the whole run:
 - **Runs on:** laptop. **Log/marker:** launcher, `infra/aws/state/fleet-run-<timestamp>.log` (the latest path is in `infra/aws/state/last_fleet_log`).
 - **Status:** current. It spends money. **Origin:** ours (MIT).
 
-#### `infra/aws/fleet_3model.sh`
-Runs the three-model pass (seeds 42 and 43 + dense_native) at d = 0 and +1 on every flattened PHerc. 0191 winding not in `EXCLUDE`, by calling `fleet.sh`.
-- **Usage:** `infra/aws/fleet_3model.sh N --yes`. Environment: `BOX`, `EXCLUDE` (default w068–w074), `DEPTHS`.
-- **In → out:** lists the GPU machine's flattened windings over ssh → the same outputs as `fleet.sh`.
-- **Runs on:** laptop. **Log/marker:** as for `fleet.sh`.
-- **Status:** current. It spends money. **Origin:** ours (MIT).
 
 #### `infra/aws/fleet_rebootstrap.sh`
 Re-runs the user-data script on workers that are already running and pushes the pipeline again. This avoids new launches after a bootstrap failure that was not the instance's fault. The hard limit starts again.
@@ -1243,33 +1437,27 @@ Re-runs the user-data script on workers that are already running and pushes the 
 - **Status:** current (recovery). **Origin:** ours (MIT).
 
 #### `infra/aws/fleet_rank.sh`
-Ranks every fleet segment by its stroke score and flags those that need a look. Its header documents the LOOK rule and the calibration. It makes no AWS calls.
+Ranks every fleet segment by its stroke score and flags those that need a look. Its header documents the LOOK rule and the calibration. It makes no cloud calls.
 - **Usage:** `infra/aws/fleet_rank.sh [results dir=data/aws-results/fleet]`
 - **In → out:** `<dir>/*/*/strokes/*__strokes*_d*.json` → TSV on stdout (winding, depth, models, area_R, area_B, R−B, window_R, window_B, top tile, damage, flag, crops path).
 - **Runs on:** laptop. **Log/marker:** stdout; the summary goes to stderr.
 - **Status:** current. **Origin:** ours (MIT).
 
-#### `infra/aws/fleet_score.sh`
-After a fleet run with `FETCH_MAPS=1`, copies each segment's maps to the GPU machine, runs `stroke_score.py` there, and compares the AWS seed-42 maps with the GPU machine's own maps. The header says "every depth", but the code scores d = 0 and +1 only.
-- **Usage:** `infra/aws/fleet_score.sh`
-- **In → out:** `data/aws-results/fleet/*/exp30k_snapped_w*/maps` → GPU machine `$D/aws-maps/<w>/` and `$S/data/strokes/aws/<w>/`.
-- **Runs on:** laptop, driving the GPU machine over ssh. **Log/marker:** stdout.
-- **Status:** current. **Origin:** ours (MIT).
 
-### AWS: worker side (`infra/aws/remote/`)
+### Cloud: worker side (`infra/aws/remote/`)
 
 #### `infra/aws/remote/setup_models.sh`
 Lays out the four checkpoints the way `run_ink.sh` expects (symlinks) and builds `dense_native-016000.pth`.
 - **Usage:** `bash /opt/scroll/bin/setup_models.sh` (called by `spot_push.sh`)
 - **In → out:** `/opt/scroll/hf/` → `/opt/scroll/ckpt343/`
-- **Runs on:** AWS worker. **Log/marker:** `SETUP-MODELS-DONE`.
+- **Runs on:** cloud worker. **Log/marker:** `SETUP-MODELS-DONE`.
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `infra/aws/remote/run_segment.sh`
 Renders one segment with 66 layers straight from S3, makes ink maps for the given models and depths, and writes quick previews. If the segment is not named `flatten.tifxyz`, it first flattens it with Lasagna on the worker. It resumes where it stopped.
 - **Usage:** `run_segment.sh <name> <segment.tifxyz dir> <volume zarr URL> <native_um> <models,comma> <depths,comma>`
 - **In → out:** segment → (`/opt/scroll/results/<name>/flatten/tifxyz/flatten.tifxyz`, `flatten.log`) → `/opt/scroll/work/<name>_66.zarr` and `/opt/scroll/results/<name>/{maps/,previews/<model>_d±N_{read,blind}.png,timings.tsv,render.log,ink_<m>_d<d>.log,gpu.txt}`
-- **Runs on:** AWS worker. **Log/marker:** `RUN-EXIT` is 1 if the flatten or the render fails and 0 otherwise, even if a map failed.
+- **Runs on:** cloud worker. **Log/marker:** `RUN-EXIT` is 1 if the flatten or the render fails and 0 otherwise, even if a map failed.
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `infra/aws/remote/run_batch.sh`
@@ -1281,13 +1469,13 @@ Works through every line of the batch. For each segment it:
 Scan-Quality-Map can run alongside on the CPU.
 - **Usage:** `bash /opt/scroll/bin/run_batch.sh` (started by `fleet_run.sh`)
 - **In → out:** `/opt/scroll/jobs/batch.tsv` → `/opt/scroll/results/<name>.run.log` and `/opt/scroll/results/<name>/{ensemble/,strokes/,strokes.log,DONE,sqm/}`, plus `sqm-progress.txt`.
-- **Runs on:** AWS worker. **Log/marker:** `/opt/scroll/results/progress.txt` ends with `BATCH-EXIT: 0` (always 0).
+- **Runs on:** cloud worker. **Log/marker:** `/opt/scroll/results/progress.txt` ends with `BATCH-EXIT: 0` (always 0).
 - **Status:** current. **Origin:** ours (MIT).
 
 #### `infra/aws/remote/chain_batch.sh`
 Waits for the running `run_batch.sh` to finish, then runs it again on the updated `batch.tsv`. Segments with `DONE` are skipped.
 - **Usage:** `bash /opt/scroll/bin/chain_batch.sh` (started by `fleet_run.sh --chain`)
-- **Runs on:** AWS worker. **Log/marker:** appends to `/opt/scroll/results/batch.log`.
+- **Runs on:** cloud worker. **Log/marker:** appends to `/opt/scroll/results/batch.log`.
 - **Status:** current. **Origin:** ours (MIT).
 
 ### Backup and catalog (`infra/backup/`)
@@ -1330,12 +1518,6 @@ Renders the research registry into a static site that needs no build step and wo
 - **Runs on:** laptop. **Log/marker:** none.
 - **Status:** current. **Origin:** ours (MIT).
 
-#### `infra/site/pull_preview.sh`
-Pulls a preview TIFF from the GPU machine and converts it to JPEG.
-- **Usage:** `infra/site/pull_preview.sh <remote path under ~/scroll-prizes/> [local-name]`
-- **In → out:** GPU-machine file → `data/results/<name>.jpg` (converted with `sips`, macOS only). It reaches the GPU machine by its LAN address, while the `aws/` scripts use the Tailscale address.
-- **Runs on:** laptop. **Log/marker:** prints the output path and size.
-- **Status:** current. **Origin:** ours (MIT).
 
 #### `infra/site/build_viewer.py`
 Build a local, offline viewer of every inked winding: data/viewer/index.html (open it by double-click). Inputs: data/viewer/img/<set>/<group>/<w>/ with <w>__{ct,ens_reading,ens_blind}__d+NN.jpg and <w>__post.json (stroke-score numbers per depth).
@@ -1344,6 +1526,34 @@ Build a local, offline viewer of every inked winding: data/viewer/index.html (op
 - **Status:** current. **Origin:** ours (MIT).
 
 ---
+#### `infra/site/build_community_index.py`
+Builds `docs/community.html`, a findable index of the public resources the community has linked on its Discord (models, datasets, code, papers, pages, videos): who shared each first and when, how often it came up, and the forum threads. It copies no message text, only links, names as shown, dates and thread titles.
+- **Usage:** `python3 -I infra/site/build_community_index.py`
+- **In → out:** a Discord export (not in the repo) → `docs/community.html`.
+- **Runs on:** laptop.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `infra/site/build_gallery.py`
+Builds the private gallery page: every result image kept on the laptop, next to the winding viewer (3D views first, then each results folder, newest first).
+- **Usage:** `python3 infra/site/build_gallery.py [viewer dir]`
+- **In → out:** `data/viewer/3d/`, `data/results/` → `data/viewer/gallery.html` (not versioned).
+- **Runs on:** laptop.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `infra/site/build_writeup.py`
+Renders a write-up (`research/writeups/<name>.md`) into a page of the research site, in the site's own style.
+- **Usage:** `python3 infra/site/build_writeup.py research/writeups/<name>.md`
+- **In → out:** → `docs/<name>.html`.
+- **Runs on:** laptop.
+- **Status:** current. **Origin:** ours (MIT).
+
+#### `infra/site/viewer_add_post.py`
+Copies `post_models.py` previews into the winding viewer, renamed by winding; files already there with the same size are skipped, so it can be rerun as results come in.
+- **Usage:** `viewer_add_post.py <root> <set>/<group> [--match text] [viewer dir]`
+- **In → out:** `<root>/**/<name>__{ct,ens_reading,ens_blind}__d+NN.jpg` + `__post.json` → `data/viewer/img/<set>/<group>/<wNNN>/`; then `build_viewer.py`.
+- **Runs on:** laptop.
+- **Status:** current. **Origin:** ours (MIT).
+
 ## Known inconsistencies
 
 1. Many markers print `: 0` whatever happened (ENSWIND, THREEM, TRIAGE, PATCHQA, RANK, BATCH, PREPCOMM, SURFMIRROR …). Suggestion: print the failure count instead.
