@@ -1,56 +1,66 @@
 # Data catalog (generated)
 
-Generated 2026-10-13 03:47 UTC by `scripts/catalog.py` (one scan per host) and `scripts/results_db.py`, merged on the laptop into `data/catalog/catalog.sqlite` and `data/catalog/results.sqlite`. Do not edit by hand: re-run the scans. Layout and rules: `docs/DATA_LAYOUT.md`. Backup set: `scripts/backup_r2.sh` (private object storage).
+Generated 2026-10-21 15:31 UTC by `infra/backup/catalog.py` (one scan per host) and `infra/backup/results_db.py`, merged on the Mac into `data/catalog/catalog.sqlite` and `data/catalog/results.sqlite`. Do not edit by hand: re-run the scans. Layout and rules: `docs/DATA_LAYOUT.md`. Backup set: `infra/backup/backup_r2.sh` (private object storage).
 
 ## Artifacts by host and kind
 
 | host | kind | items | GiB | critical items |
 |---|---|---:|---:|---:|
-| GPU machine | render | 316 | 569.31 | 0 |
-| GPU machine | other | 2182 | 41.82 | 204 |
-| GPU machine | ink-map | 4058 | 27.02 | 640 |
-| GPU machine | fit-input | 61 | 18.35 | 10 |
-| GPU machine | ensemble-image | 2889 | 11.52 | 766 |
-| GPU machine | mesh-flattened | 5126 | 10.86 | 5126 |
-| GPU machine | fit | 14324 | 8.24 | 14324 |
-| GPU machine | score-figure | 3439 | 2.44 | 3439 |
+| GPU machine | render | 330 | 606.95 | 0 |
+| GPU machine | other | 84254 | 430.04 | 204 |
+| GPU machine | ink-map | 24326 | 74.65 | 640 |
+| GPU machine | private work (not described here) | 47960 | 20.51 | 875 |
+| GPU machine | fit-input | 74 | 18.35 | 23 |
+| GPU machine | ensemble-image | 3719 | 15.44 | 766 |
+| GPU machine | control-render | 11 | 11.49 | 0 |
+| GPU machine | mesh-flattened | 5561 | 11.02 | 5561 |
+| GPU machine | site | 11310 | 8.84 | 0 |
+| GPU machine | fit | 15328 | 8.36 | 15328 |
+| GPU machine | model | 256 | 6.77 | 0 |
+| GPU machine | score-figure | 5855 | 4.47 | 5855 |
 | GPU machine | geometry-qa | 482 | 2.01 | 482 |
+| GPU machine | mesh | 1003 | 1.28 | 0 |
 | GPU machine | control-ink-map | 45 | 0.63 | 45 |
-| GPU machine | mesh-snapped | 4221 | 0.35 | 4221 |
+| GPU machine | mesh-snapped | 4704 | 0.40 | 4704 |
 | GPU machine | control-ensemble-image | 13 | 0.23 | 0 |
-| GPU machine | control-other | 12 | 0.10 | 12 |
+| GPU machine | control-other | 42 | 0.11 | 42 |
 | GPU machine | control-reference | 5 | 0.08 | 5 |
+| GPU machine | log | 17166 | 0.05 | 862 |
+| GPU machine | preview-image | 43 | 0.04 | 0 |
 | GPU machine | reference | 53 | 0.04 | 53 |
-| GPU machine | log | 3908 | 0.01 | 862 |
-| GPU machine | preview-image | 16 | 0.01 | 0 |
-| GPU machine | score | 847 | 0.01 | 847 |
-| GPU machine | control-mesh | 3 | 0.00 | 0 |
-| GPU machine | mesh | 2 | 0.00 | 0 |
-| GPU machine | ranking | 11 | 0.00 | 11 |
-| GPU machine | run-record | 15 | 0.00 | 15 |
+| GPU machine | scan-quality | 338 | 0.03 | 338 |
+| GPU machine | control-mesh | 15 | 0.01 | 0 |
+| GPU machine | score | 1442 | 0.01 | 1442 |
+| GPU machine | ranking | 56 | 0.00 | 56 |
+| GPU machine | run-record | 22 | 0.00 | 22 |
 | GPU machine | geometry | 1 | 0.00 | 0 |
 | GPU machine | control-score | 1 | 0.00 | 1 |
-| GPU machine | public-input | 24 | 0.00 | 0 |
-| laptop | ensemble-image | 830 | 3.93 | 830 |
-| laptop | other | 3282 | 3.02 | 1507 |
-| laptop | ink-map | 170 | 1.38 | 170 |
+| GPU machine | public-input | 31 | 0.00 | 0 |
+| laptop | other | 13828 | 9.27 | 3984 |
+| laptop | score-figure | 3879 | 2.46 | 3879 |
+| laptop | fit | 12059 | 1.26 | 12059 |
 | laptop | control-ink-map | 72 | 0.85 | 72 |
-| laptop | score-figure | 902 | 0.57 | 902 |
+| laptop | mesh-snapped | 6756 | 0.69 | 6756 |
+| laptop | mesh-flattened | 2264 | 0.63 | 2264 |
+| laptop | mesh | 204 | 0.61 | 203 |
+| laptop | ink-map | 194 | 0.54 | 132 |
 | laptop | control-ensemble-image | 26 | 0.32 | 0 |
+| laptop | ensemble-image | 48 | 0.21 | 48 |
 | laptop | review-image | 133 | 0.15 | 133 |
 | laptop | control-ranking | 8 | 0.13 | 8 |
+| laptop | preview-image | 132 | 0.12 | 130 |
 | laptop | control-other | 71 | 0.08 | 71 |
 | laptop | control-reference | 5 | 0.08 | 5 |
-| laptop | preview-image | 26 | 0.03 | 26 |
-| laptop | scan-quality | 338 | 0.03 | 338 |
-| laptop | reference | 57 | 0.02 | 57 |
-| laptop | log | 2165 | 0.00 | 2141 |
-| laptop | score | 577 | 0.00 | 577 |
+| laptop | reference | 460 | 0.08 | 460 |
+| laptop | score | 2204 | 0.02 | 2204 |
+| laptop | log | 6333 | 0.01 | 6271 |
+| laptop | geometry | 166 | 0.01 | 166 |
+| laptop | fit-input | 61 | 0.00 | 61 |
 | laptop | control-score-figure | 2 | 0.00 | 0 |
-| laptop | memory | 26 | 0.00 | 26 |
-| laptop | ranking | 3 | 0.00 | 3 |
+| laptop | memory | 59 | 0.00 | 59 |
 | laptop | control-score | 11 | 0.00 | 11 |
-| laptop | run-record | 8 | 0.00 | 8 |
+| laptop | ranking | 5 | 0.00 | 5 |
+| laptop | run-record | 1 | 0.00 | 1 |
 
 Public inputs (scan volumes, Lasagna, tracks, surface predictions, normal grids) are listed per store without sizes; they are re-downloadable.
 
@@ -58,20 +68,27 @@ Public inputs (scan volumes, Lasagna, tracks, surface predictions, normal grids)
 
 | scroll | fit | meshes (snapped / flattened) | renders | ink maps | ensemble images |
 |---|---|---:|---:|---:|---:|
+| PHerc0175A | exp30k-z7000 | 120 / 8 | 0 | 0 | 0 |
 | PHerc0191 | community-z11600 | 10 / 10 | 0 | 0 | 0 |
 | PHerc0191 | exp30k-z11200 | 120 / 100 | 97 | 2228 | 2594 |
 | PHerc0191 | exp30k-z9000 | 100 / 99 | 0 | 344 | 283 |
-| PHerc0191 | oldphase30k-z9000 | 100 / 3 | 3 | 0 | 0 |
+| PHerc0191 | oldphase30k-z9000 | 100 / 3 | 0 | 0 | 0 |
 | PHerc0343 | control | 0 / 0 | 1 | 18 | 12 |
+| PHerc0343 | exp30k-z9300 | 120 / 120 | 0 | 0 | 0 |
 | PHerc0813 | exp30k-z10500 | 120 / 76 | 76 | 608 | 0 |
 | PHerc0813 | exp30k-z12000 | 120 / 80 | 63 | 400 | 0 |
-| PHerc0813 | exp30k-z8000 | 120 / 76 | 76 | 28 | 0 |
+| PHerc0813 | exp30k-z8000 | 120 / 76 | 76 | 608 | 0 |
 
 ## Scores (results table)
 
 | scroll | fit | source | models | rows | v0.1 LOOK | max row_R |
 |---|---|---|---|---:|---:|---:|
+|  |  | post | d9v4c | 52 |  | 2.91 |
+|  |  | post | d9v4c,dnative,ink9-42,ink9-43,readerv2 | 28 | 22 | 2.28 |
+|  |  | post | d9v4c,readerv2 | 805 |  | 3.37 |
 |  |  | post | dnative,ink9-42,ink9-43 | 400 | 306 | 1.54 |
+|  |  | post | readerv2 | 615 |  | 4.67 |
+| PHerc0175A |  | post | d9v4c,readerv2 | 2 |  | 0.00 |
 | PHerc0191 |  | post | d9v4c,readerv2 | 194 |  | 2.40 |
 | PHerc0191 |  | stroke-score | dnative,ink9-42,ink9-43 | 1 | 1 |  |
 | PHerc0191 | community-z11600 | stroke-score | dnative,ink9-42,ink9-43 | 20 | 3 |  |
@@ -84,13 +101,14 @@ Public inputs (scan volumes, Lasagna, tracks, surface predictions, normal grids)
 | PHerc0191 | exp30k-z9000 | stroke-score | hecate | 8 |  |  |
 | PHerc0191 | exp30k-z9000 | stroke-score | ink9-42 | 85 |  |  |
 | PHerc0191 | exp30k-z9000 | stroke-score | ink9-42,ink9-43 | 2 |  |  |
+| PHerc0343 |  | post | d9v4c,readerv2 | 16 |  | 2.72 |
 | PHerc0343 | control | stroke-score | d9v4c,dnative,hecate,ink9-42,ink9-43,readerv2 | 1 | 1 |  |
 | PHerc0343 | control | stroke-score | d9v4c,readerv2 | 1 |  |  |
 | PHerc0343 | control | stroke-score | dnative,hecate,ink9-42,ink9-43 | 2 | 2 |  |
 | PHerc0343 | control | stroke-score | dnative,ink9-42,ink9-43 | 2 | 2 |  |
 | PHerc0343 | control | stroke-score | ink9-42 | 1 |  |  |
 | PHerc0343 | control | stroke-score | ink9-42,ink9-43 | 1 |  |  |
-| PHerc0813 |  | post | d9v4c,readerv2 | 252 |  | 2.63 |
+| PHerc0813 |  | post | d9v4c,readerv2 | 404 |  | 2.67 |
 | PHerc0813 | exp30k-z12000 | post | d9v4c,readerv2 | 172 |  | 2.63 |
 | PHerc0813 | exp30k-z12000 | stroke-score | dnative,ink9-42,ink9-43 | 20 | 4 |  |
 | PHerc0841 | control-ag2814 | post | d9v4c,readerv2 | 1 |  | 4.24 |

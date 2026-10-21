@@ -24,7 +24,14 @@ L = ['# Data catalog (generated)', '',
      'merged on the Mac into `data/catalog/catalog.sqlite` and `data/catalog/results.sqlite`. Do not edit by hand: re-run the scans. '
      'Layout and rules: `docs/DATA_LAYOUT.md`. Backup set: `infra/backup/backup_r2.sh` (private object storage).', '',
      '## Artifacts by host and kind', '', '| host | kind | items | GiB | critical items |', '|---|---|---:|---:|---:|']
-for h, k, n, s, cr in c.execute('select host, kind, count(*), sum(coalesce(size,0)), sum(critical) from artifacts group by 1,2 order by 1, 4 desc'):
+# public copy: hosts by role (site rule: no "box"), and the kinds that only our private work has folded into one row
+HOSTS = {} if ALL else {'box': 'GPU machine', 'mac': 'laptop'}
+PRIV_KINDS = set() if ALL else {'2.4um-spot', 'labels', 'triage', 'review-view', 'clef', 'mosaic', 'deep-look-crop'}
+agg = {}
+for h, k, n, s, cr in c.execute('select host, kind, count(*), sum(coalesce(size,0)), sum(critical) from artifacts group by 1,2'):
+    key = (HOSTS.get(h, h), 'private work (not described here)' if k in PRIV_KINDS else k)
+    a = agg.setdefault(key, [0, 0, 0]); a[0] += n; a[1] += s or 0; a[2] += cr or 0
+for (h, k), (n, s, cr) in sorted(agg.items(), key=lambda kv: (kv[0][0], -kv[1][1])):
     L.append(f'| {h} | {k} | {n} | {s / G:.2f} | {cr} |')
 L += ['', 'Public inputs (scan volumes, Lasagna, tracks, surface predictions, normal grids) are listed per store without sizes; they are re-downloadable.', '',
       '## Geometry and ink by scroll and fit', '', '| scroll | fit | meshes (snapped / flattened) | renders | ink maps | ensemble images |', '|---|---|---:|---:|---:|---:|']
