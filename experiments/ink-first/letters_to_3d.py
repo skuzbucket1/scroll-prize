@@ -4,7 +4,7 @@ scale). Each box is sampled every `step` pixels; a sample counts when the four m
 3D position is the bilinear blend of theirs. The block is the `size`^3 cube (level-0 voxels) holding the most samples.
 Writes <out>/blocks.tsv (the one block, in the format of inkfirst_plan.py) and <out>/letters3d.npz (samples: zyx, letter
 id, render row/col; and the mesh nodes, for mapping patches back onto the render).
-Usage: letters_to_3d.py <mesh.tifxyz> <letter_boxes.json> <out dir> [--size 1280] [--step 20] [--id b343]
+Usage: letters_to_3d.py <mesh.tifxyz> <letter_boxes.json> <out dir> [--size 1280] [--step 20] [--id b343] (all options: --help)
        [--shape Z Y X (volume, to keep the block inside)]"""
 import argparse, json, os
 import numpy as np, tifffile

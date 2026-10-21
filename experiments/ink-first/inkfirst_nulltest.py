@@ -1,3 +1,7 @@
+"""Null test for ink-first maps of the PHerc0139 w047 window (2026-10-11): correlation with the known-text reference at the
+true alignment against 40 shifted alignments (240-480 px), for the mesh-based Reader v2 map and every ink-first map in the npz.
+Mac paths inside (a one-off).
+Usage: inkfirst_nulltest.py <ink-first summary.npz of the w047 block>"""
 import sys, numpy as np, tifffile, cv2
 r0, r1, c0, c1 = 640, 1920, 2560, 3840
 ref = tifffile.imread('/tmp/ctlkit/0139-w047/reference.tif'); s = ref.shape[0] / 5840.0

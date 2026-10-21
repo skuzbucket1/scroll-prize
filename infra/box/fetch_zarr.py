@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Download selected pyramid levels of a remote zarr v2 group (dimension_separator '/') with a thread pool. Stdlib only."""
+"""Download selected pyramid levels of a remote zarr v2 group (dimension_separator '/') with a thread pool. Stdlib only.
+Usage: fetch_zarr.py <base> <out> <levels> [<threads>]"""
 import sys, os, json, math, time, urllib.request, urllib.error, concurrent.futures as cf
 base, out, levels = sys.argv[1].rstrip('/'), sys.argv[2], sys.argv[3].split(',')
 threads = int(sys.argv[4]) if len(sys.argv) > 4 else 16

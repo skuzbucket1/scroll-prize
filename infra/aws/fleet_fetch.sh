@@ -3,6 +3,7 @@
 # --maps also copies the raw ink maps (~110 MB per segment). Default is LITE: stroke scores (strokes/), the ensemble,
 # ensemble_blind and CT images, logs and timings; per-model images and previews stay on the worker (FETCH_FULL=1 for all).
 # Workers are fetched in parallel.
+# Usage: fleet_fetch.sh [--maps]   (FETCH_FULL=1 copies everything)
 source "$(dirname "$0")/lib.sh"
 P=$STATE/fleet/plan.tsv; [ -s "$P" ] || { echo "no plan" >&2; exit 2; }
 EX=(--exclude 'maps/'); [ "${1:-}" = "--maps" ] && EX=()

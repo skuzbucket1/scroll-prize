@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""snap_meshes.py <meshes_dir> <scroll> <out_dir> --windings windings.txt [--z0 Z0 --z1 Z1]
+"""snap_meshes_nieuwlaar.py <meshes_dir> <scroll> <out_dir> --windings windings.txt [--z0 Z0 --z1 Z1]
        [--max-off 15] [--jump 6] [--sigma 1.0] [--level 0] [--procs 8]
        (environment: SURF_ZARR = the m7 surface prediction of the scroll, a zarr with resolution levels)
 

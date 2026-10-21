@@ -1,7 +1,7 @@
 """Full-resolution look at one row window, in reading orientation (rotated 180 degrees from the render): the reading-side
 ensemble, the blind side with the same stretch, and the CT layer 33+d, stacked, for judging letters by eye. The same code
 on a known-text control gives the reference at the same scale.
-Usage: candidate_view.py <maps dir> <name> <models,> <depth> <y0> <x0> <out.jpg> [render.zarr] [--h-mm 12] [--w-mm 20]"""
+Usage: candidate_view.py <maps dir> <name> <models,> <depth> <y0> <x0> <out.jpg> [render.zarr] [--h-mm 12] [--w-mm 20] (all options: --help)"""
 import argparse, os, sys
 import cv2, numpy as np, tifffile
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, 'stroke-score-src'))

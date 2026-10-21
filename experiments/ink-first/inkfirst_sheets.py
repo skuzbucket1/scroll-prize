@@ -5,7 +5,7 @@ Hann-weighted centre) are painted onto it: every patch pixel goes to the nearest
 Writes <out>/sheet_NN.png (ink, uncovered dark blue), <out>/sheets.json (size, planarity, coverage, w047 share) and
 <out>/montage.jpg. A block of ~1.3 cm holds gently curved sheets, so the plane is a fair flattening; folded or fused sheets
 show up as low planarity.
-Usage: inkfirst_sheets.py <pred.zarr> <z0 z1 y0 y1 x0 x1> <patches.npz> <map.tif> <out dir> [--ds 4] [--px 2] [--top 16]
+Usage: inkfirst_sheets.py <pred.zarr> <z0 z1 y0 y1 x0 x1> <patches.npz> <map.tif> <out dir> [--ds 4] [--px 2] [--top 16] (all options: --help)
        [--centre 192] [--mesh <tifxyz> <r0 r1 c0 c1>]"""
 import argparse, json, os
 import cv2, numpy as np, tifffile, zarr

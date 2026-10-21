@@ -1,6 +1,6 @@
 """Rank post_models.py results (__post.json, any model set) with the stroke-score 0.2 columns: row score, the v0.2 row
 rule and neighbour recurrence of the along-winding profile (w-2..w+2 of the same series). Sorted by row_R.
-Usage: rank_post.py <post dir> [--row-thr X] [--row-ratio 1.8] [--shape-thr X] > ranking_v02.tsv  (thresholds default per model set)"""
+Usage: rank_post.py <post dir> [--row-thr X] [--row-ratio 1.8] [--shape-thr X] > ranking_v02.tsv  (thresholds default per model set) (all options: --help)"""
 import argparse, glob, json, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, 'stroke-score-src'))
 from stroke_score.cli import flag_v02, recurrence

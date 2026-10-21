@@ -8,7 +8,7 @@ Writes to <out>: depths.jpg (ensemble at a range of depths: reading | blind | CT
 the depth where the ensemble's reading - blind is highest), profile.png (reading - blind against depth, per model and
 ensemble) and profile.tsv. Window: the region judged (crop pixels; default: the crop minus `margin`), reading
 orientation (rotated 180 degrees), 5 mm bar.
-Usage: deep_look_view.py <crop.zarr> <maps dir> <out dir> [--label ...] [--um 9.362] [--margin 256] [--window y0 x0 h w]
+Usage: deep_look_view.py <crop.zarr> <maps dir> <out dir> [--label ...] [--um 9.362] [--margin 256] [--window y0 x0 h w] (all options: --help)
        [--show -4,-2,-1,0,1,2,3,4,6] [--shrink 2]"""
 import argparse, glob, os, re
 import cv2, numpy as np, tifffile, zarr

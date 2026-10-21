@@ -3,7 +3,7 @@ format of inkfirst_block_summary.py, so the scroll map and the cluster view run 
 blocks exactly as on a sweep: centre/normal/u/v, ct64 (the surface layer, layer 33, re-cut from the CT at 2 voxel
 spacing over the central `centre` pixels), air (share of ct64 darker than half the block's median papyrus intensity),
 stats_<m>_<order> (mean, sd, frac50 over the centre) and ink64_<m>_<order>.
-Usage: inkfirst_ref_summary.py <block dir with patches.npz and maps/> <CT zarr (level 0 in volume coordinates)> <out dir>
+Usage: inkfirst_ref_summary.py <block dir with patches.npz and maps/> <CT zarr (level 0 in volume coordinates)> <out dir> (all options: --help)
        [--models readerv2] [--centre 128]"""
 import argparse, os
 import cv2, numpy as np, tifffile, zarr

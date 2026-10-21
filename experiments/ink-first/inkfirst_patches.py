@@ -5,7 +5,7 @@ prediction, with no mesh, and tile them into one mosaic "render" that run_ink.sh
   (the CT is brighter 3 voxels behind the point than 3 voxels in front)
 - patch: --size x --size pixels in the tangent plane, 66 layers at (k - 32.5) voxels along the normal (as render66.sh)
 Writes <out>/mosaic.zarr (66, H, W) uint8 and <out>/patches.npz (centre, normal, u, v, mosaic row/col of every patch).
-Usage: inkfirst_patches.py <ct.zarr> <pred.zarr> <z0 z1 y0 y1 x0 x1> <out dir> [--thr 128] [--stride 96] [--size 256] [--radius 10] [--flat 0.25]"""
+Usage: inkfirst_patches.py <ct.zarr> <pred.zarr> <z0 z1 y0 y1 x0 x1> <out dir> [--thr 128] [--stride 96] [--size 256] [--radius 10] [--flat 0.25] (all options: --help)"""
 import argparse, os, time
 import numpy as np, zarr
 from scipy.ndimage import map_coordinates

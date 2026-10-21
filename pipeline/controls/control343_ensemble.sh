@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Full four-model ensemble at d = +1 on the PHerc. 343 control (winner's method), then ensemble_maps images.
+# Usage: control343_ensemble.sh [GPU UUID; default: the one written below]
 set -uo pipefail
 export CUDA_VISIBLE_DEVICES=${1:-GPU-7937f33e-73c8-2a4f-d7c6-9c4c3c20c74f}
 S=~/scroll-prizes; C=/mnt/nvme/scroll-prizes/data/PHerc0343/control; Z=$C/control343_66.zarr

@@ -10,7 +10,7 @@ its 3D position. Writes
   blocks.tsv         per block: plausible patches, hot share on each side, mean ink this side minus the other (fwd - rev)
                      and its z (patches overlap, so z overstates; on known text the hot share was ~1.7x higher on the
                      reading side (fwd), on text-free blocks even)
-Usage: inkfirst_scroll_map.py <results dir (w*/b*/summary.npz)> <out dir> [--coarse <coarse CT zarr dir from inkfirst_plan.py>]
+Usage: inkfirst_scroll_map.py <results dir (w*/b*/summary.npz)> <out dir> [--coarse <coarse CT zarr dir from inkfirst_plan.py>] (all options: --help)
        [--model readerv2] [--level 5] [--hot 0.5] [--radius 3.0] [--um 8.64] [--top 60] [--label PHerc0175A]
        (no --coarse: no map figure, the rest as usual)"""
 import argparse, glob, os

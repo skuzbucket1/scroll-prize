@@ -9,7 +9,7 @@ and the mesh pipeline's map of the same model over the same 1.1 mm footprint.
 Writes <out>/letters_test.tsv and <out>/letters_<model>.jpg: the mesh pipeline's map of the same model on the segment
 (reading side, reading orientation) with the letter boxes and the ink-first patch centres (squares of the 1.1 mm
 centre, coloured by frac50), one panel per layer order.
-Usage: inkfirst_letters_test.py <summary.npz> <letters3d.npz> <letter_boxes.json> <out dir> [--near 10]
+Usage: inkfirst_letters_test.py <summary.npz> <letters3d.npz> <letter_boxes.json> <out dir> [--near 10] (all options: --help)
        [--maps <dir of the segment's ink maps>] [--render control343_66] [--layer s26]"""
 import argparse, json, os
 import cv2, numpy as np, tifffile

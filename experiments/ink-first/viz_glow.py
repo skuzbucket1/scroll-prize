@@ -4,7 +4,7 @@ prediction, so the sheets light up where the model sees ink. With --mesh/--label
 with the human ink labels of a known-text segment drawn where that segment's mesh cuts the slice. --null adds a block
 without known text, on the same colour scale. One colour ramp (dark to bright orange) for ink; grey CT underneath.
 Values below the text block's median are drawn dim, so the patch coverage stays visible.
-Usage: viz_glow.py --text <ct zarr> <patches.npz> <ink map tif> <z> --title T --out <png>
+Usage: viz_glow.py --text <ct zarr> <patches.npz> <ink map tif> <z> --title T --out <png> (all options: --help)
          [--mesh <tifxyz dir> --back <ink-first back npz> --labels <npz with labs, sups aligned to the mesh render> --window r0 r1 c0 c1 (full-res grid)]
          [--null <ct zarr> <patches.npz> <ink map tif> <z> <label>] [--centre 128] [--um 9.362]"""
 import argparse

@@ -2,7 +2,7 @@
 along the scroll axis through the centre of that slice). Every fitted winding is drawn where its mesh crosses the slice,
 coloured by what happened to it: fitted only, searched (rendered, inked, scored), flagged by stroke-score 0.2 and checked
 by eye, or inked and still being scored. The side view also marks bands that are still being fitted.
-Usage: viz_looked.py --vol <CT zarr> --z <z> --um <um> --title T --out <png>
+Usage: viz_looked.py --vol <CT zarr> --z <z> --um <um> --title T --out <png> (all options: --help)
          --fitted <snapped dir>                        all windings of a fit (thin grey)
          --band <flattened dir> <searched|scoring> <w... | all>
          --flag <fit> <winding> <label>                flagged by stroke-score 0.2, checked by eye (fit: part of the band path)

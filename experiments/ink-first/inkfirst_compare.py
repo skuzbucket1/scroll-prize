@@ -1,4 +1,5 @@
-"""Ink-first vs mesh-based vs known text on the w047 window (grid rows 32-96, cols 128-192 = full-res rows 640-1920, cols 2560-3840)."""
+"""Ink-first vs mesh-based vs known text on the w047 window (grid rows 32-96, cols 128-192 = full-res rows 640-1920, cols 2560-3840).
+Usage: inkfirst_compare.py <ink-first summary.npz of the w047 block> (Mac paths inside: a one-off of 10-11)"""
 import numpy as np, tifffile, cv2, sys
 r0, r1, c0, c1 = 640, 1920, 2560, 3840
 ref = tifffile.imread('/tmp/ctlkit/0139-w047/reference.tif'); s = ref.shape[0] / 5840.0

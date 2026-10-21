@@ -9,7 +9,7 @@ supervision mask with no labelled ink); with --window y0 x0 h w, a grid of tiles
 --swap treats the plain maps as the reading side (for a render whose mesh normal points into the papyrus).
 --relative subtracts each model's median reading - blind over the render before scaling, so that a render whose blind
 face is globally brighter (PHerc0841 ag2814) is judged on local one-sidedness only.
-Usage: model_agreement.py <render.zarr> <maps dir> <name> <depth> <out.tsv> [--boxes letter_boxes.json] [--bare bare_boxes.json] [--swap] [--relative] [--window y0 x0 h w]
+Usage: model_agreement.py <render.zarr> <maps dir> <name> <depth> <out.tsv> [--boxes letter_boxes.json] [--bare bare_boxes.json] [--swap] [--relative] [--window y0 x0 h w] (all options: --help)
        [--tile 300] [--thr 0.2] [--models dnative,hybrid_3d2d-seed42,hybrid_3d2d-seed43,hecate,readerv2,d9v4c] [--label ...]"""
 import argparse, json, os
 import cv2, numpy as np, tifffile, zarr

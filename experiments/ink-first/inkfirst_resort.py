@@ -7,7 +7,7 @@ against 3-5 % on text-free ones. A browsing order, not a detector.
 Writes <out>/resort.tsv (ranked candidates), resort_blocks.tsv (share of patches passing, per block), candidates.tsv
 (the top ones in the clusters format, for inkfirst_cluster_view.py) and resort_<k>.jpg (CT | reading side | other side
 of the patch centre, 1.1 mm, from the 64 px thumbnails; ranked).
-Usage: inkfirst_resort.py <results dir (*/summary.npz)> <out dir> [--model readerv2] [--lo 0.10] [--hi 0.60] [--other 0.05]
+Usage: inkfirst_resort.py <results dir (*/summary.npz)> <out dir> [--model readerv2] [--lo 0.10] [--hi 0.60] [--other 0.05] (all options: --help)
        [--top 48] [--reading fwd]"""
 import argparse, glob, os
 import cv2, numpy as np

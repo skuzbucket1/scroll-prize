@@ -3,7 +3,7 @@ mesh pipeline's map of that winding at the same pixels. The winding meshes are t
 render pixel (at 1/--ds resolution) has a 3D position, and each ink-first patch pixel goes to the nearest render pixel within
 --radius voxels. Per winding: coverage, correlation ink first vs mesh based (both layer orders), and the hottest ink-first
 2 mm tiles with the mesh-based value there. Also writes side-by-side crops for the best-covered windings.
-Usage: inkfirst_within.py <patches.npz> <ink map dir> <model> <flattened dir> <mesh maps dir> <depth s> <out dir> [--ds 2] [--radius 8]"""
+Usage: inkfirst_within.py <patches.npz> <ink map dir> <model> <flattened dir> <mesh maps dir> <depth s> <out dir> [--ds 2] [--radius 8] (all options: --help)"""
 import argparse, glob, json, os
 import cv2, numpy as np, tifffile
 from scipy.spatial import cKDTree

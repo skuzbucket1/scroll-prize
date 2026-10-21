@@ -3,7 +3,7 @@
 meshes (the neighbour's nearest node), and the distance between the two surfaces there: a few hundredths of a mm means
 the same sheet (the fit put both windings on it). Also each winding's real size of a preview pixel (median 3D spacing
 of its mesh nodes, voxel size, render pixels per node and per preview pixel).
-Usage: viewer_links.py <out.json> <group> <scroll dir> <fit> <um> <w,w,...> [<group> <scroll dir> <fit> <um> <w,...> ...]
+Usage: viewer_links.py <out.json> <group> <scroll dir> <fit> <um> <w,w,...> [<group> <scroll dir> <fit> <um> <w,...> ...] (all options: --help)
        [--step 400] [--preview 2]"""
 import argparse, json, os
 import numpy as np, tifffile

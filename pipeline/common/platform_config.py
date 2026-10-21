@@ -18,7 +18,8 @@ Sections:
 Python:  cfg = platform_config.load(); cfg.gpu('box:gpu0'); cfg.path('renders'); cfg.volume_url('PHerc0139'); cfg.checkpoint('reader-v3')
 Shell:   G=$(python3 platform_config.py get gpu box:gpu0); R=$(python3 platform_config.py get path box:renders)
 Check:   python3 platform_config.py check [file]   (validates it; exits 1 and lists every problem)
-Stdlib only."""
+Stdlib only.
+Usage: platform_config.py check [file] | get gpu|path|volume_url|checkpoint <ref> | export-json [file]"""
 import json, os, re, socket, sys
 
 UUID = re.compile(r'GPU-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')

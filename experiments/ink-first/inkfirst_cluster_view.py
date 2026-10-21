@@ -10,7 +10,7 @@ the most hot patches. One point is sampled per 96^3 cell, so where windings are 
 picture can be upside down but is not mirrored when that side is the written one. Thumbnails are blended with a taper;
 blue-grey = no patch there.
 Writes <out>/<cluster>_<order>.jpg and <out>/sheets_<order>.tsv (patches on the sheet, area, hot share on each side).
-Usage: inkfirst_cluster_view.py <results dir (*/summary.npz)> <clusters_<order>.tsv> <out dir> [--order fwd] [--top 12]
+Usage: inkfirst_cluster_view.py <results dir (*/summary.npz)> <clusters_<order>.tsv> <out dir> [--order fwd] [--top 12] (all options: --help)
        [--radius 5] [--step 1.8] [--plane 14] [--angle 25] [--hot 0.5] [--model readerv2] [--um 8.64] [--label PHerc0175A]"""
 import argparse, glob, os
 import cv2, numpy as np

@@ -4,7 +4,7 @@ same place on neighbouring windings, found through the 3D meshes (the neighbour'
 centre). Writing sits on one turn and on the reading side; a crack or a fold shows in the CT and lines up on
 consecutive turns. Windows are given as y,x (top left, render pixels of the main winding) or picked as the `top`
 non-overlapping windows with the highest mean reading-minus-blind ensemble.
-Usage: neighbour_view.py <scroll dir (data/PHercNNNN)> <fit> <winding> <neighbours,> <out dir> [--models readerv2,d9v4c]
+Usage: neighbour_view.py <scroll dir (data/PHercNNNN)> <fit> <winding> <neighbours,> <out dir> [--models readerv2,d9v4c] (all options: --help)
        [--depth 0] [--win y,x ...] [--top 3] [--h-mm 8] [--w-mm 14] [--um 9.362] [--shrink 2]"""
 import argparse, json, os, sys
 import cv2, numpy as np, tifffile, zarr
