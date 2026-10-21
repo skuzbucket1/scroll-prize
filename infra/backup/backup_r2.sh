@@ -17,8 +17,8 @@
 #     Credentials from .secrets via infra/backup/r2_env.sh (never printed).
 # Never backed up (all can be downloaded or rebuilt): .secrets, the public scans and other public inputs (data/*/source, CT crops),
 # model files (checksums in the private config), upstream code (villa/, wt/, ext/, envs/), caches, scratch, tmp, the sites (built
-# from the data), and for now the 66-layer renders (*_66.zarr, deep-look crops, temporary CT chunk stores): rebuilt from the
-# public scans and our backed-up meshes; single renders can be kept through the private lists; the rest is Ted's decision.
+# from the data), temporary CT chunk stores, and the search bands' renders (data/<scroll>/renders, rebuilt from the backed-up
+# meshes: Ted 2026-10-21, a monthly budget; until there is a NAS). Every other render is backed up (Ted 10-21: "Keep all of the others").
 # rclone sync with --backup-dir r2:<bucket>/_archive/<UTC stamp>/<dest>/: files changed or deleted locally are kept in R2.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)   # infra/backup on the Mac, ~/scroll-prizes/scripts on the box (its two lists live next to it)
@@ -28,9 +28,8 @@ TMPD=$(mktemp -d); trap 'rm -rf $TMPD' EXIT
 COMMON='- .DS_Store
 - **/.venv/**
 - **/__pycache__/**
-- **/*_66.zarr/**
 - **/ct_*.zarr/**
-- **/ct-*.zarr/**'                                  # renders; downloaded CT crops and temporary CT chunk stores
+- **/ct-*.zarr/**'                                  # downloaded CT crops and temporary CT chunk stores
 plist(){ [ -f "$1" ] && { grep -v '^#' "$1" || true; } | sed '/^$/d; /^[+-] /!s|^|+ |'; return 0; }   # a private list, + / - kept
 
 if [ "$HOST" = mac ]; then
@@ -50,7 +49,7 @@ else
     echo '- /data/*/inkfirst*/*.zarr/**'; echo '- /data/*/inkfirst*/**/mosaic.zarr/**'; echo '- /data/*/inkfirst*/**/q[0-3]/**'
     echo '+ /data/*/inputs/spiral-dataset/umbilicus*'; echo '+ /data/*/inputs/spiral-dataset/spiral-scroll.json'
     echo '+ /data/*/inputs/spiral-dataset/qa/**'; echo '- /data/*/inputs/**'            # inputs: only what we made (centre, QA)
-    echo '- /work/deeplook-*/*.zarr/**'; echo '- /work/tmp/**'                     # crops of renders; tmp
+    echo '- /work/tmp/**'                                                         # tmp
     echo '+ /data/**'; echo '+ /runs/**'; echo '+ /work/**'; echo '+ /backup/**'
     echo '- **'; } > $TMPD/f1
   { plist $HERE/box2_private_paths.txt; echo "$COMMON"
