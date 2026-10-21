@@ -62,7 +62,7 @@ for title, sub, cards in sections:
     out.append(f'<section><h2>{html.escape(title)}<small>{html.escape(sub)} &middot; {len(cards)}</small></h2><div class="g">')
     for c in cards:
         inner = f'<img loading="lazy" src="{html.escape(c["img"])}">' if c['img'] else '<div class="x">open</div>'
-        out.append(f'<div class="c" data-k="{html.escape((title + " " + c["cap"]).lower())}"><a href="{html.escape(c["href"])}" target="_blank">'
+        out.append(f'<div class="c" data-k="{html.escape((title + " " + c["cap"]).lower())}"><a href="{html.escape(c["href"])}">'
                    f'{inner}<p>{html.escape(c["cap"])}</p></a></div>')
     out.append('</div></section>')
 out.append('''<script>const q=document.getElementById('q'),n=document.getElementById('n');
