@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """stroke_score.py - rank areas of a 66-layer surface by stroke-like ink in the four-model ensemble, reading vs blind side.
 
-  python stroke_score.py --surface <name>.zarr --maps <run_ink.sh outputs> --out <dir> --um 9.362 --depth 1 [--name N]
+  python stroke_score.py --surface <name>.zarr --maps <run_ink.sh outputs> --out <dir> --um 9.362 --depth 1 [--name N] (all options: --help)
 
 Per side (reading = "reverse" maps, blind = "forward" maps), at one depth:
   ensemble   per model z = (map - mean) / sd with the READING side's mean and sd over valid pixels at this depth
