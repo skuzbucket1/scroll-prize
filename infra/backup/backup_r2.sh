@@ -2,6 +2,8 @@
 # Back up everything we made that cannot simply be downloaded again, on every disk, to Ted's private S3-compatible backup bucket
 # with rclone (Ted 2026-10-21: "we need to backup the code and the data we can't just redownload regardless the disk it lives on").
 # Usage: infra/backup/backup_r2.sh mac|box [--dry-run]      (--dry-run prints the size of each job's selection, uploads nothing)
+#   --filters <dir>: write each job's rclone filter file to <dir>/<dest>.filter (and <dir>/jobs.tsv: root, dest, file) and stop
+#   (2026-10-27: lets another tool select exactly the files this backup selects).
 #   box (run on the GPU box), two jobs, one per disk:
 #     /mnt/nvme/scroll-prizes  -> r2:<bucket>/box    data/ (geometry, ink maps, scores, inputs' centre files, ink-first results,
 #                                                     controls, training sets ...), runs/, work/ (every task's results)
@@ -61,6 +63,11 @@ else
   JOBS=("/mnt/nvme/scroll-prizes|box|$TMPD/f1" "/mnt/nvme2/scroll-prizes|box2|$TMPD/f2")
 fi
 
+if [ "$DRY" = --filters ]; then
+  OD=${3:?--filters needs a folder}; mkdir -p "$OD"; : > "$OD/jobs.tsv"
+  for job in "${JOBS[@]}"; do IFS='|' read -r ROOT DEST FILT <<< "$job"; cp "$FILT" "$OD/$DEST.filter"; printf '%s\t%s\t%s\n' "$ROOT" "$DEST" "$OD/$DEST.filter" >> "$OD/jobs.tsv"; done
+  exit 0
+fi
 worst=0
 for job in "${JOBS[@]}"; do
   IFS='|' read -r ROOT DEST FILT <<< "$job"
