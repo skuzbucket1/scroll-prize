@@ -14,6 +14,16 @@ NAME=$1; SEG=$2; URL=$3; UM=$4; MODELS=${5//,/ }; DEPTHS=${6//,/ }
 VU=$(echo "$URL" | grep -oE -- '-[0-9]+\.[0-9]+um-' | tr -d 'um-' | head -1)
 if [ -n "$VU" ] && [ "${GROUP_IDX:-0}" = 0 ] && ! awk -v a="$UM" -v b="$VU" 'BEGIN{exit !((a - b) ^ 2 < 1e-6)}'; then
   echo "native_um $UM does not match the volume ($VU um)"; echo "RUN-EXIT: 1"; exit 1; fi
+# 2026-10-27 (Ted: "why are we not using the NVMEs on the instances?"): the scratch - VC3D's streamed CT chunks (~/.VC3D, ~1 GB per winding;
+# on the root disk it filled a 145 GB volume to 67 % in 39 windings), the 66-layer renders (work) and temp files - on the instance's
+# local NVMe when there is one (DLAMI /opt/dlami/nvme); the chunk cache is cleared past VC3D_CACHE_MAX_GB (300). The results stay on
+# the root disk, where the launcher fetches them: the NVMe is wiped when a spot instance is reclaimed, and finished windings are home
+# within minutes, so a replacement only redoes the ones in flight. Done between windings (nothing uses work / tmp then).
+if [ -d /opt/dlami/nvme ] && [ -w /opt/dlami/nvme ]; then
+  for d in /opt/scroll/work /opt/scroll/tmp ~/.VC3D; do [ -L $d ] && continue; n=/opt/dlami/nvme/$(basename $d); mkdir -p $n
+    if [ $d != ~/.VC3D ] && [ -d $d ]; then cp -a $d/. $n/ 2>/dev/null; fi; rm -rf $d; ln -sfn $n $d; done
+fi
+cmb=$(du -sm ~/.VC3D/ 2>/dev/null | cut -f1); [ "${cmb:-0}" -gt $(( ${VC3D_CACHE_MAX_GB:-300} * 1024 )) ] && rm -rf ~/.VC3D/remote_cache
 R=/opt/scroll/results/$NAME; W=/opt/scroll/work; mkdir -p $R/maps $R/previews $W /opt/scroll/cache/$NAME
 TIM=$R/timings.tsv; [ -f $TIM ] || printf 'step\tseconds\trc\n' > $TIM
 # Snapped but not yet flattened (anything not named flatten.tifxyz): flatten here with Lasagna first.
@@ -29,10 +39,6 @@ if [ "$(basename "${SEG%/}")" != flatten.tifxyz ]; then
   fi
   SEG=$F/tifxyz/flatten.tifxyz
 fi
-# 2026-10-27: VC3D keeps every streamed CT chunk in ~/.VC3D (~1 GB per winding; a read run filled the 145 GB root disk to 67 % in 39
-# windings): on the instance's local NVMe when there is one (DLAMI /opt/dlami/nvme), cleared when it passes VC3D_CACHE_MAX_GB (300).
-if [ -d /opt/dlami/nvme ] && [ -w /opt/dlami/nvme ] && [ ! -L ~/.VC3D ]; then rm -rf ~/.VC3D; mkdir -p /opt/dlami/nvme/VC3D; ln -sfn /opt/dlami/nvme/VC3D ~/.VC3D; fi
-cmb=$(du -sm ~/.VC3D/ 2>/dev/null | cut -f1); [ "${cmb:-0}" -gt $(( ${VC3D_CACHE_MAX_GB:-300} * 1024 )) ] && rm -rf ~/.VC3D/remote_cache
 Z=$W/${NAME}_66.zarr; ZP=$W/${NAME}_66.partial.zarr
 if [ ! -f $Z/.ok ]; then
   t0=$(date +%s); rm -rf $ZP
