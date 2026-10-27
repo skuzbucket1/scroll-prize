@@ -5,6 +5,8 @@
 # 2026-10-15 (audit B1): a segment is DONE only when run_segment.sh exits 0 (every map present) and the ensemble step works;
 # failed segments are listed in failed.txt and retried on the next run; BATCH-EXIT gives the number of failed segments and
 # the script exits non-zero if any failed. KEEP_RENDERS=1 keeps the renders (they used to be deleted regardless).
+# READ_ONLY=1: the maps only (render + ink); no ensemble images, stroke score or post step, as the GPU machine's Track 1 reads
+# (those steps are made for the four-model sets and cost CPU time on every winding).
 set -uo pipefail
 B=/opt/scroll/jobs/batch.tsv; OUT=/opt/scroll/results; mkdir -p $OUT
 N=$(grep -cv '^\s*$' $B); k=0; nfail=0; : > $OUT/failed.txt
@@ -36,6 +38,10 @@ while IFS=$'\t' read -r NAME SEG URL UM MODELS DEPTHS; do
   if [ $src -ne 0 ]; then
     nfail=$((nfail + 1)); echo "$NAME run_segment rc=$src: $(grep -E 'missing|RUN-EXIT|not' $OUT/$NAME.run.log | tail -2 | tr '\n' ' ')" >> $OUT/failed.txt
     echo "$k/$N $NAME FAILED $(date -u +%FT%TZ)" > $OUT/progress.txt; continue
+  fi
+  if [ "${READ_ONLY:-0}" = 1 ]; then
+    touch $OUT/$NAME/DONE; [ "${KEEP_RENDERS:-0}" = 1 ] || rm -rf /opt/scroll/work/${NAME}_66.zarr
+    echo "$k/$N $NAME done $(date -u +%FT%TZ)" > $OUT/progress.txt; continue
   fi
   (cd /opt/scroll/villa/vesuvius && $PY /opt/scroll/bin/ink343/ensemble_maps.py --surface /opt/scroll/work/${NAME}_66.zarr --name ${NAME}_66 \
       --maps $OUT/$NAME/maps --out $OUT/$NAME/ensemble --stat-depths $SD --write-depths $SD > $OUT/$NAME/ensemble/ensemble.log 2>&1) \
