@@ -29,6 +29,10 @@ if [ "$(basename "${SEG%/}")" != flatten.tifxyz ]; then
   fi
   SEG=$F/tifxyz/flatten.tifxyz
 fi
+# 2026-10-27: VC3D keeps every streamed CT chunk in ~/.VC3D (~1 GB per winding; a read run filled the 145 GB root disk to 67 % in 39
+# windings): on the instance's local NVMe when there is one (DLAMI /opt/dlami/nvme), cleared when it passes VC3D_CACHE_MAX_GB (300).
+if [ -d /opt/dlami/nvme ] && [ -w /opt/dlami/nvme ] && [ ! -L ~/.VC3D ]; then rm -rf ~/.VC3D; mkdir -p /opt/dlami/nvme/VC3D; ln -sfn /opt/dlami/nvme/VC3D ~/.VC3D; fi
+cmb=$(du -sm ~/.VC3D/ 2>/dev/null | cut -f1); [ "${cmb:-0}" -gt $(( ${VC3D_CACHE_MAX_GB:-300} * 1024 )) ] && rm -rf ~/.VC3D/remote_cache
 Z=$W/${NAME}_66.zarr; ZP=$W/${NAME}_66.partial.zarr
 if [ ! -f $Z/.ok ]; then
   t0=$(date +%s); rm -rf $ZP
