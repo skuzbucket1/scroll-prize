@@ -84,4 +84,11 @@ print("previews written")
 PY
 nvidia-smi --query-gpu=name,memory.used --format=csv,noheader >> $R/gpu.txt
 [ -z "$miss" ] || { echo "missing maps:$miss"; echo "RUN-EXIT: 1"; exit 1; }
+# 2026-10-27 (Ted: scroll data goes to R2 as it is made): when the box has put the R2 tools here (/opt/scroll/r2: rclone, its [r2]
+# remote, bucket, maps_dest), the finished maps go straight to the scroll's folder in R2 - a reclaimed spot instance then loses only
+# the winding in flight. Non-fatal: the launcher still fetches every winding home.
+if [ -x /opt/scroll/r2/rclone ] && [ -s /opt/scroll/r2/maps_dest ] && [[ $NAME != parity* ]]; then
+  if /opt/scroll/r2/rclone --config /opt/scroll/r2/rclone.conf copy $R/maps "r2:$(cat /opt/scroll/r2/bucket)/$(cat /opt/scroll/r2/maps_dest)/" \
+       --include "${NAME}_66__*" --transfers 6 -q >> $R/r2.log 2>&1; then date -u +%FT%TZ > $R/R2; else echo "r2 upload failed" >> $R/r2.log; fi
+fi
 echo "RUN-EXIT: 0"
