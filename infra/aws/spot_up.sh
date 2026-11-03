@@ -37,7 +37,8 @@ log "AMI $AMI ($ROOTDEV) from $AMI_SSM"
 UD=$ISTATE/userdata.sh
 sed -e "s|@MAX_MINUTES@|$(( ${FLEET_MAX_HOURS:-$MAX_HOURS} * 60 ))|g" -e "s|@VILLA_COMMIT@|$VILLA_COMMIT|g" -e "s|@VC3D_RELEASE@|$VC3D_RELEASE|g" "$HERE/userdata.sh.tmpl" > "$UD"
 
-NAME="$PROJECT_TAG-${WORKER_NAME:-spot}-$(date -u +%Y%m%d-%H%M%S)"
+# NAME_PREFIX, when set, names the instance <prefix>-<epoch> (Unix seconds); otherwise <project tag>-<worker>-<UTC time> as before
+NAME="${NAME_PREFIX:+$NAME_PREFIX-$(date -u +%s)}"; NAME="${NAME:-$PROJECT_TAG-${WORKER_NAME:-spot}-$(date -u +%Y%m%d-%H%M%S)}"
 # MARKET: spot (ceiling MAX_PRICE) | ondemand | spot-then-ondemand: every type on spot first, cheapest zone first, and only
 # where its spot price is at most SPOT_MAX_FRACTION (default 0.6) of the on-demand price (that is also the bid ceiling;
 # 2026-10-13 the first zone tried gave g5.4xlarge spot at $1.48 against $1.62 on-demand), then the same list on-demand.
