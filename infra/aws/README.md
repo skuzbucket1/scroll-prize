@@ -32,6 +32,10 @@ results to `data/aws-results/<instance id>/`, and terminates the instance. Expec
 - Spot one-time requests with a price ceiling (`MAX_PRICE`); interruptions terminate, never stop.
 - Root volume is deleted on termination; everything is tagged `Project=scroll-prize`; teardown only touches tagged resources.
 - No AWS credentials on the instance: the CT is public over HTTPS and the models are public on Hugging Face.
+- One credential does go onto the instance: an rclone config for the Cloudflare R2 bucket (in `/opt/scroll/r2`, mode 600, never
+  printed), so `run_segment.sh` can put each finished winding's maps in R2 and the geometry job can save its checkpoints there
+  (a reclaimed spot instance then loses only the work in flight). Use an R2 API token scoped to that bucket's scroll folders,
+  not an account-wide one.
 
 ## What runs on the instance
 Ubuntu 24.04 Deep Learning Base GPU AMI (looked up via SSM at launch) → uv → villa `vesuvius` at a pinned commit
