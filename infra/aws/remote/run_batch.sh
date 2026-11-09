@@ -8,7 +8,9 @@
 # READ_ONLY=1: the maps only (render + ink); no ensemble images, stroke score or post step, as the GPU machine's Track 1 reads
 # (those steps are made for the four-model sets and cost CPU time on every winding).
 set -uo pipefail
-B=/opt/scroll/jobs/batch.tsv; OUT=/opt/scroll/results; mkdir -p $OUT
+# 2026-11-09: a STOP marker in results/ (the read launcher's cost rule) ends the loop BEFORE the next winding -
+# the winding running now finishes; BATCH_FILE / RESULTS_DIR / RUN_SEGMENT override the paths (the launcher's fake mode only).
+B=${BATCH_FILE:-/opt/scroll/jobs/batch.tsv}; OUT=${RESULTS_DIR:-/opt/scroll/results}; RUNSEG=${RUN_SEGMENT:-/opt/scroll/bin/run_segment.sh}; mkdir -p $OUT
 N=$(grep -cv '^\s*$' $B); k=0; nfail=0; : > $OUT/failed.txt
 PY=/opt/scroll/villa/vesuvius/.venv/bin/python
 # Scan-Quality-Map in the background (CPU, streams the volume from S3), one segment at a time, while the GPU does ink.
@@ -30,9 +32,10 @@ if [ -f /opt/scroll/jobs/sqm.on ] && [ -x /opt/scroll/sqm-venv/bin/sqm ]; then
 fi
 while IFS=$'\t' read -r NAME SEG URL UM MODELS DEPTHS; do
   [ -n "$NAME" ] || continue; k=$((k + 1))
+  [ -f $OUT/STOP ] && { echo "$k/$N stopped before $NAME: STOP (the launcher's cost rule) $(date -u +%FT%TZ)" > $OUT/progress.txt; break; }
   echo "$k/$N $NAME start $(date -u +%FT%TZ)" > $OUT/progress.txt
   [ -f $OUT/$NAME/DONE ] && continue
-  bash /opt/scroll/bin/run_segment.sh "$NAME" "$SEG" "$URL" "$UM" "$MODELS" "$DEPTHS" > $OUT/$NAME.run.log 2>&1; src=$?
+  bash $RUNSEG "$NAME" "$SEG" "$URL" "$UM" "$MODELS" "$DEPTHS" > $OUT/$NAME.run.log 2>&1; src=$?
   SD=$(echo "$DEPTHS" | tr ',' ' ')
   mkdir -p $OUT/$NAME/ensemble
   if [ $src -ne 0 ]; then
